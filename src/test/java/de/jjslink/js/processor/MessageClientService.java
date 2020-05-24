@@ -4,7 +4,7 @@ import de.jjslink.annotations.ClientService;
 import de.jjslink.annotations.LinkedMethod;
 import de.jjslink.annotations.UserId;
 
-@ClientService
+@ClientService(clientClass = "MessageService")
 abstract class MessageClientService {
 
     @LinkedMethod(clientMethod = "onMessageReceived")
