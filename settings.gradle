@@ -1,5 +1,0 @@
-rootProject.name = 'Link-API'
-include 'JJS-Linked-Annotations'
-include 'JJS-Linked-Processor'
-include 'JJS-Linked-Example'
-
