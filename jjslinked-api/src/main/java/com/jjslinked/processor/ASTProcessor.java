@@ -1,4 +1,4 @@
-package processor;
+package com.jjslinked.processor;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -8,8 +8,12 @@ import java.util.Set;
 
 @SupportedAnnotationTypes("com.jjslink.annotations.Client")
 public class ASTProcessor extends AbstractProcessor {
+
+    static int counter;
+
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnvironment) {
+        System.out.println("ASTProcessor: counter=" +counter++);
         annotations.stream().flatMap(annotation -> roundEnvironment.getElementsAnnotatedWith(annotation).stream())
                 .map(TypeElement.class::cast).forEach(this::processClientClass);
         return false;

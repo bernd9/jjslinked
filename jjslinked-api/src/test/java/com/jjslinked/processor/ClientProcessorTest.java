@@ -5,7 +5,7 @@ import com.google.testing.compile.Compiler;
 import com.google.testing.compile.JavaFileObjects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import processor.ClientProcessor;
+import com.jjslinked.processor.ClientProcessor;
 
 import javax.tools.JavaFileObject;
 

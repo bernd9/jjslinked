@@ -1,4 +1,4 @@
-package processor;
+package com.jjslinked.processor;
 
 import com.jjslinked.annotations.LinkedMethod;
 import com.jjslinked.ast.ClientClassNode;
@@ -25,21 +25,9 @@ import static javax.lang.model.element.ElementKind.PARAMETER;
 @SupportedAnnotationTypes("com.jjslink.annotations.Client")
 public class ClientProcessor extends AbstractProcessor {
 
-    private TypeElement linkedMethodAnnotation;
-    private TypeElement linkedObservableAnnotation;
-
-    @Override
-    public synchronized void init(ProcessingEnvironment processingEnv) {
-        TypeElements typeElements = new TypeElements(processingEnv);
-        this.linkedMethodAnnotation = typeElements.getByName(Annotations.LinkedMethod.className());
-        this.linkedMethodAnnotation = typeElements.getByName(Annotations.LinkedObservable.className());
-
-
-        super.init(processingEnv);
-    }
-
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        System.out.println("ClientProcessor: counter=" +ASTProcessor.counter++);
         annotations.stream().flatMap(annotation -> roundEnv.getElementsAnnotatedWith(annotation).stream())
                 .map(TypeElement.class::cast).forEach(this::processClientClass);
         return false;

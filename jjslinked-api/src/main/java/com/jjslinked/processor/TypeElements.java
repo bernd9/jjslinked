@@ -1,4 +1,4 @@
-package processor;
+package com.jjslinked.processor;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.TypeElement;

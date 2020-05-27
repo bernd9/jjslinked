@@ -1,4 +1,4 @@
-package processor;
+package com.jjslinked.processor;
 
 import lombok.RequiredArgsConstructor;
 
