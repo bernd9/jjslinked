@@ -10,4 +10,9 @@ public class Test {
         return i + 2;
     }
 
+    @LinkedMethod
+    int add3(int i, @UserId String userId) {
+        return i + 3;
+    }
+
 }

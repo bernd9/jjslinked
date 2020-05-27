@@ -1,0 +1,3 @@
+com.jjslinked.processor.ClientProcessor
+com.jjslinked.processor.UserIdProcessor
+com.jjslinked.processor.ASTProcessor

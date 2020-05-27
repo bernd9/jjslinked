@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.jjslinked.processor.ClientProcessorTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2020-05-27T19:37:36" hostname="macbookpro" time="1.521">
+<testsuite name="com.jjslinked.processor.ClientProcessorTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2020-05-27T20:46:55" hostname="macbookpro" time="1.419">
   <properties/>
-  <testcase name="test()" classname="com.jjslinked.processor.ClientProcessorTest" time="1.521"/>
+  <testcase name="test()" classname="com.jjslinked.processor.ClientProcessorTest" time="1.419"/>
   <system-out><![CDATA[SUCCESS
 ]]></system-out>
   <system-err><![CDATA[]]></system-err>

@@ -17,7 +17,6 @@ import javax.lang.model.type.TypeMirror;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.List;
@@ -26,36 +25,24 @@ import java.util.stream.Collectors;
 
 import static javax.lang.model.element.ElementKind.PARAMETER;
 
-@AutoService(Processor.class)
-@SupportedAnnotationTypes("com.jjslinked.annotations.Client")
+@SupportedAnnotationTypes("com.jjslinked.annotations.UserId")
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
-public class ClientProcessor extends AbstractProcessor {
+@AutoService(Processor.class)
+public class UserIdProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         //System.out.println("ClientProcessor: counter=" +ASTProcessor.counter++);
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "ClientProcessor: counter=" +ASTProcessor.counter++);
+        processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "UserIdProcessor: counter=" +ASTProcessor.counter++);
         annotations.stream().flatMap(annotation -> roundEnv.getElementsAnnotatedWith(annotation).stream())
-                .map(TypeElement.class::cast).forEach(this::processClientClass);
-        if (roundEnv.processingOver()) {
-            try {
-                JavaFileObject fileObject = processingEnv.getFiler().createSourceFile("Xyz");
-                try (PrintWriter out = new PrintWriter(fileObject.openOutputStream())) {
-                    out.println("class Xyz {}");
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
+                .map(VariableElement.class::cast).forEach(this::processVariable);
+
         return false;
     }
 
-    private void processClientClass(TypeElement clientElement) {
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "processing:"+clientElement.getSimpleName());
-        ClientClassNode clientClassNode = ClientClassNode.builder()
-                .linkedObservables(linkedObservableNodes(clientElement))
-                .linkedMethods(linkedMethodNodes(clientElement))
-                .build();
+    private void processVariable(VariableElement clientElement) {
+        processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "UserIdProcessor processing:"+clientElement.getSimpleName());
+        
 
     }
 
