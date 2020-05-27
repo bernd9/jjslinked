@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.jjslinked.processor.ClientProcessorTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2020-05-27T19:15:41" hostname="macbookpro" time="1.006">
+  <properties/>
+  <testcase name="test()" classname="com.jjslinked.processor.ClientProcessorTest" time="1.006"/>
+  <system-out><![CDATA[SUCCESS
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
