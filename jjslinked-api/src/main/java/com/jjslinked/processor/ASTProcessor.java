@@ -23,6 +23,6 @@ public class ASTProcessor extends AbstractProcessor {
     }
 
     private void processClientClass(TypeElement clientElement) {
-
+        processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "processing:"+clientElement.getSimpleName());
     }
 }
