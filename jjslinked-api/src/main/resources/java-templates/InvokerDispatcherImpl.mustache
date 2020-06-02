@@ -22,8 +22,9 @@ public class InvokerDispatcherImpl implements InvokerDispatcher {
     public InvokerDispatcherImpl(Context context) {
         this.context = context;
         {{#clientClasses}}
-        this.{{instanceName}}Invoker = this.context.getBean({{simpleName}}Invoker.class);
+        this.{{instanceName}}Invoker = new {{simpleName}}Invoker(this.context.getBean({{simpleName}}.class));
         {{/clientClasses}}
+
     }
 
     @Override

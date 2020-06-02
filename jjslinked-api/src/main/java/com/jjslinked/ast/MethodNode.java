@@ -17,4 +17,6 @@ public class MethodNode {
     private ExecutableElement executableElement;
     private boolean abstractMethod;
     private InvokationType invokationType;
+    private String qualifier;
+    private String proxyName;
 }

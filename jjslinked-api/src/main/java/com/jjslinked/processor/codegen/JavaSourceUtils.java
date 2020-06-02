@@ -14,6 +14,12 @@ public class JavaSourceUtils {
         return new StringBuilder().append(Character.toLowerCase(s.charAt(0))).append(s.substring(1)).toString();
     }
 
+    public static String firstToUpperCase(String s) {
+        if (s == null || s.length() == 0)
+            return "";
+        return new StringBuilder().append(Character.toUpperCase(s.charAt(0))).append(s.substring(1)).toString();
+    }
+
     public static String getPackageName(Name qualifiedName) {
         return getPackageName(qualifiedName.toString());
     }

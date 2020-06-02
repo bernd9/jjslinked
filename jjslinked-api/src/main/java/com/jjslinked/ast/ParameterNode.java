@@ -1,5 +1,6 @@
 package com.jjslinked.ast;
 
+import com.jjslinked.parameters.ParameterProvider;
 import lombok.Builder;
 import lombok.Value;
 
@@ -14,5 +15,5 @@ public class ParameterNode {
     private final Name parameterName;
     private final boolean clientId;
     private final boolean userId;
-
+    private ParameterProvider parameterProvider;
 }

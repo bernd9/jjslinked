@@ -2,12 +2,45 @@ package {{packageName}};
 
 import com.jjslinked.model.ClientMessage;
 import com.jjslinked.invokation.InvokerDispatcher;
-import com.jjslinked.Context;
+import static com.jjslinked.Parameters.*;
 
 public class {{simpleName}}Invoker  {
 
+    enum Methods {
+        {{#abstractMethods}}
+        {{qualifier}},
+        {{/abstractMethods}}
+    }
+
+    private final {{simpleName}} {{instanceName}};
+
+    public {{simpleName}}Invoker({{simpleName}} {{instanceName}}) {
+        this.{{instanceName}} = {{instanceName}};
+    }
+
     public void invoke(ClientMessage message) {
+        switch(Methods.valueOf(message.getMethod())) {
+        {{#abstractMethods}}
+        case {{qualifier}} : break;
+        {{/abstractMethods}}
+
+        }
 
     }
+
+     {{#abstractMethods}}
+     private static class {{proxyName}} {
+
+        private final {{simpleName}} {{instanceName}};
+
+        {{proxyName}}({{simpleName}} {{instanceName}}) {
+            this.{{instanceName}} = {{instanceName}};
+        }
+
+
+     }
+     {{/abstractMethods}}
+
+
 
 }

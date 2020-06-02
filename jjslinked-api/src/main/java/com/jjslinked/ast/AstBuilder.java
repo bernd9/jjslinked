@@ -4,6 +4,8 @@ import com.jjslinked.annotations.Client;
 import com.jjslinked.annotations.ClientId;
 import com.jjslinked.annotations.LinkedMethod;
 import com.jjslinked.annotations.UserId;
+import com.jjslinked.parameters.ParameterProvider;
+import com.jjslinked.parameters.UserIdParameterProvider;
 import com.jjslinked.processor.codegen.JavaSourceUtils;
 
 import javax.lang.model.element.*;
@@ -38,6 +40,8 @@ public class AstBuilder {
     private static MethodNode methodNode(ExecutableElement e) {
         return MethodNode.builder()
                 .executableElement(e)
+                .qualifier(e.getAnnotation(LinkedMethod.class).value())
+                .proxyName(JavaSourceUtils.firstToUpperCase(e.getSimpleName() + "Proxy"))
                 .name(e.getSimpleName().toString())
                 .parameterNodes(parameterNodes(e))
                 .abstractMethod(e.getModifiers().contains(Modifier.ABSTRACT))
@@ -49,8 +53,6 @@ public class AstBuilder {
 
     private static List<ParameterNode> parameterNodes(ExecutableElement e) {
         return e.getParameters().stream()
-                //Element.class::isInstance)
-                //.map(VariableElement.class::cast)
                 .map(AstBuilder::parameterNode)
                 .collect(Collectors.toList());
     }
@@ -62,7 +64,19 @@ public class AstBuilder {
                 .userId(isUserId(variableElement))
                 .type(variableElement.asType().toString())
                 .typeKind(variableElement.asType().getKind())
+                .parameterProvider(parameterProvider(variableElement))
                 .build();
+    }
+
+    private static ParameterProvider parameterProvider(VariableElement variableElement) {
+        if (isUserId(variableElement)) {
+            return new UserIdParameterProvider();
+        }
+        if (isClientId(variableElement)) {
+            return new UserIdParameterProvider();
+        }
+        // TODO
+        return null;
     }
 
     private static boolean isLinkedMethod(ExecutableElement e) {

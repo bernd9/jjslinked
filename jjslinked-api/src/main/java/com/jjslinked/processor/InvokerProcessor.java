@@ -54,4 +54,5 @@ public class InvokerProcessor extends AbstractProcessor {
     private void log(String message, Object... args) {
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, String.format(message, args));
     }
+
 }
