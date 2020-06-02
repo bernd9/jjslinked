@@ -9,8 +9,9 @@ import java.util.Optional;
 @Value
 @Builder
 public class ClientMessage {
+    private String service;
     private String path;
     private String clientId;
     private Optional<String> userId;
-    private Map<String,String> parameters;
+    private Map<String, String> parameters;
 }

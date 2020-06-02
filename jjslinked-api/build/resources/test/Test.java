@@ -2,7 +2,7 @@ import com.jjslinked.annotations.Client;
 import com.jjslinked.annotations.LinkedMethod;
 import com.jjslinked.annotations.UserId;
 
-@Client
+@Client("testClient")
 public class Test {
 
     @LinkedMethod
@@ -11,8 +11,6 @@ public class Test {
     }
 
     @LinkedMethod
-    int add3(int i, @UserId String userId) {
-        return i + 3;
-    }
+    abstract void test();
 
 }

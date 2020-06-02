@@ -21,12 +21,12 @@ class ChatServiceInvoker {
     }
 
 
-    private class SendMessageProxy {
+    private class OnMessageMethodProxy {
 
         private ChatService chatService;
 
         void invoke(ClientRequest request) {
-
+            chatService.onMessage(paramMessage.prepare(request), paramUserId.prepare(request))
         }
 
         void before(ClientRequest request) {
@@ -35,12 +35,8 @@ class ChatServiceInvoker {
 
         private ParamMessage {
 
-            void prepare(ClientRequest request) {
+            String prepare(ClientRequest request) {
                 return validate(converter.convert(request.getParameter("message"), String.class));
-            }
-
-            private String convert(String praram) {
-
             }
 
             // Noramally not String
@@ -49,16 +45,6 @@ class ChatServiceInvoker {
             }
 
         }
-
-        private String prepareMessage(ClientRequest request) {
-            return validate(converter.convert(request.getParameter("message"), String.class));
-        }
-
-        private String prepareUserId(ClientRequest request) {
-            return validate(converter.convert(features.getParameterFeature(UserId.class).apply(request), String.class));
-        }
-
-        private Message prepareMessage()
 
     }
 
