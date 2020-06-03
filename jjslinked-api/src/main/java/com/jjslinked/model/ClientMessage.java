@@ -14,4 +14,8 @@ public class ClientMessage {
     private Optional<String> clientId;
     private Optional<String> userId;
     private Map<String, String> parameters;
+
+    public String getParameter(String name) {
+        return parameters.get(name);
+    }
 }

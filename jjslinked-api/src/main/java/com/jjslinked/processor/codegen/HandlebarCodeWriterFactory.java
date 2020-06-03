@@ -1,11 +1,8 @@
 package com.jjslinked.processor.codegen;
 
 import com.github.jknack.handlebars.Handlebars;
-import com.github.jknack.handlebars.Helper;
 import com.github.jknack.handlebars.Options;
 import com.github.jknack.handlebars.Template;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import javax.annotation.processing.Filer;
 import javax.tools.JavaFileObject;
@@ -21,12 +18,6 @@ public class HandlebarCodeWriterFactory {
 
     static {
         handlebars.registerHelpers(new Helpers());
-        handlebars.registerHelper("iterate1", new Helper<Object>() {
-            @Override
-            public Object apply(Object context, Options options) throws IOException {
-                return null;
-            }
-        });
     }
 
     public HandlebarCodeWriterFactory(String template) {
@@ -67,25 +58,22 @@ public class HandlebarCodeWriterFactory {
 
         }
 
-
-    }
-
-    @Getter
-    @RequiredArgsConstructor
-    public static class IteratedElement {
-        private final Object value;
-        private boolean more;
-
-        public boolean hasMore() {
-            return more;
+        public CharSequence ifEqual(Object value1, Object value2, Options options) throws IOException {
+            if (options.params.length > 0) {
+                value2 = options.param(0);
+            }
+            boolean evaluate;
+            if (value1 == null) {
+                evaluate = value2 == null;
+            } else if (value2 == null) {
+                evaluate = false;
+            } else {
+                evaluate = value1.toString().equals(value2.toString());
+            }
+            if (evaluate) {
+                return options.fn();
+            }
+            return "";
         }
     }
-
-    /*
-    Handlebars handlebars = new Handlebars();
-
-Template template = handlebars.compile("mytemplate");
-
-System.out.println(template.apply("Handlebars.java"));
-     */
 }

@@ -15,6 +15,9 @@ public class ParameterNode {
     private final boolean clientId;
     private final boolean userId;
     private String parameterProviderType;
-    private final boolean string;
-    private final boolean primitiveOrWrapper;
+    private final boolean characterSequence;
+    private final boolean primitive;
+    private final boolean primitiveWrapper;
+    private final boolean complex;
+    private ParameterType parameterType;
 }

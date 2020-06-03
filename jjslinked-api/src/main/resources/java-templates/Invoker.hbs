@@ -2,6 +2,7 @@ package {{packageName}};
 
 import com.jjslinked.model.ClientMessage;
 import com.jjslinked.invokation.InvokerDispatcher;
+import static com.jjslinked.parameters.Converter.*;
 
 public class {{simpleName}}Invoker  {
 
@@ -47,7 +48,12 @@ public class {{simpleName}}Invoker  {
 
         {{#parameters}}
         private {{type}} {{name}}Param(ClientMessage message) {
-            return null;
+           {{#ifEqual parameterType "USER_ID"}}return message.getUserId().orElseThrow();{{/ifEqual}}
+           {{#ifEqual parameterType "CLIENT_ID"}}return message.getClientId().orElseThrow();{{/ifEqual}}
+           {{#ifEqual parameterType "CHARACTER_SEQUENCE"}}return convert(message.getParameter("{{name}}"), {{type}}.class);{{/ifEqual}}
+           {{#ifEqual parameterType "PRIMITIVE"}}return convert(message.getParameter("{{name}}"), {{type}});{{/ifEqual}}
+           {{#ifEqual parameterType "PRIMITIVE_WRAPPER"}}return convert(message.getParameter("{{name}}"), {{type}}.class);{{/ifEqual}}
+           {{#ifEqual parameterType "COMPLEX"}}return convert(message.getParameter("{{name}}"), {{type}}.class);{{/ifEqual}}
         }
         {{/parameters}}
 

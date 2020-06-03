@@ -4,8 +4,6 @@ import com.jjslinked.annotations.Client;
 import com.jjslinked.annotations.ClientId;
 import com.jjslinked.annotations.LinkedMethod;
 import com.jjslinked.annotations.UserId;
-import com.jjslinked.parameters.ParameterProvider;
-import com.jjslinked.parameters.UserIdParameterProvider;
 import com.jjslinked.processor.codegen.JavaSourceUtils;
 
 import javax.lang.model.element.*;
@@ -63,20 +61,23 @@ public class AstBuilder {
                 .name(variableElement.getSimpleName())
                 .clientId(isClientId(variableElement))
                 .userId(isUserId(variableElement))
+                .characterSequence(isCharacterSequence(variableElement))
+                .primitive(isPrimitive(variableElement))
+                .primitiveWrapper(isPrimitiveWrapper(variableElement))
+                .complex(isComplex(variableElement))
                 .type(variableElement.asType().toString())
                 .typeKind(variableElement.asType().getKind())
+                .parameterType(parameterType(variableElement))
                 .build();
     }
 
-    private static ParameterProvider parameterProvider(VariableElement variableElement) {
-        if (isUserId(variableElement)) {
-            return new UserIdParameterProvider();
-        }
-        if (isClientId(variableElement)) {
-            return new UserIdParameterProvider();
-        }
-        // TODO
-        return null;
+    private static ParameterType parameterType(VariableElement e) {
+        if (isUserId(e)) return ParameterType.USER_ID;
+        if (isClientId(e)) return ParameterType.CLIENT_ID;
+        if (isCharacterSequence(e)) return ParameterType.CHARACTER_SEQUENCE;
+        if (isPrimitive(e)) return ParameterType.PRIMITIVE;
+        if (isPrimitiveWrapper(e)) return ParameterType.PRIMITIVE_WRAPPER;
+        return ParameterType.COMPLEX;
     }
 
     private static boolean isLinkedMethod(ExecutableElement e) {
@@ -93,5 +94,36 @@ public class AstBuilder {
 
     private static boolean isAnnotatedWith(Element e, Class<? extends Annotation> annotation) {
         return e.getAnnotation(annotation) != null;
+    }
+
+    private static boolean isCharacterSequence(VariableElement e) {
+        try {
+            return CharSequence.class.isAssignableFrom(Class.forName(e.asType().toString()));
+        } catch (ClassNotFoundException ex) {
+            return false;
+        }
+    }
+
+    private static boolean isPrimitive(VariableElement e) {
+        return e.asType().getKind().isPrimitive();
+    }
+
+    private static boolean isPrimitiveWrapper(VariableElement e) {
+        try {
+            Class<?> c = Class.forName(e.asType().toString());
+            if (Number.class.isAssignableFrom(c)) {
+                return true;
+            }
+            if (Byte.class.isAssignableFrom(c)) {
+                return true;
+            }
+            return false;
+        } catch (ClassNotFoundException ex) {
+            return false;
+        }
+    }
+
+    private static boolean isComplex(VariableElement e) {
+        return !isPrimitive(e) && !isCharacterSequence(e) && !isPrimitiveWrapper(e);
     }
 }
