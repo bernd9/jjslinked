@@ -1,0 +1,56 @@
+package {{packageName}};
+
+import com.jjslinked.model.ClientMessage;
+import com.jjslinked.invokation.InvokerDispatcher;
+
+public class {{simpleName}}Invoker  {
+
+    enum Methods {
+        {{#implementedMethods}}
+        {{qualifier}},
+        {{/implementedMethods}}
+    }
+
+    private final {{simpleName}} {{instanceName}};
+    {{#implementedMethods}}
+    private final {{proxyName}} {{proxyInstanceName}};
+    {{/implementedMethods}}
+
+    public {{simpleName}}Invoker({{simpleName}} {{instanceName}}) {
+        this.{{instanceName}} = {{instanceName}};
+        {{#implementedMethods}}
+        this.{{proxyInstanceName}} = new {{proxyName}}({{instanceName}});
+        {{/implementedMethods}}
+    }
+
+    public void invoke(ClientMessage message) {
+        switch(Methods.valueOf(message.getMethod())) {
+        {{#implementedMethods}}
+        case {{qualifier}} : break;
+        {{/implementedMethods}}
+        default: throw new IllegalArgumentException(message.getMethod());
+        }
+    }
+
+     {{#implementedMethods}}
+     private static class {{proxyName}} {
+
+        private final {{../simpleName}} {{../instanceName}};
+
+        {{proxyName}}({{../simpleName}} {{instanceName}}) {
+            this.{{instanceName}} = {{instanceName}};
+        }
+
+        void invoke(ClientMessage message) {
+            this.{{../instanceName}}.{{./name}}({{#iterate parameters ", "}}{{name}}Param(message){{/iterate}});
+        }
+
+        {{#parameters}}
+        private {{type}} {{name}}Param(ClientMessage message) {
+            return null;
+        }
+        {{/parameters}}
+
+     }
+     {{/implementedMethods}}
+}

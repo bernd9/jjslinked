@@ -3,7 +3,9 @@ package jjslinked.generated;
 import com.jjslinked.model.ClientMessage;
 import com.jjslinked.invokation.InvokerDispatcher;
 import com.jjslinked.Context;
-{{#clientClasses}}import {{qualifiedName}}Invoker;
+{{#clientClasses}}
+import {{qualifiedName}};
+import {{qualifiedName}}Invoker;
 {{/clientClasses}}
 
 public class InvokerDispatcherImpl implements InvokerDispatcher {

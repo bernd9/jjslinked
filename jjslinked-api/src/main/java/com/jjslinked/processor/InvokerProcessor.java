@@ -3,8 +3,8 @@ package com.jjslinked.processor;
 import com.google.auto.service.AutoService;
 import com.jjslinked.ast.AstService;
 import com.jjslinked.ast.ClassNode;
-import com.jjslinked.processor.codegen.MustacheCodeWriter;
-import com.jjslinked.processor.codegen.MustacheCodeWriterFactory;
+import com.jjslinked.processor.codegen.HandlebarCodeWriterFactory;
+import com.jjslinked.processor.codegen.HandlebarsCodeWriter;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -18,12 +18,12 @@ import java.util.Set;
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class InvokerProcessor extends AbstractProcessor {
 
-    private MustacheCodeWriterFactory codeWriterFactory;
+    private HandlebarCodeWriterFactory codeWriterFactory;
     private AstService astService;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
-        codeWriterFactory = new MustacheCodeWriterFactory("java-templates/Invoker.mustache", processingEnv.getFiler());
+        codeWriterFactory = new HandlebarCodeWriterFactory("java-templates/Invoker");
         astService = AstService.getInstance();
         super.init(processingEnv);
     }
@@ -39,7 +39,7 @@ public class InvokerProcessor extends AbstractProcessor {
     private void processClientClass(TypeElement clientElement) {
         ClassNode model = astService.getClassNode(clientElement);
         processingEnv.getMessager().printMessage(Diagnostic.Kind.WARNING, "processing:" + clientElement.getSimpleName());
-        try (MustacheCodeWriter codeWriter = codeWriterFactory.javaGenerator(model.getQualifiedName() + "Invoker")) {
+        try (HandlebarsCodeWriter codeWriter = codeWriterFactory.javaGenerator(model.getQualifiedName() + "Invoker", processingEnv.getFiler())) {
             codeWriter.write(model);
         } catch (IOException e) {
             reportError(e);

@@ -2,7 +2,6 @@ package {{packageName}};
 
 import com.jjslinked.model.ClientMessage;
 import com.jjslinked.invokation.InvokerDispatcher;
-import static com.jjslinked.Parameters.*;
 
 public class {{simpleName}}Invoker  {
 
@@ -13,9 +12,15 @@ public class {{simpleName}}Invoker  {
     }
 
     private final {{simpleName}} {{instanceName}};
+    {{#abstractMethods}}
+    private final {{proxyName}} {{proxyInstanceName}};
+    {{/abstractMethods}}
 
     public {{simpleName}}Invoker({{simpleName}} {{instanceName}}) {
         this.{{instanceName}} = {{instanceName}};
+        {{#abstractMethods}}
+        this.{{proxyInstanceName}} = new {{proxyName}}({{instanceName}});
+        {{/abstractMethods}}
     }
 
     public void invoke(ClientMessage message) {
@@ -23,12 +28,11 @@ public class {{simpleName}}Invoker  {
         {{#abstractMethods}}
         case {{qualifier}} : break;
         {{/abstractMethods}}
-
+        default: throw new IllegalArgumentException(message.getMethod());
         }
-
     }
 
-     {{#abstractMethods}}
+     {{#implementedMethods}}
      private static class {{proxyName}} {
 
         private final {{simpleName}} {{instanceName}};
@@ -37,9 +41,18 @@ public class {{simpleName}}Invoker  {
             this.{{instanceName}} = {{instanceName}};
         }
 
+        void invoke(ClientMessage message) {
+            this.{{instanceName}}.{{name}}();
+        }
+
+        {{#parameters}}
+        private {{type}} {{name}}Param(ClientMessage message) {
+            return null;
+        }
+        {{/parameters}}
 
      }
-     {{/abstractMethods}}
+     {{/implementedMethods}}
 
 
 

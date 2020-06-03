@@ -13,10 +13,15 @@ public class MethodNode {
     private String name;
     private TypeKind returnTypeKind;
     private String returnType;
-    private List<ParameterNode> parameterNodes;
+    private List<ParameterNode> parameters;
     private ExecutableElement executableElement;
     private boolean abstractMethod;
     private InvokationType invokationType;
     private String qualifier;
     private String proxyName;
+    private String proxyInstanceName;
+
+    public boolean isImplemented() {
+        return !abstractMethod;
+    }
 }

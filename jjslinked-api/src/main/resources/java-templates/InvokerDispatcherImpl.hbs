@@ -1,0 +1,42 @@
+package jjslinked.generated;
+
+import com.jjslinked.model.ClientMessage;
+import com.jjslinked.invokation.InvokerDispatcher;
+import com.jjslinked.Context;
+{{#clientClasses}}
+import {{qualifiedName}};
+import {{qualifiedName}}Invoker;
+{{/clientClasses}}
+
+public class InvokerDispatcherImpl implements InvokerDispatcher {
+
+    enum Services {
+        {{#clientClasses}}
+        {{qualifier}},
+        {{/clientClasses}}
+    }
+
+    private final Context context;
+    {{#clientClasses}}
+    private final {{simpleName}}Invoker {{instanceName}}Invoker;
+    {{/clientClasses}}
+
+    public InvokerDispatcherImpl(Context context) {
+        this.context = context;
+        {{#clientClasses}}
+        this.{{instanceName}}Invoker = new {{simpleName}}Invoker(this.context.getBean({{simpleName}}.class));
+        {{/clientClasses}}
+
+    }
+
+    @Override
+    public void dispatch(ClientMessage message) {
+        switch(Services.valueOf(message.getService())) {
+            {{#clientClasses}}
+            case {{qualifier}} : this.{{instanceName}}Invoker.invoke(message); break;
+            {{/clientClasses}}
+            default: throw new IllegalArgumentException(message.getService());
+        }
+    }
+
+}

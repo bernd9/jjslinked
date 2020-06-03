@@ -42,8 +42,9 @@ public class AstBuilder {
                 .executableElement(e)
                 .qualifier(e.getAnnotation(LinkedMethod.class).value())
                 .proxyName(JavaSourceUtils.firstToUpperCase(e.getSimpleName() + "Proxy"))
+                .proxyInstanceName(e.getSimpleName() + "Proxy")
                 .name(e.getSimpleName().toString())
-                .parameterNodes(parameterNodes(e))
+                .parameters(parameterNodes(e))
                 .abstractMethod(e.getModifiers().contains(Modifier.ABSTRACT))
                 .invokationType(e.getModifiers().contains(Modifier.ABSTRACT) ? InvokationType.SERVER : InvokationType.CLIENT)
                 .returnType(e.getReturnType().toString())
@@ -59,12 +60,11 @@ public class AstBuilder {
 
     private static ParameterNode parameterNode(VariableElement variableElement) {
         return ParameterNode.builder()
-                .parameterName(variableElement.getSimpleName())
+                .name(variableElement.getSimpleName())
                 .clientId(isClientId(variableElement))
                 .userId(isUserId(variableElement))
                 .type(variableElement.asType().toString())
                 .typeKind(variableElement.asType().getKind())
-                .parameterProvider(parameterProvider(variableElement))
                 .build();
     }
 

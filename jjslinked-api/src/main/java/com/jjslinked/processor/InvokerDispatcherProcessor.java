@@ -3,8 +3,8 @@ package com.jjslinked.processor;
 import com.google.auto.service.AutoService;
 import com.jjslinked.annotations.Client;
 import com.jjslinked.ast.AstService;
-import com.jjslinked.processor.codegen.MustacheCodeWriter;
-import com.jjslinked.processor.codegen.MustacheCodeWriterFactory;
+import com.jjslinked.processor.codegen.HandlebarCodeWriterFactory;
+import com.jjslinked.processor.codegen.HandlebarsCodeWriter;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -21,13 +21,13 @@ import java.util.stream.Collectors;
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class InvokerDispatcherProcessor extends AbstractProcessor {
 
-    private MustacheCodeWriterFactory codeWriterFactory;
+    private HandlebarCodeWriterFactory codeWriterFactory;
     private Collection<TypeElement> clientClasses;
     private AstService astService;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
-        codeWriterFactory = new MustacheCodeWriterFactory("java-templates/InvokerDispatcherImpl.mustache", processingEnv.getFiler());
+        codeWriterFactory = new HandlebarCodeWriterFactory("java-templates/InvokerDispatcherImpl");
         astService = AstService.getInstance();
         super.init(processingEnv);
     }
@@ -45,7 +45,7 @@ public class InvokerDispatcherProcessor extends AbstractProcessor {
 
 
     private void createDispatcher() {
-        try (MustacheCodeWriter codeWriter = codeWriterFactory.javaGenerator("jjslinked.generated.InvokerDispatcherImpl")) {
+        try (HandlebarsCodeWriter codeWriter = codeWriterFactory.javaGenerator("jjslinked.generated.InvokerDispatcherImpl", processingEnv.getFiler())) {
             codeWriter.write(Collections.singletonMap("clientClasses", clientClasses.stream().map(astService::getClassNode).collect(Collectors.toList())));
         } catch (IOException e) {
             reportError(e);
