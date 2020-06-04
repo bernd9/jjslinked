@@ -9,22 +9,47 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.List;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 class HandlebarCodeWriterFactoryTest {
 
     @Test
     void iterateHelper() throws IOException {
         StringWriter stringWriter = new StringWriter();
-        HandlebarCodeWriterFactory factory = new HandlebarCodeWriterFactory("IterateTest");
+        HandlebarCodeWriterFactory factory = new HandlebarCodeWriterFactory("handlebar/IterateTest");
         PrintWriter printWriter = new PrintWriter(stringWriter);
-        factory.javaGenerator(printWriter).write(new JavaData(List.of(new JavaField("field1"), new JavaField("field2"), new JavaField("field3"))));
+
+        factory.javaGenerator(printWriter).write(new TestData(List.of(new TestField("field1"), new TestField("field2"), new TestField("field3"))));
+
+        String result = stringWriter.toString();
+        assertTrue(result.contains("field1"));
+        assertTrue(result.contains("field2"));
+        assertTrue(result.contains("field3"));
     }
 
     @Test
     void ifEquals() throws IOException {
         StringWriter stringWriter = new StringWriter();
-        HandlebarCodeWriterFactory factory = new HandlebarCodeWriterFactory("IfEqualsTest");
+        HandlebarCodeWriterFactory factory = new HandlebarCodeWriterFactory("handlebar/IfEqualsTest");
         PrintWriter printWriter = new PrintWriter(stringWriter);
-        factory.javaGenerator(printWriter).write(new EqualTestData("123", 456));
+        factory.javaGenerator(printWriter).write(new EqualTestData("123", 123));
+
+        String result = stringWriter.toString();
+        assertTrue(result.contains("yes"));
+        assertTrue(result.contains("super"));
+        assertFalse(result.contains("wrong"));
+    }
+
+    @Test
+    void setVarGetVar() throws IOException {
+        StringWriter stringWriter = new StringWriter();
+        HandlebarCodeWriterFactory factory = new HandlebarCodeWriterFactory("handlebar/SetVarGetVarTest");
+        PrintWriter printWriter = new PrintWriter(stringWriter);
+        factory.javaGenerator(printWriter).write(new Object());
+
+        String result = stringWriter.toString();
+        assertTrue(result.contains("123"));
     }
 
     @Getter
@@ -37,13 +62,13 @@ class HandlebarCodeWriterFactoryTest {
 
     @Getter
     @RequiredArgsConstructor
-    class JavaData {
-        private final List<JavaField> fields;
+    class TestData {
+        private final List<TestField> fields;
     }
 
     @Getter
     @RequiredArgsConstructor
-    class JavaField {
+    class TestField {
         private final String name;
     }
 

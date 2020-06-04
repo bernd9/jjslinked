@@ -1,0 +1,28 @@
+private static class {{className}} {
+
+    {{#parameterProviders}}
+    private final {{className}} {{firstToLower className}} = new {{className}}();
+    {{/parameterProviders}}
+    private final {{beanClassName}} {{firstToLower beanClassName}};
+
+    {{className}}({{beanClassName}} {{firstToLower beanClassName}}) {
+        this.{{firstToLower beanClassName}} = {{firstToLower beanClassName}};
+    }
+
+    public void invoke(ClientMessage message) {
+        ValidationExecutor validationExecutor = new ValidationExecutor();
+        {{#parameters}}
+        {{type}} {{name}} = {{providerClassName}}.provide(message, validationExecutor);
+        {{/parameters}}
+        if (validationExecutor.validationOk()) {
+            this.{{firstToLower beanClassName}}.{{methodName}}({{#iterate parameters ", "}}{{name}}{{/iterate}}});
+        } else {
+            throw new ValidationException(validationExecutor.getViolations());
+        }
+
+    }
+
+    {{#parameterProviderJavaCode}}
+    {{.}}
+    {{/parameterProviderJavaCode}}
+}

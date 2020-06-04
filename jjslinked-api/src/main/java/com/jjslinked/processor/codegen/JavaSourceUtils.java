@@ -24,6 +24,7 @@ public class JavaSourceUtils {
         return getPackageName(qualifiedName.toString());
     }
 
+    @Deprecated
     public static String getPackageName(String qualifiedName) {
         int index = qualifiedName.lastIndexOf('.');
         if (index == -1) {

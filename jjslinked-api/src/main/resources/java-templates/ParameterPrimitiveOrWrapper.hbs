@@ -1,0 +1,25 @@
+private static class {{className}} {
+
+    {{parameterType}} provide(ClientMessage message, ValidationExecutor validationExecutor) {
+        String parameter = this.validateString(message.getParameter("{{parameterName}}"), validationExecutor);
+        return this.validateConverted(this.convert(parameter), validationExecutor);
+    }
+
+    {{parameterType}} convert(String parameter) {
+        return {{converter}}(parameter);
+    }
+
+    String validateString(String parameter, ValidationExecutor validationExecutor) {
+        {{#if validateNotNull}}validationExecutor.executeNotNullValidation(parameter, {{parameterName}}));{{/if}}
+        {{#if validateRegExpr}}validationExecutor.executeRegExprValidation(parameter, "{{validateRegExpr}}", {{parameterName}})){{/if}}
+        return parameter;
+    }
+
+    {{parameterType}} validateConverted({{parameterType}} parameter, ValidationExecutor validationExecutor) {
+       {{#validators}}
+       {{simpleName}} {{firstToLower simpleName}} = context.getBean({{name}}.class);
+       {{firstToLower simpleName}}.validate(parameter);
+       {{/validators}}}
+       return parameter;
+    }
+}

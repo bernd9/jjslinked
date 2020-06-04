@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
 
 public class AstBuilder {
 
-    static ClassNode classNode(TypeElement e) {
-        return ClassNode.builder()
+    static ClientClassNode classNode(TypeElement e) {
+        return ClientClassNode.builder()
                 .typeElement(e)
                 .qualifiedName(e.getQualifiedName().toString())
                 .packageName(JavaSourceUtils.getPackageName(e.getQualifiedName().toString()))
@@ -95,6 +95,28 @@ public class AstBuilder {
     private static boolean isAnnotatedWith(Element e, Class<? extends Annotation> annotation) {
         return e.getAnnotation(annotation) != null;
     }
+
+    /*
+    private static Class<?> type(VariableElement e) {
+        TypeMirror type = e.asType();
+        switch (type.getKind()) {
+            case TypeKind.ARRAY:
+                return TypeKind.ARRAY.
+            case "long":
+                return "Long.TYPE";
+            case "byte":
+                return "Byte.TYPE";
+            case "float":
+                return "Float.TYPE";
+            case "double":
+                return "Double.TYPE";
+            case "char":
+                return "Character.TYPE";
+            default:
+                return type;
+        }
+    }
+    */
 
     private static boolean isCharacterSequence(VariableElement e) {
         try {

@@ -9,10 +9,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AstService {
 
-    private ConcurrentHashMap<TypeElement, ClassNode> nodes = new ConcurrentHashMap<>();
+    private ConcurrentHashMap<TypeElement, ClientClassNode> nodes = new ConcurrentHashMap<>();
     private static AstService astService = new AstService();
 
-    public ClassNode getClassNode(TypeElement e) {
+    public ClientClassNode getClassNode(TypeElement e) {
         return nodes.computeIfAbsent(e, AstBuilder::classNode);
     }
 

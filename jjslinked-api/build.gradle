@@ -41,6 +41,11 @@ dependencies {
     // https://mvnrepository.com/artifact/com.github.jknack/handlebars
     compile group: 'com.github.jknack', name: 'handlebars', version: '4.2.0'
 
+    // https://mvnrepository.com/artifact/org.jooq/joor
+    compile group: 'org.jooq', name: 'joor', version: '0.9.13'
+
+    compile group: 'com.github.javaparser', name: 'javaparser-symbol-solver-core', version: '3.16.1'
+
 }
 
 jar {
