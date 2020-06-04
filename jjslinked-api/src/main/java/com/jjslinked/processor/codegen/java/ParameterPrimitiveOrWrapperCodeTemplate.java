@@ -5,14 +5,14 @@ import com.jjslinked.validation.ValidationExecutor;
 
 import java.util.Set;
 
-public class ParameterPrimitiveOrWrapperCodeTemplate extends JavaCodeTemplate<ParameterPrimitiveOrWrapperModel> {
+public class ParameterPrimitiveOrWrapperCodeTemplate extends JavaCodeTemplate {
 
     protected ParameterPrimitiveOrWrapperCodeTemplate() {
         super("java-templates/ParameterPrimitiveOrWrapper");
     }
 
     @Override
-    Set<ImportModel> getImports() {
-        return Set.of(new ImportModel(ClientMessage.class), new ImportModel(ValidationExecutor.class));
+    Set<String> getImports() {
+        return Set.of(ClientMessage.class.getName(), ValidationExecutor.class.getName());
     }
 }

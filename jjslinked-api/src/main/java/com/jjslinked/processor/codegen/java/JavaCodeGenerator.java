@@ -1,35 +1,29 @@
 package com.jjslinked.processor.codegen.java;
 
-import javax.tools.FileObject;
+import lombok.Getter;
+
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.StringWriter;
-import java.util.Set;
+import java.io.Writer;
 
-public class JavaCodeGenerator<T extends JavaCodeTemplate<C>, C> {
 
+public abstract class JavaCodeGenerator<T extends JavaCodeTemplate, M, R> {
+
+    @Getter
     private T template;
 
     JavaCodeGenerator(T template) {
         this.template = template;
     }
 
-    void write(C context, FileObject fileObject) throws IOException {
-        template.setContext(context);
-        try (OutputStream out = fileObject.openOutputStream()) {
-            template.write(out);
-        }
+    void write(M context, Writer writer) throws IOException {
+        template.write(toRenderModel(context), writer);
     }
 
-    String asString(C context) throws IOException {
-        template.setContext(context);
-        try (StringWriter sw = new StringWriter()) {
-            template.write(sw);
-            return sw.toString();
-        }
+    String asString(M context) {
+        return template.asString(toRenderModel(context));
     }
 
-    Set<ImportModel> getImports() {
-        return template.getImports();
-    }
+    abstract R toRenderModel(M model);
+
+
 }

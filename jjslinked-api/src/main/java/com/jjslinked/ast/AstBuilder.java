@@ -4,7 +4,7 @@ import com.jjslinked.annotations.Client;
 import com.jjslinked.annotations.ClientId;
 import com.jjslinked.annotations.LinkedMethod;
 import com.jjslinked.annotations.UserId;
-import com.jjslinked.processor.codegen.JavaSourceUtils;
+import com.jjslinked.processor.codegen.java.JavaCodeGeneratorUtils;
 
 import javax.lang.model.element.*;
 import java.lang.annotation.Annotation;
@@ -17,10 +17,10 @@ public class AstBuilder {
         return ClientClassNode.builder()
                 .typeElement(e)
                 .qualifiedName(e.getQualifiedName().toString())
-                .packageName(JavaSourceUtils.getPackageName(e.getQualifiedName().toString()))
+                .packageName(JavaCodeGeneratorUtils.getPackageName(e.getQualifiedName().toString()))
                 .simpleName(e.getSimpleName().toString())
                 .qualifier(e.getAnnotation(Client.class).value())
-                .instanceName(JavaSourceUtils.firstToLowerCase(e.getSimpleName().toString()))
+                .instanceName(JavaCodeGeneratorUtils.firstToLowerCase(e.getSimpleName().toString()))
                 .methods(methodNodes(e))
                 .build();
     }
@@ -39,7 +39,7 @@ public class AstBuilder {
         return MethodNode.builder()
                 .executableElement(e)
                 .qualifier(e.getAnnotation(LinkedMethod.class).value())
-                .proxyName(JavaSourceUtils.firstToUpperCase(e.getSimpleName() + "Proxy"))
+                .proxyName(JavaCodeGeneratorUtils.firstToUpperCase(e.getSimpleName() + "Proxy"))
                 .proxyInstanceName(e.getSimpleName() + "Proxy")
                 .name(e.getSimpleName().toString())
                 .parameters(parameterNodes(e))

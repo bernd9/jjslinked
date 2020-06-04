@@ -46,6 +46,8 @@ dependencies {
 
     compile group: 'com.github.javaparser', name: 'javaparser-symbol-solver-core', version: '3.16.1'
 
+    // https://mvnrepository.com/artifact/javax.validation/validation-api
+    compile group: 'javax.validation', name: 'validation-api', version: '2.0.1.Final'
 }
 
 jar {

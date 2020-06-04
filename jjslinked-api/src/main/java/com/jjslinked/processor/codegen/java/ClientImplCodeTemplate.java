@@ -3,10 +3,10 @@ package com.jjslinked.processor.codegen.java;
 import java.util.Collections;
 import java.util.Set;
 
-public class MethodInvocationCodeTemplate extends JavaCodeTemplate {
+public class ClientImplCodeTemplate extends JavaCodeTemplate<ClientImplRenderModel> {
 
-    protected MethodInvocationCodeTemplate() {
-        super("java-templates/MethodInvocation");
+    protected ClientImplCodeTemplate() {
+        super("java-templates/ClientImpl");
     }
 
     @Override

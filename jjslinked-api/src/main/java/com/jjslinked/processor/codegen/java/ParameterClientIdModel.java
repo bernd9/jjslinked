@@ -1,11 +1,16 @@
 package com.jjslinked.processor.codegen.java;
 
 
-import lombok.Builder;
 import lombok.Getter;
 
+import javax.lang.model.element.VariableElement;
+
 @Getter
-@Builder
-public class ParameterClientIdModel {
-    private String providerMethod;
+public class ParameterClientIdModel implements ParameterCodeModel {
+
+    private final String providerClassName;
+
+    ParameterClientIdModel(VariableElement e) {
+        this.providerClassName = JavaCodeGeneratorUtils.providerClassName(e);
+    }
 }

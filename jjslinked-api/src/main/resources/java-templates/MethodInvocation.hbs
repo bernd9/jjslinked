@@ -1,18 +1,18 @@
-private static class {{className}} {
+private static class {{invocationClassName}} {
 
-    {{#parameterProviders}}
-    private final {{className}} {{firstToLower className}} = new {{className}}();
-    {{/parameterProviders}}
+    {{#parameters}}
+    private final {{providerClassName}} {{firstToLower providerClassName}} = new {{providerClassName}}();
+    {{/parameters}}
     private final {{beanClassName}} {{firstToLower beanClassName}};
 
-    {{className}}({{beanClassName}} {{firstToLower beanClassName}}) {
+    {{invocationClassName}}({{beanClassName}} {{firstToLower beanClassName}}) {
         this.{{firstToLower beanClassName}} = {{firstToLower beanClassName}};
     }
 
     public void invoke(ClientMessage message) {
         ValidationExecutor validationExecutor = new ValidationExecutor();
         {{#parameters}}
-        {{type}} {{name}} = {{providerClassName}}.provide(message, validationExecutor);
+        {{type}} {{varName}} = {{providerClassName}}.provide(message, validationExecutor);
         {{/parameters}}
         if (validationExecutor.validationOk()) {
             this.{{firstToLower beanClassName}}.{{methodName}}({{#iterate parameters ", "}}{{name}}{{/iterate}}});
@@ -22,7 +22,7 @@ private static class {{className}} {
 
     }
 
-    {{#parameterProviderJavaCode}}
+    {{#parameterProviders}}
     {{.}}
-    {{/parameterProviderJavaCode}}
+    {{/parameterProviders}}
 }

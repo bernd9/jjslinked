@@ -2,22 +2,16 @@ package com.jjslinked.processor.codegen.java;
 
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
-import lombok.Setter;
 
-import javax.tools.FileObject;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Set;
 
-abstract class JavaCodeTemplate<M> {
+abstract class JavaCodeTemplate<R> {
 
     private final Template template;
     private static Handlebars handlebars = new Handlebars();
-
-    @Setter
-    private M context;
 
     static {
         handlebars.registerHelpers(new Helpers());
@@ -27,6 +21,8 @@ abstract class JavaCodeTemplate<M> {
         this.registerHelpers(handlebars);
         try {
             this.template = handlebars.compile(template);
+            // TODO Move templates into package.
+            //this.template = handlebars.compile(resourcePath(template));
         } catch (IOException e) {
             throw new RuntimeException(e);// TODO custom exception
         }
@@ -37,23 +33,32 @@ abstract class JavaCodeTemplate<M> {
 
     }
 
-    abstract Set<ImportModel> getImports();
+    abstract Set<String> getImports();
 
-    void write(OutputStream out) throws IOException {
-        write(new PrintWriter(out));
-    }
 
-    void write(Writer writer) throws IOException {
+    void write(R context, Writer writer) throws IOException {
         writer.write(template.apply(context));
     }
 
-    void write(FileObject fileObject) throws IOException {
-        try (OutputStream out = fileObject.openOutputStream()) {
-            write(out);
+    String asString(R context) {
+        try (StringWriter stringWriter = new StringWriter()) {
+            write(context, stringWriter);
+            return stringWriter.toString();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
+
     }
 
+
+    private String resourcePath(String resource) {
+        return getClass().getPackageName().replace(".", "/") + "/" + resource;
+    }
+
+
     public static class Helpers {
+
+        // TODO Make helpers available
 
         /*
         public CharSequence iterate(Object context, Options options) throws IOException {
