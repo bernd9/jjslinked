@@ -16,4 +16,6 @@ public class ClientImplRenderModel {
         this.model = model;
         this.invocationClasses = invocationClasses;
     }
+
+
 }

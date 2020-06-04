@@ -3,11 +3,11 @@ package com.jjslinked.processor.codegen.java;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class ClientImplGenerator extends JavaCodeGenerator<ClientImplCodeTemplate, ClientImplModel, ClientImplRenderModel> {
+public class ClientImplCodeGenerator extends JavaCodeGenerator<ClientImplCodeTemplate, ClientImplModel, ClientImplRenderModel> {
 
     private MethodInvocationCodeGenerator methodInvocationCodeGenerator = new MethodInvocationCodeGenerator();
 
-    ClientImplGenerator() {
+    public ClientImplCodeGenerator() {
         super(new ClientImplCodeTemplate());
     }
 

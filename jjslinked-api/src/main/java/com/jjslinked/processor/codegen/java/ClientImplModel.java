@@ -20,9 +20,11 @@ public class ClientImplModel implements JavaCodeModel {
     private String superClassName;
     private List<MethodInvocationModel> methodInvocations;
     private List<EmitterMethodModel> emitterMethods;
+    private String implementationClassName;
 
-    ClientImplModel(TypeElement e) {
+    public ClientImplModel(TypeElement e) {
         this.superClassName = e.getQualifiedName().toString();
+        this.implementationClassName = superClassName + "Impl";
         this.methodInvocations = methodInvocations(e);
         this.emitterMethods = emitterMethods(e);
     }

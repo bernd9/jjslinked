@@ -4,12 +4,12 @@ package {{packageName}};
 import {{.}};
 {{/imports}}
 
-public class {{superClassName}}Impl extends {{superClassName}} {
+public class {{implementationClassName}} extends {{superClassName}} {
 
     private final MessageEmitter emitter;
 
-    public {{superClassName}}Impl({{#constructorArgs}}{{.} {{firstToLower .}}}{{/constructorArgs}, MessageEmitter emitter}) {
-        super({{#iterate constructorArgs ", "}}{{firstToLower simpleName}}}{{/iterate}});
+    public {{implementationClassName}}({{#constructorArgs}}{{.}} {{firstToLower .}}{{/constructorArgs}}, MessageEmitter emitter) {
+        super({{#iterate constructorArgs ", "}}{{firstToLower simpleName}}{{/iterate}});
         this.emitter = emitter;
     }
 

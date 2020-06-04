@@ -15,11 +15,11 @@ public abstract class JavaCodeGenerator<T extends JavaCodeTemplate, M, R> {
         this.template = template;
     }
 
-    void write(M context, Writer writer) throws IOException {
+    public void write(M context, Writer writer) throws IOException {
         template.write(toRenderModel(context), writer);
     }
 
-    String asString(M context) {
+    public String asString(M context) {
         return template.asString(toRenderModel(context));
     }
 

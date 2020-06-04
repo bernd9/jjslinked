@@ -20,9 +20,9 @@ abstract class JavaCodeTemplate<R> {
     protected JavaCodeTemplate(String template) {
         this.registerHelpers(handlebars);
         try {
-            this.template = handlebars.compile(template);
-            // TODO Move templates into package.
-            //this.template = handlebars.compile(resourcePath(template));
+            //this.template = handlebars.compile(template);
+            // TODO remove unused templaets in resource folder
+            this.template = handlebars.compile(resourcePath(template));
         } catch (IOException e) {
             throw new RuntimeException(e);// TODO custom exception
         }
