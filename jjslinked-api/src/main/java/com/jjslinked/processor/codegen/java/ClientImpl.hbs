@@ -1,0 +1,31 @@
+package {{packageName}};
+
+{{#imports}}
+import {{.}};
+{{/imports}}
+
+public class {{superClassName}}Impl extends {{superClassName}} {
+
+    private final MessageEmitter emitter;
+
+    public {{superClassName}}Impl({{#constructorArgs}}{{.} {{firstToLower .}}}{{/constructorArgs}, MessageEmitter emitter}) {
+        super({{#iterate constructorArgs ", "}}{{firstToLower simpleName}}}{{/iterate}});
+        this.emitter = emitter;
+    }
+
+    public void invoke(ClientMessage message) {
+        // TODO
+
+    }
+
+    {{#emitterMethods}}
+    {{.}}
+    {{/emitterMethods}}
+
+
+    {{#invocationClasses}}
+    {{.}}
+    {{/invocationClasses}}
+
+
+}

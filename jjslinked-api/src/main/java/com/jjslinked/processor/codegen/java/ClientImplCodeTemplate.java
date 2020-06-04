@@ -6,7 +6,7 @@ import java.util.Set;
 public class ClientImplCodeTemplate extends JavaCodeTemplate<ClientImplRenderModel> {
 
     protected ClientImplCodeTemplate() {
-        super("java-templates/ClientImpl");
+        super("ClientImpl");
     }
 
     @Override

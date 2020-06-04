@@ -7,7 +7,7 @@ import java.util.Set;
 public class ParameterClientIdCodeTemplate extends JavaCodeTemplate {
 
     protected ParameterClientIdCodeTemplate() {
-        super("java-templates/ParameterClientId");
+        super("ParameterClientId");
     }
 
     @Override

@@ -6,7 +6,7 @@ import java.util.Set;
 public class MethodInvocationCodeTemplate extends JavaCodeTemplate {
 
     protected MethodInvocationCodeTemplate() {
-        super("java-templates/MethodInvocation");
+        super("MethodInvocation");
     }
 
     @Override
