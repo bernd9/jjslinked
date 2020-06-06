@@ -1,11 +1,12 @@
 package com.ejaf.processor.parameter;
 
+import com.ejaf.processor.template.JavaTemplateModel;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
-public class ParameterProviderModel {
+public class ParameterProviderModel implements JavaTemplateModel {
     private String typeRef;
     private String methodRef;
     private String paramRef;
@@ -14,8 +15,8 @@ public class ParameterProviderModel {
     private String providerClassSimpleName;
     private String providerClassPackageName;
 
-    public String getProviderClassQualifiedName() {
+    @Override
+    public String getJavaClassQualifiedName() {
         return String.join(".", providerClassPackageName, providerClassSimpleName);
     }
-
 }

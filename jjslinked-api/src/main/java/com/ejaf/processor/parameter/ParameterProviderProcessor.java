@@ -1,17 +1,13 @@
 package com.ejaf.processor.parameter;
 
-import com.ejaf.ParameterProvider;
 import com.ejaf.ParameterProviderAnnotation;
 import com.ejaf.util.CodeGeneratorUtils;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.tools.Diagnostic;
-import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -69,17 +65,41 @@ public class ParameterProviderProcessor extends AbstractProcessor {
     private ParameterProviderModel createParameterProviderModel(TypeElement annotation, VariableElement parameter) {
         ExecutableElement enclosingMethod = (ExecutableElement) parameter.getEnclosingElement();
         TypeElement enclosingType = (TypeElement) enclosingMethod.getEnclosingElement();
-        Class<? extends Annotation> customAnnotation = CodeGeneratorUtils.asClass(annotation);
-        Class<? extends ParameterProvider> parameterProvider = customAnnotation.getAnnotation(ParameterProviderAnnotation.class).value();
+        String parameterProvider = getParameterProvider(annotation);
         return ParameterProviderModel.builder()
                 .methodRef(enclosingMethod.getSimpleName().toString())
                 .typeRef(enclosingType.getQualifiedName().toString())
                 .paramRef(parameter.getSimpleName().toString())
-                .providerSuperClassPackageName(parameterProvider.getPackageName())
-                .providerSuperClassSimpleName(parameterProvider.getSimpleName())
+                .providerSuperClassPackageName(CodeGeneratorUtils.getPackageName(parameterProvider))
+                .providerSuperClassSimpleName(CodeGeneratorUtils.getSimpleName(parameterProvider))
                 .providerClassPackageName("com.ejaf.generated")
                 .providerClassSimpleName(providerClassSimpleName())
                 .build();
+    }
+
+    private String getParameterProvider(TypeElement annotation) {
+        return annotation.getAnnotationMirrors().stream()
+                .filter(this::isParameterProviderAnnotation)
+                .map(AnnotationMirror::getElementValues)
+                .map(Map::entrySet)
+                .flatMap(Set::stream)
+                .filter(e -> isValueAttribute(e.getKey()))
+                .map(e -> e.getValue())
+                .map(this::getAnnotationValueContent)
+                .findFirst().orElseThrow();
+    }
+
+
+    private String getAnnotationValueContent(AnnotationValue annotation) {
+        return annotation.getValue().toString();
+    }
+
+    private boolean isParameterProviderAnnotation(AnnotationMirror mirror) {
+        return mirror.getAnnotationType().toString().equals(ParameterProviderAnnotation.class.getName());
+    }
+
+    private boolean isValueAttribute(ExecutableElement e) {
+        return e.getSimpleName().toString().equals("value");
     }
 
     private String providerClassSimpleName() {

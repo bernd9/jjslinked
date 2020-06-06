@@ -8,11 +8,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.tools.JavaFileObject;
+import java.io.IOException;
 
 import static com.google.testing.compile.Compiler.javac;
+import static org.junit.Assert.assertTrue;
 
 class ParameterProviderProcessorTest {
-
 
     private Compiler compiler;
     private JavaFileObject annotation;
@@ -28,9 +29,12 @@ class ParameterProviderProcessorTest {
     }
 
     @Test
-    void test() {
+    void test() throws IOException {
         Compilation compilation = compiler.compile(annotation, provider, bean);
-        System.out.println(compilation.status());
+        assertTrue(compilation.status() == Compilation.Status.SUCCESS);
+        JavaFileObject javaFileObject = compilation.generatedSourceFile("com.ejaf.generated.ParameterProvider0").orElseThrow();
+        // TODO
+
     }
 
 

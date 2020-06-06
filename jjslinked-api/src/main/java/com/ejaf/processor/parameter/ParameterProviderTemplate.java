@@ -1,12 +1,11 @@
 package com.ejaf.processor.parameter;
 
-import javax.annotation.processing.Filer;
+import com.ejaf.processor.template.JavaTemplate;
 
-public class ParameterProviderTemplate {
+public class ParameterProviderTemplate extends JavaTemplate<ParameterProviderModel> {
 
-    void write(ParameterProviderModel model, Filer filer) {
 
+    protected ParameterProviderTemplate() {
+        super("ParameterProvider");
     }
-
-
 }

@@ -2,7 +2,7 @@ package com.ejaf;
 
 import java.lang.reflect.Method;
 
-public interface ParameterProvider {
+public interface ParameterProvider<T> {
 
-    <T> T getParameter(Method method, Class<T> targetType);
+    T getParameter(String parameterName, Method method);
 }

@@ -4,7 +4,10 @@ import com.jjslinked.annotations.LinkedMethod;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-import javax.lang.model.element.*;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.Name;
+import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeKind;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -26,7 +29,6 @@ public class CodeGeneratorUtils {
         return getPackageName(qualifiedName.toString());
     }
 
-    @Deprecated
     public static String getPackageName(String qualifiedName) {
         int index = qualifiedName.lastIndexOf('.');
         if (index == -1) {
@@ -40,7 +42,7 @@ public class CodeGeneratorUtils {
         if (index == -1) {
             return qualifiedName;
         }
-        return qualifiedName.substring(index);
+        return qualifiedName.substring(index + 1);
     }
 
     public static String providerClassName(VariableElement e) {
@@ -89,14 +91,6 @@ public class CodeGeneratorUtils {
         try {
             //TODO make it faster by preset all classes
             return CharSequence.class.isAssignableFrom(Class.forName(parameterType));
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static <T> Class<T> asClass(TypeElement element) {
-        try {
-            return (Class<T>) Class.forName(element.getQualifiedName().toString());
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
