@@ -11,4 +11,5 @@ public class ParameterContext<A extends Annotation, C extends InvocationContext>
     private final A annotation;
     private final String paramName;
     private final C invocationContext;
+    private final ApplicationContext applicationContext;
 }
