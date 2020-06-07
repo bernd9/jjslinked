@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.PARAMETER)
-@ParameterProviderAnnotation(ParameterProviderTestProvider.class)
-public @interface ParameterProviderTestAnnotation {
+@ParameterProviderAnnotation(TestProvider.class)
+public @interface TestAnnotation {
 }

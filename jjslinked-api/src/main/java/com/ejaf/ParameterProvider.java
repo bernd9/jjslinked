@@ -1,8 +1,12 @@
 package com.ejaf;
 
-import java.lang.reflect.Method;
+import java.lang.annotation.Annotation;
 
-public interface ParameterProvider<T, C extends InvocationContext> {
+public interface ParameterProvider<A extends Annotation, C extends InvocationContext> {
 
-    T getParameter(String parameterName, Method method, C context);
+    <T> T getParameter(String parameterName, A annotation, C context, Class<T> type);
+
+    default boolean isSupportedType(Class<?> c) {
+        return true;
+    }
 }
