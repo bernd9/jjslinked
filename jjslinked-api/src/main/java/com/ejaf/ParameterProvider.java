@@ -6,7 +6,5 @@ public interface ParameterProvider<A extends Annotation, C extends InvocationCon
 
     <T> T getParameter(ParameterContext<A, C> parameterContext, Class<T> type);
 
-    default boolean isSupportedType(Class<?> c) {
-        return true;
-    }
+    boolean isSupportedParameterType(Class<?> c);
 }

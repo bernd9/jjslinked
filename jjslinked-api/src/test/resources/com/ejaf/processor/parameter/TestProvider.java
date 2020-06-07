@@ -8,4 +8,8 @@ public class TestProvider implements ParameterProvider<TestAnnotation, TestInvoc
     public <T> T getParameter(ParameterContext<TestAnnotation, TestInvocationContext> parameterContext, Class<T> type) {
         return null;
     }
+
+    public boolean isSupportedParameterType(Class<?> c) {
+        return true;
+    }
 }
