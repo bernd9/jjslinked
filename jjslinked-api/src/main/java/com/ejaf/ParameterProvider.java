@@ -4,7 +4,7 @@ import java.lang.annotation.Annotation;
 
 public interface ParameterProvider<A extends Annotation, C extends InvocationContext> {
 
-    <T> T getParameter(String parameterName, A annotation, C context, Class<T> type);
+    <T> T getParameter(ParameterContext<A> parameterContext, C invocationContext, Class<T> type);
 
     default boolean isSupportedType(Class<?> c) {
         return true;
