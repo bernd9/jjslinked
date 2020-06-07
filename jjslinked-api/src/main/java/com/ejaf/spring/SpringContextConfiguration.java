@@ -1,6 +1,6 @@
 package com.ejaf.spring;
 
-import com.ejaf.ContextHolder;
+import com.ejaf.ApplicationContextHolder;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -11,6 +11,6 @@ class SpringContextConfiguration implements ApplicationContextAware {
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        ContextHolder.setContext(new SpringContextAdapter(applicationContext));
+        ApplicationContextHolder.setContext(new SpringContextAdapter(applicationContext));
     }
 }

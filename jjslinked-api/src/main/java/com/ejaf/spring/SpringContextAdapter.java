@@ -1,13 +1,12 @@
 package com.ejaf.spring;
 
-import com.ejaf.Context;
+import com.ejaf.ApplicationContext;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationContext;
 
 @RequiredArgsConstructor
-public class SpringContextAdapter implements Context {
+public class SpringContextAdapter implements ApplicationContext {
 
-    private final ApplicationContext applicationContext;
+    private final org.springframework.context.ApplicationContext applicationContext;
 
     @Override
     public <T> T getBean(Class<T> type) {

@@ -3,9 +3,9 @@ package com.ejaf;
 import lombok.Getter;
 import lombok.Setter;
 
-public class ContextHolder {
+public class ApplicationContextHolder {
 
     @Getter
     @Setter
-    private static Context context;
+    private static ApplicationContext context;
 }

@@ -8,7 +8,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.tools.JavaFileObject;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import static com.google.testing.compile.Compiler.javac;
 import static org.junit.Assert.assertTrue;
@@ -33,6 +35,13 @@ class ParameterProviderProcessorTest {
         Compilation compilation = compiler.compile(annotation, provider, bean);
         assertTrue(compilation.status() == Compilation.Status.SUCCESS);
         JavaFileObject javaFileObject = compilation.generatedSourceFile("com.ejaf.generated.ParameterProvider0").orElseThrow();
+
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(javaFileObject.openInputStream()))) {
+            String line = null;
+            while ((line = in.readLine()) != null) {
+                System.out.println(line);
+            }
+        }
         // TODO
 
     }

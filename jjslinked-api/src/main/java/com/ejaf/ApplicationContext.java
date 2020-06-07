@@ -1,6 +1,6 @@
 package com.ejaf;
 
-public interface Context {
+public interface ApplicationContext {
 
     <T> T getBean(Class<T> type);
 }

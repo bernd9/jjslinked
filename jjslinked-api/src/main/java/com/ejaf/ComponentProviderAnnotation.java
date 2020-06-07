@@ -9,5 +9,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.ANNOTATION_TYPE)
 public @interface ComponentProviderAnnotation {
-    Class<? extends Context> value();
+    Class<? extends ApplicationContext> value();
 }
