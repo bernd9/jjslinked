@@ -1,6 +1,7 @@
 package com.ejaf.processor.parameter;
 
 import com.ejaf.ParameterProviderAnnotation;
+import com.ejaf.processor.ClassCreatedEvents;
 import com.ejaf.processor.annotations.AnnotationUtil;
 import com.ejaf.util.CodeGeneratorUtils;
 import com.google.auto.service.AutoService;
@@ -63,6 +64,7 @@ public class ParameterProviderProcessor extends AbstractProcessor {
         log("processing parameter %s", parameter);
         ParameterProviderModel model = createParameterProviderModel(annotation, parameter);
         parameterProviderTemplate.write(model, processingEnv.getFiler());
+        ClassCreatedEvents.fireClassCreatedEvent(model);
     }
 
     private ParameterProviderModel createParameterProviderModel(TypeElement annotation, VariableElement parameter) {
@@ -84,20 +86,6 @@ public class ParameterProviderProcessor extends AbstractProcessor {
         return AnnotationUtil.getAnnotationAttribute(customProverAnnotation, ParameterProviderAnnotation.class, "value").orElseThrow();
 
     }
-
-/*
-    private String getAnnotationValueContent(AnnotationValue annotation) {
-        return annotation.getValue().toString();
-    }
-
-    private boolean isParameterProviderAnnotation(AnnotationMirror mirror) {
-        return mirror.getAnnotationType().toString().equals(ParameterProviderAnnotation.class.getName());
-    }
-
-    private boolean isValueAttribute(ExecutableElement e) {
-        return e.getSimpleName().toString().equals("value");
-    }
-    */
 
     private String providerClassSimpleName() {
         return String.format("ParameterProvider%d", instanceId++);

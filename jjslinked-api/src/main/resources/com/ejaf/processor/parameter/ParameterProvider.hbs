@@ -5,8 +5,8 @@ import com.ejaf.processor.annotations.*;
 
 @ParameterRef("{{paramRef}}")
 @MethodRef("{{methodRef}}")
-@TypeRef("{{methodRef}}")
-@ParameterProviderRef
-public class {{providerClassSimpleName}}  extends {{providerSuperClassSimpleName}} {
+@TypeRef("{{typeRef}}")
+@ParameterProviderRef("{{providerClassQualifiedName}}")
+public class {{providerClassSimpleName}} extends {{providerSuperClassSimpleName}} {
 
 }

@@ -9,11 +9,11 @@ import java.util.Set;
 
 @Getter
 @RequiredArgsConstructor
-public class ParameterContext {
+public class MethodParameter {
     private final Set<? extends Annotation> annotations;
     private final String paramName;
-    private final MethodInvocationContext methodInvocationContext;
-    private final ApplicationContext applicationContext;
+    private final Object value;
+    private final String valueType;
 
     <A extends Annotation> Optional<A> getAnnotation(Class<A> type) {
         return annotations.stream().filter(a -> type.isInstance(a)).map(type::cast).findFirst();

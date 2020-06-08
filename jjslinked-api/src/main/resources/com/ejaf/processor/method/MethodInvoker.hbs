@@ -1,0 +1,17 @@
+
+@TypeRef("")
+@MethodRef("")
+class MethodInvoker1 implement MethodInvoker  {
+
+    void invoke() {
+        applicationContext.getBean({{typeRef}}.class).{{methodRef}}(
+            parameterProvider1().getParameter(prepareParameterContext1(), String.class);
+        );
+    }
+
+
+    private parameterProvider1() {
+    }
+
+
+}
