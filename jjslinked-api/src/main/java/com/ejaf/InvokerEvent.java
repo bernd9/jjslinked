@@ -1,4 +1,4 @@
 package com.ejaf;
 
-public class InvokerEvent {
+public interface InvokerEvent {
 }

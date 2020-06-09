@@ -17,7 +17,7 @@ class ParameterProviderProcessorTest {
     private JavaFileObject annotation;
     private JavaFileObject provider;
     private JavaFileObject bean;
-    private JavaFileObject invocationContext;
+    private JavaFileObject event;
 
     @BeforeEach
     void init() {
@@ -25,12 +25,12 @@ class ParameterProviderProcessorTest {
         annotation = JavaFileObjects.forResource("com/ejaf/processor/parameter/TestAnnotation.java");
         provider = JavaFileObjects.forResource("com/ejaf/processor/parameter/TestProvider.java");
         bean = JavaFileObjects.forResource("com/ejaf/processor/parameter/TestBean.java");
-        invocationContext = JavaFileObjects.forResource("com/ejaf/processor/parameter/TestInvocationContext.java");
+        event = JavaFileObjects.forResource("com/ejaf/processor/parameter/TestEvent.java");
     }
 
     @Test
     void test() {
-        Compilation compilation = compiler.compile(annotation, provider, bean, invocationContext);
+        Compilation compilation = compiler.compile(annotation, provider, bean, event);
         assertSuccess(compilation);
     }
 

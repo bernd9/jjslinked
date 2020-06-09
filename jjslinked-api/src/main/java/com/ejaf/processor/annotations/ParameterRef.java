@@ -8,5 +8,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.TYPE)
 public @interface ParameterRef {
-    String value();
+    String name();
+
+    String type();
+
+    int index();
 }

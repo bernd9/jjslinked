@@ -3,9 +3,9 @@ package com.ejaf.processor;
 import com.ejaf.ParameterContext;
 import com.ejaf.ParameterProvider;
 
-public class TestProvider implements ParameterProvider<TestAnnotation, TestInvocationContext> {
+public class TestProvider implements ParameterProvider<TestEvent> {
 
-    public <T> T getParameter(ParameterContext<TestAnnotation, TestInvocationContext> parameterContext, Class<T> type) {
+    public <T> T getParameter(ParameterContext parameterContext, TestEvent event, Class<T> type) {
         return null;
     }
 

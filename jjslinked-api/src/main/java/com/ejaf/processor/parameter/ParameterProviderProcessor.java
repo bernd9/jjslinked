@@ -72,9 +72,11 @@ public class ParameterProviderProcessor extends AbstractProcessor {
         TypeElement enclosingType = (TypeElement) enclosingMethod.getEnclosingElement();
         String parameterProvider = getParameterProvider(annotation);
         return ParameterProviderModel.builder()
-                .methodRef(enclosingMethod.getSimpleName().toString())
+                .methodRef(enclosingMethod.toString())
                 .typeRef(enclosingType.getQualifiedName().toString())
-                .paramRef(parameter.getSimpleName().toString())
+                .parameterName(parameter.getSimpleName().toString())
+                .parameterIndex(getParameterIndex(enclosingMethod, parameter))
+                .parameterType(parameter.asType().toString())
                 .providerSuperClassPackageName(CodeGeneratorUtils.getPackageName(parameterProvider))
                 .providerSuperClassSimpleName(CodeGeneratorUtils.getSimpleName(parameterProvider))
                 .providerClassPackageName("com.ejaf.generated")
@@ -95,6 +97,10 @@ public class ParameterProviderProcessor extends AbstractProcessor {
         return roundEnvironment.getElementsAnnotatedWith(ParameterProviderAnnotation.class).stream()
                 .map(TypeElement.class::cast)
                 .collect(Collectors.toSet());
+    }
+
+    private int getParameterIndex(ExecutableElement method, VariableElement parameter) {
+        return method.getParameters().indexOf(parameter);
     }
 
     private void validateCustomAnnotations(Set<TypeElement> annotations) {

@@ -9,7 +9,9 @@ import lombok.Getter;
 public class ParameterProviderModel implements JavaTemplateModel {
     private String typeRef;
     private String methodRef;
-    private String paramRef;
+    private String parameterName;
+    private int parameterIndex;
+    private String parameterType;
     private String providerSuperClassSimpleName;
     private String providerSuperClassPackageName;
     private String providerClassSimpleName;

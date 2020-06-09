@@ -2,7 +2,7 @@ package com.ejaf;
 
 public interface ParameterProvider<E extends InvokerEvent> {
 
-    <T> T getParameter(ParameterContext parameterContext, E event, Class<T> type);
+    <R> R getParameter(ParameterContext parameterContext, E event, Class<R> parameterType);
 
     boolean isSupportedParameterType(Class<?> c);
 }
