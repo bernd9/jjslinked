@@ -5,8 +5,16 @@ import com.ejaf.processor.annotations.*;
 
 public class ParameterProviderRegistry {
 
-    public static List<Class<? extends ParameterProvider> getParameterProvider() {
+    private static Map<> PROVIDERS = new HashMap<ProviderKey,List<Class<? extends ParameterProvider<?>>>();
 
+    static {
+        {{#methods}}
+        PROVIDERS.put(new Key("{{target}}", "{{signature}}"), List.of({{#iterate providers, ", "}}{{type}}.class{{/iterate}}));
+        {{/methods}}
+    }
+
+    public static List<Class<? extends ParameterProvider> getParameterProvider(String type, String signature) {
+        return providers.get(new Key(type, signature));
     }
 
 
