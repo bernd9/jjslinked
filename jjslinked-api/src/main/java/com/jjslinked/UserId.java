@@ -1,14 +1,14 @@
-package com.ejaf.processor;
+package com.jjslinked;
 
-import com.ejaf.Advice;
+import com.ejaf.Provider;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+@Provider(UserIdParameterProvider.class)
 @Retention(RetentionPolicy.SOURCE)
-@Target(ElementType.METHOD)
-@Advice(TestInvoker.class)
-public @interface TestInvokerAnnotation {
+@Target(ElementType.PARAMETER)
+public @interface UserId {
 }

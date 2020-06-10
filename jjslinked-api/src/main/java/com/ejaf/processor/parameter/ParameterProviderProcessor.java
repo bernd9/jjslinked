@@ -1,7 +1,7 @@
 package com.ejaf.processor.parameter;
 
-import com.ejaf.ParameterProviderAnnotation;
-import com.ejaf.processor.ClassCreatedEvents;
+import com.ejaf.Provider;
+import com.ejaf.processor.InternalEvents;
 import com.ejaf.processor.annotations.AnnotationUtil;
 import com.ejaf.util.CodeGeneratorUtils;
 import com.google.auto.service.AutoService;
@@ -16,7 +16,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @AutoService(Processor.class)
-@SupportedAnnotationTypes("com.ejaf.ParameterProviderAnnotation")
+@SupportedAnnotationTypes("com.ejaf.Provider")
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class ParameterProviderProcessor extends AbstractProcessor {
 
@@ -36,6 +36,7 @@ public class ParameterProviderProcessor extends AbstractProcessor {
         try {
             if (roundEnv.processingOver()) {
                 annotatedParameters.entrySet().stream().forEach(e -> processParameters(e.getKey(), e.getValue()));
+                InternalEvents.fireEvent(new ParameterProvidersProcessedEvent());
             } else {
                 Set<TypeElement> customAnnotations = getCustomAnnotation(roundEnv);
                 validateCustomAnnotations(customAnnotations);
@@ -64,7 +65,7 @@ public class ParameterProviderProcessor extends AbstractProcessor {
         log("processing parameter %s", parameter);
         ParameterProviderModel model = createParameterProviderModel(annotation, parameter);
         parameterProviderTemplate.write(model, processingEnv.getFiler());
-        ClassCreatedEvents.fireClassCreatedEvent(model);
+        InternalEvents.fireEvent(new ParameterProviderCreatedEvent(model));
     }
 
     private ParameterProviderModel createParameterProviderModel(TypeElement annotation, VariableElement parameter) {
@@ -85,7 +86,7 @@ public class ParameterProviderProcessor extends AbstractProcessor {
     }
 
     private String getParameterProvider(TypeElement customProverAnnotation) {
-        return AnnotationUtil.getAnnotationAttribute(customProverAnnotation, ParameterProviderAnnotation.class, "value").orElseThrow();
+        return AnnotationUtil.getAnnotationAttribute(customProverAnnotation, Provider.class, "value").orElseThrow();
 
     }
 
@@ -94,7 +95,7 @@ public class ParameterProviderProcessor extends AbstractProcessor {
     }
 
     private Set<TypeElement> getCustomAnnotation(RoundEnvironment roundEnvironment) {
-        return roundEnvironment.getElementsAnnotatedWith(ParameterProviderAnnotation.class).stream()
+        return roundEnvironment.getElementsAnnotatedWith(Provider.class).stream()
                 .map(TypeElement.class::cast)
                 .collect(Collectors.toSet());
     }

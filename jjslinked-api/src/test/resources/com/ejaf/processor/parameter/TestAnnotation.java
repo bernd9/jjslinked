@@ -1,6 +1,6 @@
 package com.ejaf.processor;
 
-import com.ejaf.ParameterProviderAnnotation;
+import com.ejaf.Provider;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.PARAMETER)
-@ParameterProviderAnnotation(TestProvider.class)
+@Provider(TestProvider.class)
 public @interface TestAnnotation {
 }

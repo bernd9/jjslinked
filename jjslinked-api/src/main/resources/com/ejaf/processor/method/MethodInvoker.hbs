@@ -1,17 +1,40 @@
 
-@TypeRef("")
-@MethodRef("")
-class MethodInvoker1 implement MethodInvoker  {
+@MethodRef("{{methodRef}}")
+@TypeRef("{{typeRef}}")
+public class MethodInvoker1 implement MethodInvoker  {
 
-    void invoke() {
-        applicationContext.getBean({{typeRef}}.class).{{methodRef}}(
-            parameterProvider1().getParameter(prepareParameterContext1(), String.class);
-        );
+    private static final List<? extends Annotation> ANNOTATIONS = Arrays.asList();// TODO
+
+    private static final List<Class<?>> PARAMETER_TYPES = Arrays.asList();// TODO Types als String ohne Anführungszeichen einsetzen
+
+    private static final MethodContext METHOD_CONTEXT = MethodContext.builder()
+        .annotations(ANNOTATIONS)
+        .className("{{className}}")
+        .parameterTypes(PARAMETER_TYPES)
+        .signature("{{signature}}")
+        .build();
+
+
+    public void onEvent(Object obj, ApplicationContext applicationContext) {
+        if (event instanceof {{eventType}}) {
+            {{eventType}} event = ({{eventType}}) obj;
+             if (applicationContext.getBean({{invokerEventDeciderClass}}.class).shouldInvoke(METHOD_CONTEXT, event)) {
+                invoke(event, applicationContext);
+             }
+        }
     }
 
+    public void invoke({{eventType}} event, ApplicationContext applicationContext) {
+        ParameterContext parameterContext = null;
+        {{#parameterProviders}}
+        {{returnType}} {{paramName}} = applicationContext.getBean({{type}}.class).getParameter(ParameterContext.builder()
+                                                                                    .annotations({{annotations}})
+                                                                                    .paramName("{{paramName}}")
+                                                                                    .methodContext(METHOD_CONTEXT)
+                                                                                    .build(), event, {{returnType}}.class); // TODO int long etc
+        {{#parameterProviders}}
 
-    private parameterProvider1() {
+        applicationContext.getBean({{targetClass}}.class).{{methodName}}({{#interate parameterProviders ", "}}{{paramName}}{{/interate}});
+
     }
-
-
 }

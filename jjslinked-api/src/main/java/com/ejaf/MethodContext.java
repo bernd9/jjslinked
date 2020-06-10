@@ -1,14 +1,17 @@
 package com.ejaf;
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.lang.annotation.Annotation;
+import java.util.List;
 
 @Getter
+@Builder
 @RequiredArgsConstructor
-public class MethodContext<A extends Annotation, C extends MethodInvocationContext> {
-    private final A annotation;
-    private final C invocationContext;
-    private final ApplicationContext applicationContext;
+public class MethodContext {
+    private final Annotations annotations;
+    private final String className;
+    private final List<Class<?>> parameterTypes;
+    private final String signature;
 }
