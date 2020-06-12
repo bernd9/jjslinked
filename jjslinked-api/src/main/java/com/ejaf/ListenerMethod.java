@@ -7,7 +7,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.ANNOTATION_TYPE)
 @Retention(RetentionPolicy.SOURCE)
-public @interface Mapped {
+public @interface ListenerMethod {
     Class<? extends InvokerEventDecider<?>> deciderClass();
 
     Class<? extends ParameterProvider<?>> defaultParameterProvider();

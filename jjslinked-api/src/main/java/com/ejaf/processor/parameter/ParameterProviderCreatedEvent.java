@@ -6,5 +6,5 @@ import lombok.Value;
 @Getter
 @Value
 public class ParameterProviderCreatedEvent {
-    ParameterProviderModel model;
+    ParameterProviderRegistryModel model;
 }

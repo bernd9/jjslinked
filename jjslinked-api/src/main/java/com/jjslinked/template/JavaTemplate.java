@@ -1,4 +1,4 @@
-package com.ejaf.processor.template;
+package com.jjslinked.template;
 
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
@@ -32,7 +32,7 @@ public abstract class JavaTemplate<T extends JavaTemplateModel> {
 
     public void write(T model, Filer filer) {
         try {
-            write(model, filer.createSourceFile(model.getJavaClassQualifiedName()));
+            write(model, filer.createSourceFile(model.getJavaClass().getQualifiedName()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

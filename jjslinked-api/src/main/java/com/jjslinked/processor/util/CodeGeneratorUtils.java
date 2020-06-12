@@ -1,4 +1,4 @@
-package com.ejaf.util;
+package com.jjslinked.processor.util;
 
 import com.jjslinked.annotations.LinkedMethod;
 import lombok.AccessLevel;

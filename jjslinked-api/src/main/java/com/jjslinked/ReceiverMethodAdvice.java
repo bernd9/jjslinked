@@ -8,7 +8,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Set;
 
-class ClientCallMethodAdvice implements MethodAdvice {
+class ReceiverMethodAdvice implements MethodAdvice {
 
     @Override
     public Object invoke(Method method, Set<? extends Annotation> annotations, List<MethodParameter> parameters) throws Throwable {

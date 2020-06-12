@@ -2,32 +2,29 @@ package com.ejaf.processor.parameter;
 
 import com.ejaf.Provider;
 import com.ejaf.processor.InternalEvents;
-import com.ejaf.processor.annotations.AnnotationUtil;
-import com.ejaf.util.CodeGeneratorUtils;
 import com.google.auto.service.AutoService;
+import com.jjslinked.processor.util.AnnotationUtil;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 
 @AutoService(Processor.class)
 @SupportedAnnotationTypes("com.ejaf.Provider")
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class ParameterProviderProcessor extends AbstractProcessor {
 
-    private Map<TypeElement, Collection<VariableElement>> annotatedParameters = new HashMap<>();
-    private ParameterProviderTemplate parameterProviderTemplate = new ParameterProviderTemplate();
-    private int instanceId;
+    private ParameterProviderRegistryTemplate parameterProviderTemplate = new ParameterProviderRegistryTemplate();
+    private Map<String, String> providerMapping = new HashMap<>();
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
-        instanceId = 0;
-        annotatedParameters.clear();
+        providerMapping.clear();
         super.init(processingEnv);
     }
 
@@ -35,12 +32,12 @@ public class ParameterProviderProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         try {
             if (roundEnv.processingOver()) {
-                annotatedParameters.entrySet().stream().forEach(e -> processParameters(e.getKey(), e.getValue()));
+                parameterProviderTemplate.write(new ParameterProviderRegistryModel(providerMapping), processingEnv.getFiler());
                 InternalEvents.fireEvent(new ParameterProvidersProcessedEvent());
             } else {
-                Set<TypeElement> customAnnotations = getCustomAnnotation(roundEnv);
-                validateCustomAnnotations(customAnnotations);
-                customAnnotations.forEach(annotation -> mapAnnotatedParameters(annotation, roundEnv));
+                getCustomProviderAnnotation(roundEnv)
+                        .peek(this::validateCustomAnnotation)
+                        .forEach(this::mapParameterProvider);
             }
         } catch (Exception e) {
             reportError(e);
@@ -48,41 +45,12 @@ public class ParameterProviderProcessor extends AbstractProcessor {
         return true;
     }
 
-
-    private void mapAnnotatedParameters(TypeElement annotation, RoundEnvironment roundEnv) {
-        annotatedParameters.computeIfAbsent(annotation, a -> new ArrayList<>()).addAll(findAnnotatedParameters(annotation, roundEnv));
+    private void validateCustomAnnotation(TypeElement element) {
     }
 
-    private Collection<VariableElement> findAnnotatedParameters(TypeElement annotation, RoundEnvironment roundEnv) {
-        return roundEnv.getElementsAnnotatedWith(annotation).stream().map(VariableElement.class::cast).collect(Collectors.toSet());
-    }
 
-    private void processParameters(TypeElement annotation, Collection<VariableElement> parameters) {
-        parameters.forEach(parameter -> processParameter(annotation, parameter));
-    }
-
-    private void processParameter(TypeElement annotation, VariableElement parameter) {
-        log("processing parameter %s", parameter);
-        ParameterProviderModel model = createParameterProviderModel(annotation, parameter);
-        parameterProviderTemplate.write(model, processingEnv.getFiler());
-        InternalEvents.fireEvent(new ParameterProviderCreatedEvent(model));
-    }
-
-    private ParameterProviderModel createParameterProviderModel(TypeElement annotation, VariableElement parameter) {
-        ExecutableElement enclosingMethod = (ExecutableElement) parameter.getEnclosingElement();
-        TypeElement enclosingType = (TypeElement) enclosingMethod.getEnclosingElement();
-        String parameterProvider = getParameterProvider(annotation);
-        return ParameterProviderModel.builder()
-                .methodRef(enclosingMethod.toString())
-                .typeRef(enclosingType.getQualifiedName().toString())
-                .parameterName(parameter.getSimpleName().toString())
-                .parameterIndex(getParameterIndex(enclosingMethod, parameter))
-                .parameterType(parameter.asType().toString())
-                .providerSuperClassPackageName(CodeGeneratorUtils.getPackageName(parameterProvider))
-                .providerSuperClassSimpleName(CodeGeneratorUtils.getSimpleName(parameterProvider))
-                .providerClassPackageName("com.ejaf.generated")
-                .providerClassSimpleName(providerClassSimpleName())
-                .build();
+    private void mapParameterProvider(TypeElement annotation) {
+        providerMapping.put(annotation.asType().toString(), getParameterProvider(annotation));
     }
 
     private String getParameterProvider(TypeElement customProverAnnotation) {
@@ -90,24 +58,10 @@ public class ParameterProviderProcessor extends AbstractProcessor {
 
     }
 
-    private String providerClassSimpleName() {
-        return String.format("ParameterProvider%d", instanceId++);
-    }
-
-    private Set<TypeElement> getCustomAnnotation(RoundEnvironment roundEnvironment) {
+    private Stream<TypeElement> getCustomProviderAnnotation(RoundEnvironment roundEnvironment) {
         return roundEnvironment.getElementsAnnotatedWith(Provider.class).stream()
-                .map(TypeElement.class::cast)
-                .collect(Collectors.toSet());
+                .map(TypeElement.class::cast);
     }
-
-    private int getParameterIndex(ExecutableElement method, VariableElement parameter) {
-        return method.getParameters().indexOf(parameter);
-    }
-
-    private void validateCustomAnnotations(Set<TypeElement> annotations) {
-        // TODO
-    }
-
 
     private void reportError(Exception e) {
         processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.toString());
@@ -116,6 +70,4 @@ public class ParameterProviderProcessor extends AbstractProcessor {
     private void log(String message, Object... args) {
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, String.format(message, args));
     }
-
-
 }

@@ -1,9 +1,9 @@
 package com.ejaf.processor.method;
 
-import com.ejaf.processor.parameter.ParameterProviderModel;
-import com.ejaf.processor.template.JavaTemplate;
+import com.ejaf.processor.parameter.ParameterProviderRegistryModel;
+import com.jjslinked.template.JavaTemplate;
 
-public class MethodInvokerTemplate extends JavaTemplate<ParameterProviderModel> {
+public class MethodInvokerTemplate extends JavaTemplate<ParameterProviderRegistryModel> {
 
 
     protected MethodInvokerTemplate() {
