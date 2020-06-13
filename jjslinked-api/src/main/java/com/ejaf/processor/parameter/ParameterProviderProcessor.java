@@ -2,7 +2,6 @@ package com.ejaf.processor.parameter;
 
 import com.ejaf.Provider;
 import com.ejaf.processor.InternalEvents;
-import com.google.auto.service.AutoService;
 import com.jjslinked.processor.util.AnnotationUtil;
 
 import javax.annotation.processing.*;
@@ -14,7 +13,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-@AutoService(Processor.class)
+//@AutoService(Processor.class)
 @SupportedAnnotationTypes("com.ejaf.Provider")
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class ParameterProviderProcessor extends AbstractProcessor {

@@ -14,7 +14,7 @@ public class MethodInvoker1 implement MethodInvoker  {
         .signature("{{signature}}")
         .build();
 
-    private static ParameterProvider<> DEFAULT_PROVIDER = {{defaultProvider}}.class;
+    private static ParameterProvider<> DEFAULT_PROVIDER = MessageParameterProvider.class;
 
 
     public void onEvent(Object obj, ApplicationContext applicationContext) {

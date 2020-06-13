@@ -28,6 +28,7 @@ public abstract class JavaTemplate<T extends JavaTemplateModel> {
 
     protected void registerHelpers(Handlebars handlebars) { // TODO Test
         handlebars.registerHelper("iterate", HandlebarHelpers::iterate);
+        handlebars.registerHelper("firstToUpper", HandlebarHelpers::firstToUpper);
     }
 
 

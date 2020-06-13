@@ -56,5 +56,8 @@ public class HandlebarHelpers {
         return CodeGeneratorUtils.firstToLowerCase(value);
     }
 
+    public static String firstToUpper(@NonNull String value, Options options) {
+        return CodeGeneratorUtils.firstToUpperCase(value);
+    }
 }
 

@@ -35,6 +35,9 @@ public class MethodModel {
     }
 
     public List<String> getParameterTypes() {
-        return parameters.stream().map(ParameterModel::getQualifiedName).collect(Collectors.toList());
+        return parameters.stream()
+                .map(ParameterModel::getParameterType)
+                .map(ClassModel::getQualifiedName)
+                .collect(Collectors.toList());
     }
 }

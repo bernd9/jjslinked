@@ -1,14 +1,12 @@
 package com.ejaf.processor.method;
 
-import com.google.auto.service.AutoService;
-
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.util.Set;
 
-@AutoService(Processor.class)
+//@AutoService(Processor.class)
 @SupportedAnnotationTypes("com.ejaf.ListenerMethod")
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class MappedAnnotationProcessor extends AbstractProcessor {

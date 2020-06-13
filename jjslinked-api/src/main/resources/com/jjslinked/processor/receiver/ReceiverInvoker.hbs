@@ -22,8 +22,9 @@ public class {{invoker.simpleName}} {
         .parameterTypes(PARAMETER_TYPES)
         .build();
 
-    private static ParameterProvider DEFAULT_PROVIDER = null; // TODO
+    private static ParameterProvider DEFAULT_PROVIDER = new MessageParameterProvider();
 
+    private static final ParameterProviderRegistry PARAMETER_PROVIDER_REGISTRY = getProviderRegistry();
 
     public void onMessage(ClientMessage message, ApplicationContext applicationContext) throws Exception {
         if (message.getTargetClass().equals({{methodToInvoke.declaringClass.qualifiedName}}.class)
@@ -39,21 +40,58 @@ public class {{invoker.simpleName}} {
     }
 
     private Object[] prepareArgs(ClientMessage message, ApplicationContext applicationContext) {
-        return null;
+        return new Object[]{
+         {{#iterate methodToInvoke.parameters ", "}}
+         getParameter{{firstToUpper parameterName}}(message, applicationContext)
+         {{/iterate}}
+        };
+    }
+
+    {{#methodToInvoke.parameters}}
+     private Object getParameter{{firstToUpper parameterName}}(ClientMessage message, ApplicationContext applicationContext) {
+            ParameterContext context = ParameterContext.builder()
+                .parameterType({{parameterType.qualifiedName}}.class)
+                .annotations(getParameterAnnotations({{#iterate annotations}}{{/iterate}}))
+                .paramName("{{parameterName}}")
+                .methodContext(METHOD_CONTEXT)
+                .build();
+             return null;
+     }
+    {{/methodToInvoke.parameters}}
+
+
+
+
+    private Set<? extends Annotation> getParameterAnnotations(Class<? extends Annotation>...annotationClasses) {
+        return Arrays.stream(annotationClasses).map(METHOD_TO_INVOKE::getAnnotation).collect(Collectors.toSet());
+    }
+
+    private ParameterProvider getParameterProvider(Class<? extends Annotation>... annotationClasses) {
+        ParameterProvider provider =  PARAMETER_PROVIDER_REGISTRY.getProvider(annotationClasses);
+        if (provider == null) {
+            provider = DEFAULT_PROVIDER;
+        }
+        return provider;
     }
 
     private static Method getMethodToInvoke() {
         try {
             return {{methodToInvoke.declaringClass.qualifiedName}}.class.getMethod("{{methodToInvoke.name}}"
-            {{#methodToInvoke.parameterTypes}}
-            , {{.}}.class
-            {{/methodToInvoke.parameterTypes}}
+            {{#methodToInvoke.parameters}}
+            , {{parameterType.qualifiedName}}.class
+            {{/methodToInvoke.parameters}}
             );
          } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
          }
     }
 
-
+    private static ParameterProviderRegistry getProviderRegistry() {
+         try {
+            return (ParameterProviderRegistry) Class.forName("com.jjslinked.generated.ProviderRegistry").newInstance();
+         } catch (Exception e) {
+            throw new RuntimeException(e);
+         }
+    }
 
 }

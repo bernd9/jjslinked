@@ -48,6 +48,7 @@ public class ProcessorTestUtil {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        return writer.toString();
+        String src = writer.toString();
+        return src;
     }
 }

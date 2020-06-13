@@ -1,6 +1,5 @@
 package com.jjslinked;
 
-import com.ejaf.ParameterContext;
 import com.jjslinked.model.ClientMessage;
 
 public interface ParameterProvider {
