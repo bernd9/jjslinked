@@ -41,12 +41,17 @@ public class ClassModel {
     }
 
     public static ClassModel fromElement(VariableElement e) {
-        var qualifiedName = e.asType().toString();
+        var qualifiedName = stripAnnotions(e.asType().toString());
         return ClassModel.builder()
                 .qualifiedName(qualifiedName)
                 .packageName(CodeGeneratorUtils.getPackageName(qualifiedName))
                 .simpleName(CodeGeneratorUtils.getSimpleName(qualifiedName))
                 .annotations(Collections.emptySet())
                 .build();
+    }
+
+    private static String stripAnnotions(String type) {
+        int lastIndex = type.lastIndexOf(' ');
+        return lastIndex == -1 ? type : type.substring(lastIndex + 1);
     }
 }
