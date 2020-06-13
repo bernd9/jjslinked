@@ -4,5 +4,5 @@ import java.lang.annotation.Annotation;
 
 public interface ParameterProviderRegistry {
 
-    ParameterProvider getProvider(Class<? extends Annotation>... annotationClasses);
+    Class<? extends ParameterProvider> getProviderClass(Class<? extends Annotation>... annotationClasses);
 }

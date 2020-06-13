@@ -55,24 +55,25 @@ public class {{invoker.simpleName}} {
                 .paramName("{{parameterName}}")
                 .methodContext(METHOD_CONTEXT)
                 .build();
-             return null;
+            ParameterProvider provider = getParameterProvider(applicationContext {{#annotationClasses}}, {{.}}.class{{/annotationClasses}});
+            return provider.getParameter(context, message);
      }
     {{/methodToInvoke.parameters}}
 
 
-
+    private ParameterProvider getParameterProvider(ApplicationContext applicationContext, Class<? extends Annotation>... annotationClasses) {
+        Class<? extends ParameterProvider> providerClass = PARAMETER_PROVIDER_REGISTRY.getProviderClass(annotationClasses);
+        if (providerClass == null) {
+            return DEFAULT_PROVIDER;
+        }
+        return applicationContext.getBean(providerClass);
+    }
 
     private Set<? extends Annotation> getParameterAnnotations(Class<? extends Annotation>...annotationClasses) {
         return Arrays.stream(annotationClasses).map(METHOD_TO_INVOKE::getAnnotation).collect(Collectors.toSet());
     }
 
-    private ParameterProvider getParameterProvider(Class<? extends Annotation>... annotationClasses) {
-        ParameterProvider provider =  PARAMETER_PROVIDER_REGISTRY.getProvider(annotationClasses);
-        if (provider == null) {
-            provider = DEFAULT_PROVIDER;
-        }
-        return provider;
-    }
+
 
     private static Method getMethodToInvoke() {
         try {
