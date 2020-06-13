@@ -1,46 +1,59 @@
+package {{invoker.packageName}};
 
-@MethodRef("{{methodRef}}")
-@TypeRef("{{typeRef}}")
-public class MethodInvoker1 implement MethodInvoker  {
+import java.util.*;
+import java.util.stream.*;
+import java.lang.reflect.Method;
+import java.lang.annotation.Annotation;
+import com.jjslinked.*;
+import com.jjslinked.model.*;
 
-    private static final List<? extends Annotation> ANNOTATIONS = Arrays.asList();// TODO
+public class {{invoker.simpleName}} {
 
-    private static final List<Class<?>> PARAMETER_TYPES = Arrays.asList();// TODO Types als String ohne Anführungszeichen einsetzen
+    private static final Method METHOD_TO_INVOKE = getMethodToInvoke();
+
+    private static final List<? extends Annotation> METHOD_ANNOTATIONS = Arrays.asList({{#iterate methodToInvoke.annotationClasses ", "}}{{.}}.class{{/iterate}})
+        .stream().map(c -> METHOD_TO_INVOKE.getAnnotation(c)).collect(Collectors.toList());
+
+    private static final List<Class<?>> PARAMETER_TYPES = Arrays.asList({{#iterate methodToInvoke.parameterTypes ", "}}{{.}}.class{{/iterate}});
 
     private static final MethodContext METHOD_CONTEXT = MethodContext.builder()
-        .annotations(ANNOTATIONS)
-        .className("{{className}}")
+        .annotations(METHOD_ANNOTATIONS)
+        .declaringClass({{methodToInvoke.declaringClass.qualifiedName}}.class)
         .parameterTypes(PARAMETER_TYPES)
-        .signature("{{signature}}")
         .build();
 
-    private static ParameterProvider<> DEFAULT_PROVIDER = {{defaultProvider}}.class;
+    private static ParameterProvider DEFAULT_PROVIDER = null; // TODO
 
 
-    public void onEvent(Object obj, ApplicationContext applicationContext) {
-        if (event instanceof {{eventType}}) {
-            {{eventType}} event = ({{eventType}}) obj;
-             if (applicationContext.getBean({{invokerEventDeciderClass}}.class).shouldInvoke(METHOD_CONTEXT, event)) {
-                invoke(event, applicationContext);
-             }
-        }
+    public void onMessage(ClientMessage message, ApplicationContext applicationContext) throws Exception {
+        if (message.getTargetClass().equals({{methodToInvoke.declaringClass.qualifiedName}}.class)
+            && message.getMethodName().equals("{{methodToInvoke.name}}")
+            && message.getParameterTypes().equals(Arrays.asList(METHOD_TO_INVOKE.getParameterTypes()))) {
+                invoke(message, applicationContext);
+            }
     }
 
-    public void invoke({{eventType}} event, ApplicationContext applicationContext) {
-        applicationContext.getBean({{targetClass}}.class).{{methodName}}(
-        {{#interate parameters ", "}}
-         getParamterProvider({{}})
-        {{/interate}});
+    public void invoke(ClientMessage message, ApplicationContext applicationContext) throws Exception  {
+        {{methodToInvoke.declaringClass.qualifiedName}} bean = applicationContext.getBean({{methodToInvoke.declaringClass.qualifiedName}}.class);
+        METHOD_TO_INVOKE.invoke(bean, prepareArgs(message, applicationContext));
     }
 
-    private ParameterProvider<?> getParameterProvider(Parameter parameter, ApplicationContext applicationContext) {
-        return applicationContext.getBean(getParameterProviderClass(parameter));
+    private Object[] prepareArgs(ClientMessage message, ApplicationContext applicationContext) {
+        return null;
     }
 
-    private Class<? extends ParameterProvider<?>> getParameterProviderClass(Parameter parameter) {
-        if (parameter.getProviderAnnotation() == null) {
-            return DEFAULT_PROVIDER;
-        }
-        return ProviderRegistry.getParameterProvider(parameter.getProviderAnnotation());
+    private static Method getMethodToInvoke() {
+        try {
+            return {{methodToInvoke.declaringClass.qualifiedName}}.class.getMethod("{{methodToInvoke.name}}"
+            {{#methodToInvoke.parameterTypes}}
+            , {{.}}.class
+            {{/methodToInvoke.parameterTypes}}
+            );
+         } catch (NoSuchMethodException e) {
+            throw new RuntimeException(e);
+         }
     }
+
+
+
 }

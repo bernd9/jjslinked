@@ -1,12 +1,12 @@
 package com.jjslinked;
 
 import com.ejaf.ParameterContext;
-import com.ejaf.ParameterProvider;
+import com.jjslinked.model.ClientMessage;
 
-class MessageParameterProvider implements ParameterProvider<IncomingMessageEvent> {
+class MessageParameterProvider implements ParameterProvider {
 
     @Override
-    public <R> R getParameter(ParameterContext parameterContext, IncomingMessageEvent event, Class<R> parameterType) {
+    public <R> R getParameter(ParameterContext parameterContext, ClientMessage message) {
         return null;
     }
 

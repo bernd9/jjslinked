@@ -1,5 +1,7 @@
 package com.ejaf;
 
+import com.jjslinked.ParameterProvider;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -10,5 +12,5 @@ import java.lang.annotation.Target;
 public @interface ListenerMethod {
     Class<? extends InvokerEventDecider<?>> deciderClass();
 
-    Class<? extends ParameterProvider<?>> defaultParameterProvider();
+    Class<? extends ParameterProvider> defaultParameterProvider();
 }

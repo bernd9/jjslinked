@@ -6,6 +6,7 @@ import lombok.Value;
 @Value
 @Builder
 public class ParameterContext {
+    private final Class<?> parameterType;
     private final Annotations annotations;
     private final String paramName;
     private final MethodInvocationContext methodInvocationContext;

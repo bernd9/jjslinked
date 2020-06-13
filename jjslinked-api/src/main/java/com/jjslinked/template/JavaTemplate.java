@@ -2,6 +2,7 @@ package com.jjslinked.template;
 
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
+import com.jjslinked.handlebar.HandlebarHelpers;
 
 import javax.annotation.processing.Filer;
 import javax.tools.JavaFileObject;
@@ -25,8 +26,8 @@ public abstract class JavaTemplate<T extends JavaTemplateModel> {
     }
 
 
-    protected void registerHelpers(Handlebars handlebars) {
-
+    protected void registerHelpers(Handlebars handlebars) { // TODO Test
+        handlebars.registerHelper("iterate", HandlebarHelpers::iterate);
     }
 
 

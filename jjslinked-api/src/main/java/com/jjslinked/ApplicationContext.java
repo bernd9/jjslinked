@@ -1,4 +1,4 @@
-package com.ejaf;
+package com.jjslinked;
 
 public interface ApplicationContext {
 

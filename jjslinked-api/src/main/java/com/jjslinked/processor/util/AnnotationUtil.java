@@ -22,6 +22,7 @@ public class AnnotationUtil {
     public static Set<AnnotationModel> getAnnotations(Element e) {
         return e.getAnnotationMirrors().stream()
                 .map(AnnotationMirror::toString)
+                .map(str -> str.replace("@", ""))
                 .map(AnnotationModel::new).collect(Collectors.toSet());
     }
 

@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.experimental.FieldDefaults;
 
 import javax.lang.model.element.TypeElement;
+import java.util.Collections;
 import java.util.Set;
 
 @Getter
@@ -29,5 +30,12 @@ public class ClassModel {
                 .build();
     }
 
-
+    public static ClassModel fromName(String qualifiedName) {
+        return ClassModel.builder()
+                .qualifiedName(qualifiedName)
+                .packageName(CodeGeneratorUtils.getPackageName(qualifiedName))
+                .simpleName(CodeGeneratorUtils.getSimpleName(qualifiedName))
+                .annotations(Collections.emptySet())
+                .build();
+    }
 }

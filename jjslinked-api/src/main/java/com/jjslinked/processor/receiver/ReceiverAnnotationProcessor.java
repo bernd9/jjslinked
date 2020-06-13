@@ -1,6 +1,7 @@
 package com.jjslinked.processor.receiver;
 
 import com.google.auto.service.AutoService;
+import com.jjslinked.model.ClassModel;
 import com.jjslinked.model.MethodModel;
 
 import javax.annotation.processing.*;
@@ -17,11 +18,12 @@ import java.util.stream.Collectors;
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class ReceiverAnnotationProcessor extends AbstractProcessor {
 
-    private final Set<MethodModel> receivers = new HashSet<>();
+    private final Set<ReceiverInvokerModel> receivers = new HashSet<>();
+    private final ReceiverInvokerTemplate invokerTemplate = new ReceiverInvokerTemplate();
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
-
+        receivers.clear();
         super.init(processingEnv);
     }
 
@@ -37,6 +39,7 @@ public class ReceiverAnnotationProcessor extends AbstractProcessor {
                         .flatMap(Set::stream)
                         .map(ExecutableElement.class::cast)
                         .map(MethodModel::fromElement)
+                        .map(this::toReceiverModel)
                         .collect(Collectors.toSet()));
             }
         } catch (Exception e) {
@@ -45,11 +48,18 @@ public class ReceiverAnnotationProcessor extends AbstractProcessor {
         return true;
     }
 
+    private ReceiverInvokerModel toReceiverModel(MethodModel methodModel) {
+        return ReceiverInvokerModel.builder()
+                .invoker(ClassModel.fromName(methodModel.getDeclaringClass().getQualifiedName() + "Invoker"))
+                .methodToInvoke(methodModel).build();
+    }
+
     private void writeReceiverInvokers() {
         receivers.forEach(this::writeReceiverInvoker);
     }
 
-    private void writeReceiverInvoker(MethodModel methodModel) {
+    private void writeReceiverInvoker(ReceiverInvokerModel model) {
+        invokerTemplate.write(model, processingEnv.getFiler());
     }
 
     private void writeReceiverRegistry() {

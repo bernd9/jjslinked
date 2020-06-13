@@ -12,4 +12,9 @@ import lombok.experimental.FieldDefaults;
 @RequiredArgsConstructor
 public class AnnotationModel {
     String qualifiedName;
+
+    @Override
+    public String toString() {
+        return qualifiedName.replace("@", "");
+    }
 }

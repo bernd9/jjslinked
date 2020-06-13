@@ -1,18 +1,18 @@
 package com.jjslinked;
 
 import com.ejaf.ParameterContext;
-import com.ejaf.ParameterProvider;
+import com.jjslinked.model.ClientMessage;
 import org.apache.commons.beanutils.ConvertUtils;
 
 import java.util.Set;
 
-class UserIdParameterProvider implements ParameterProvider<IncomingMessageEvent> {
+class UserIdParameterProvider implements ParameterProvider {
 
     private Set<Class<?>> PARAMETER_TYPES = Set.of(String.class, Integer.class, Long.class, Integer.TYPE, Long.TYPE);
 
     @Override
-    public <R> R getParameter(ParameterContext parameterContext, IncomingMessageEvent event, Class<R> parameterType) {
-        return event.getClientMessage().getUserId().map(userId -> (R) ConvertUtils.convert(userId, parameterType)).orElseThrow(SecurityException::new);
+    public <R> R getParameter(ParameterContext parameterContext, ClientMessage message) {
+        return message.getUserId().map(userId -> (R) ConvertUtils.convert(userId, parameterContext.getParameterType())).orElseThrow(SecurityException::new);
     }
 
     @Override

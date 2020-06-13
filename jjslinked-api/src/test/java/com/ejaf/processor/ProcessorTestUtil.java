@@ -5,6 +5,12 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import javax.tools.Diagnostic;
+import javax.tools.JavaFileObject;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
+import java.util.Collection;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
@@ -18,25 +24,30 @@ public class ProcessorTestUtil {
     }
 
     public static String asString(Diagnostic<?> diagnostic) {
-        return new StringBuilder(diagnostic.getSource().toString())
-                .append(" in line ").append(diagnostic.getLineNumber())
+        StringBuilder s = new StringBuilder();
+        if (diagnostic.getSource() != null)
+            s.append(diagnostic.getSource());
+
+        s.append(" in line ").append(diagnostic.getLineNumber())
                 .append(": ")
                 .append(diagnostic.getMessage(Locale.US)).toString();
-
+        return s.toString();
     }
 
-    public static String testResult() {
-        /*
-        javaFileObject = compilation.generatedSourceFile("com.ejaf.generated.ParameterProvider0").orElseThrow();
+    public static Collection<String> getSources(Compilation compilation) {
+        return compilation.generatedSourceFiles().stream().map(ProcessorTestUtil::getSource).collect(Collectors.toList());
+    }
 
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(javaFileObject.openInputStream()))) {
+    public static String getSource(JavaFileObject fileObject) {
+        StringWriter writer = new StringWriter();
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(fileObject.openInputStream()))) {
             String line = null;
             while ((line = in.readLine()) != null) {
-                System.out.println(line);
+                writer.write(line);
             }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
-         */
-        return null;
+        return writer.toString();
     }
 }

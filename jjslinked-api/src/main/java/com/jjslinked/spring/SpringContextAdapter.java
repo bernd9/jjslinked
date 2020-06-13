@@ -1,6 +1,6 @@
-package com.ejaf.spring;
+package com.jjslinked.spring;
 
-import com.ejaf.ApplicationContext;
+import com.jjslinked.ApplicationContext;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor

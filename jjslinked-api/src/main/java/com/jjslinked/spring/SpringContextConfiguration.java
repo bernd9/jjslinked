@@ -1,4 +1,4 @@
-package com.ejaf.spring;
+package com.jjslinked.spring;
 
 import com.ejaf.ApplicationContextHolder;
 import org.springframework.beans.BeansException;
