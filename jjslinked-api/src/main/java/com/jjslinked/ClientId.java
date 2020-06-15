@@ -1,4 +1,4 @@
-package com.jjslinked.annotations;
+package com.jjslinked;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Target;

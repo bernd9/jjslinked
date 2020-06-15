@@ -41,7 +41,7 @@ public class ProcessorTestUtil {
     public static String getSource(JavaFileObject fileObject) {
         StringWriter writer = new StringWriter();
         try (BufferedReader in = new BufferedReader(new InputStreamReader(fileObject.openInputStream()))) {
-            String line = null;
+            String line;
             while ((line = in.readLine()) != null) {
                 writer.write(line);
             }

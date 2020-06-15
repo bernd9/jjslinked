@@ -10,17 +10,18 @@ import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Parameter;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AnnotationUtil {
 
     public static Set<AnnotationModel> getAnnotations(Element e) {
-        return e.getAnnotationMirrors().stream()
+        return getAnnotations(e.getAnnotationMirrors());
+    }
+
+    public static Set<AnnotationModel> getAnnotations(List<? extends AnnotationMirror> mirrors) {
+        return mirrors.stream()
                 .map(AnnotationMirror::toString)
                 .map(str -> str.replace("@", ""))
                 .map(AnnotationModel::new).collect(Collectors.toSet());

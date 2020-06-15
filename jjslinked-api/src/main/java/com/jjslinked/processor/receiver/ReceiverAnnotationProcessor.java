@@ -50,7 +50,7 @@ public class ReceiverAnnotationProcessor extends AbstractProcessor {
 
     private ReceiverInvokerModel toReceiverModel(MethodModel methodModel) {
         return ReceiverInvokerModel.builder()
-                .invoker(ClassModel.fromName(methodModel.getDeclaringClass().getQualifiedName() + "Invoker"))
+                .invoker(ClassModel.from(methodModel.getDeclaringClass().getQualifiedName() + "Invoker"))
                 .methodToInvoke(methodModel).build();
     }
 

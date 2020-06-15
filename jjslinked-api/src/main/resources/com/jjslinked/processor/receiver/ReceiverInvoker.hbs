@@ -73,8 +73,6 @@ public class {{invoker.simpleName}} implements ReceiverInvoker {
         return Arrays.stream(annotationClasses).map(METHOD_TO_INVOKE::getAnnotation).collect(Collectors.toSet());
     }
 
-
-
     private static Method getMethodToInvoke() {
         try {
             return {{methodToInvoke.declaringClass.qualifiedName}}.class.getMethod("{{methodToInvoke.name}}"
@@ -94,5 +92,4 @@ public class {{invoker.simpleName}} implements ReceiverInvoker {
             throw new RuntimeException(e);
          }
     }
-
 }

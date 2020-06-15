@@ -21,7 +21,7 @@ public class ParameterModel {
     public static ParameterModel fromParameter(VariableElement e) {
         return ParameterModel.builder()
                 .parameterName(e.getSimpleName().toString())
-                .parameterType(ClassModel.fromElement(e))
+                .parameterType(ClassModel.from(e))
                 .annotations(AnnotationUtil.getAnnotations(e))
                 .build();
     }

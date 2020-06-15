@@ -15,16 +15,14 @@ import java.util.stream.Collectors;
 @Getter
 @Builder
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
-public class MethodModel {
+public class ConstructorModel {
     ClassModel declaringClass;
-    ClassModel returnType;
     String name;
     List<ParameterModel> parameters;
     Set<AnnotationModel> annotations;
 
-    public static MethodModel fromElement(ExecutableElement element) {
-        return MethodModel.builder()
-                .returnType(ClassModel.from(element.getReturnType()))
+    public static ConstructorModel fromElement(ExecutableElement element) {
+        return ConstructorModel.builder()
                 .declaringClass(ClassModel.from((TypeElement) element.getEnclosingElement()))
                 .name(element.getSimpleName().toString())
                 .parameters(element.getParameters().stream().map(ParameterModel::fromParameter).collect(Collectors.toList()))

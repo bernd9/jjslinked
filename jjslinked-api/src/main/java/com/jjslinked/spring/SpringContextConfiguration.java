@@ -1,16 +1,17 @@
 package com.jjslinked.spring;
 
-import com.ejaf.ApplicationContextHolder;
-import org.springframework.beans.BeansException;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ApplicationContextAware;
-import org.springframework.stereotype.Component;
+import com.jjslinked.DefaultParameterProviderRegistry;
+import com.jjslinked.ParameterProviderRegistry;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
-@Component
-class SpringContextConfiguration implements ApplicationContextAware {
+@Configuration
+class SpringContextConfiguration {
 
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        ApplicationContextHolder.setContext(new SpringContextAdapter(applicationContext));
+    @Bean
+    ParameterProviderRegistry parameterProviderRegistry() {
+        return new DefaultParameterProviderRegistry();
     }
+
+
 }
