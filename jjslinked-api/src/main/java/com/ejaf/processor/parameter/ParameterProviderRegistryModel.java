@@ -1,6 +1,6 @@
 package com.ejaf.processor.parameter;
 
-import com.jjslinked.model.ClassModel;
+import com.jjslinked.ast.ClassNode;
 import com.jjslinked.template.JavaTemplateModel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,5 +16,5 @@ public class ParameterProviderRegistryModel implements JavaTemplateModel {
 
     @Delegate
     private final Map<String, String> providerMapping;
-    private ClassModel javaClass;
+    private ClassNode javaClass;
 }

@@ -1,7 +1,7 @@
 package com.jjslinked.template;
 
-import com.jjslinked.model.ClassModel;
+import com.jjslinked.ast.ClassNode;
 
 public interface JavaTemplateModel {
-    ClassModel getJavaClass();
+    ClassNode getJavaClass();
 }

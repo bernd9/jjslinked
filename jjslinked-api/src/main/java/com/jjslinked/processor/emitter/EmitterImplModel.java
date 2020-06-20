@@ -1,7 +1,7 @@
 package com.jjslinked.processor.emitter;
 
-import com.jjslinked.model.ClassModel;
-import com.jjslinked.model.MethodModel;
+import com.jjslinked.ast.ClassNode;
+import com.jjslinked.ast.MethodNode;
 import com.jjslinked.template.JavaTemplateModel;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -14,15 +14,15 @@ import java.util.List;
 @Builder
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 class EmitterImplModel implements JavaTemplateModel {
-    ClassModel classModel;
-    ClassModel superClass;
-    MethodModel superClassConstructor; // TODO validate one class to have one constructor, only
-    List<MethodModel> emitters;
+    ClassNode classNode;
+    ClassNode superClass;
+    MethodNode superClassConstructor; // TODO validate one class to have one constructor, only
+    List<MethodNode> emitters;
     String inheritance;
 
 
     @Override
-    public ClassModel getJavaClass() {
-        return classModel;
+    public ClassNode getJavaClass() {
+        return classNode;
     }
 }

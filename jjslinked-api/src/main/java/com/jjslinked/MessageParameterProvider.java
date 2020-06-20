@@ -1,7 +1,5 @@
 package com.jjslinked;
 
-import com.jjslinked.model.ClientMessage;
-
 public class MessageParameterProvider implements ParameterProvider {
 
     @Override

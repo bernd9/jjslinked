@@ -1,8 +1,10 @@
 package com.jjslinked.processor.emitter;
 
 import com.google.auto.service.AutoService;
-import com.jjslinked.model.ClassModel;
-import com.jjslinked.model.MethodModel;
+import com.jjslinked.ast.ClassNode;
+import com.jjslinked.ast.ClassNodeBuilder;
+import com.jjslinked.ast.MethodNode;
+import com.jjslinked.ast.MethodNodeBuilder;
 import com.jjslinked.processor.util.AnnotationUtil;
 
 import javax.annotation.processing.*;
@@ -51,10 +53,10 @@ public class EmitterAnnotationProcessor extends AbstractProcessor {
     }
 
     private void createImplementation(TypeElement type, List<ExecutableElement> emitterMethods) {
-        ClassModel classModel = ClassModel.from(type.getQualifiedName().toString(), AnnotationUtil.getAnnotations(type));
-        List<MethodModel> emitters = emitterMethods.stream().map(MethodModel::fromElement).collect(Collectors.toList());
+        ClassNode classNode = ClassNodeBuilder.from(type.getQualifiedName().toString(), AnnotationUtil.getAnnotations(type));
+        List<MethodNode> emitters = emitterMethods.stream().map(MethodNodeBuilder::of).collect(Collectors.toList());
         EmitterImplModel model = EmitterImplModel.builder()
-                .classModel(classModel)
+                .classNode(classNode)
                 .emitters(emitters)
                 .build();
         template.write(model, processingEnv.getFiler());

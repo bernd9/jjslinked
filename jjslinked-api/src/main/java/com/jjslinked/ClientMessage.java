@@ -1,4 +1,4 @@
-package com.jjslinked.model;
+package com.jjslinked;
 
 import lombok.Builder;
 import lombok.Value;

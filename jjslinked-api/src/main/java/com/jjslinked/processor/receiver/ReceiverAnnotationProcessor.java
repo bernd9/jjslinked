@@ -1,14 +1,17 @@
 package com.jjslinked.processor.receiver;
 
 import com.google.auto.service.AutoService;
-import com.jjslinked.model.ClassModel;
-import com.jjslinked.model.MethodModel;
+import com.jjslinked.ast.ClassNodeBuilder;
+import com.jjslinked.ast.MethodNode;
+import com.jjslinked.ast.MethodNodeBuilder;
+import com.jjslinked.java.ClassElement;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -38,7 +41,7 @@ public class ReceiverAnnotationProcessor extends AbstractProcessor {
                         .map(roundEnv::getElementsAnnotatedWith)
                         .flatMap(Set::stream)
                         .map(ExecutableElement.class::cast)
-                        .map(MethodModel::fromElement)
+                        .map(MethodNodeBuilder::of)
                         .map(this::toReceiverModel)
                         .collect(Collectors.toSet()));
             }
@@ -48,10 +51,18 @@ public class ReceiverAnnotationProcessor extends AbstractProcessor {
         return true;
     }
 
-    private ReceiverInvokerModel toReceiverModel(MethodModel methodModel) {
+    private ReceiverInvokerModel toReceiverModel(MethodNode methodNode) {
         return ReceiverInvokerModel.builder()
-                .invoker(ClassModel.from(methodModel.getDeclaringClass().getQualifiedName() + "Invoker"))
-                .methodToInvoke(methodModel).build();
+                .invoker(ClassNodeBuilder.from(methodNode.getDeclaringClass().getQualifiedName() + "Invoker", Collections.emptySet()))
+                .methodToInvoke(methodNode).build();
+    }
+
+    private ClassElement toInvokerClass(MethodNode methodNode) {
+        return ClassElement.builder()
+                .packageName(methodNode.getDeclaringClass().getPackageName())
+                // TODO.constructorElement(methodNode.getDeclaringClass().)
+                //.simpleName(methodNode.getDeclaringClass().getSimpleName())
+                .build();
     }
 
     private void writeReceiverInvokers() {

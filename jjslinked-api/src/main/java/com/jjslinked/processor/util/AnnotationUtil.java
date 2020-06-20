@@ -1,6 +1,6 @@
 package com.jjslinked.processor.util;
 
-import com.jjslinked.model.AnnotationModel;
+import com.jjslinked.ast.AnnotationModel;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 

@@ -1,6 +1,5 @@
 package com.jjslinked;
 
-import com.jjslinked.model.ClientMessage;
 import org.apache.commons.beanutils.ConvertUtils;
 
 import java.util.Set;

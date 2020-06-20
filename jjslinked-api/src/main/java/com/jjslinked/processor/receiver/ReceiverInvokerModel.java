@@ -1,7 +1,7 @@
 package com.jjslinked.processor.receiver;
 
-import com.jjslinked.model.ClassModel;
-import com.jjslinked.model.MethodModel;
+import com.jjslinked.ast.ClassNode;
+import com.jjslinked.ast.MethodNode;
 import com.jjslinked.template.JavaTemplateModel;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -12,11 +12,11 @@ import lombok.experimental.FieldDefaults;
 @Builder
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 public class ReceiverInvokerModel implements JavaTemplateModel {
-    ClassModel invoker;
-    MethodModel methodToInvoke;
+    ClassNode invoker;
+    MethodNode methodToInvoke;
 
     @Override
-    public ClassModel getJavaClass() {
+    public ClassNode getJavaClass() {
         return invoker;
     }
 }
