@@ -1,6 +1,5 @@
 package com.jjslinked.processor.emitter;
 
-import com.google.auto.service.AutoService;
 import com.jjslinked.ast.ClassNode;
 import com.jjslinked.ast.ClassNodeBuilder;
 import com.jjslinked.ast.MethodNode;
@@ -15,7 +14,7 @@ import javax.tools.Diagnostic;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@AutoService(Processor.class)
+//@AutoService(Processor.class)
 @SupportedAnnotationTypes("com.jjslinked.Emitter")
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class EmitterAnnotationProcessor extends AbstractProcessor {

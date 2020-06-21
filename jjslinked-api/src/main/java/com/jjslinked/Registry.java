@@ -6,6 +6,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.SOURCE)
-@Target(ElementType.PARAMETER)
-public @interface ClientId {
+@Target(ElementType.TYPE)
+public @interface Registry {
+    String name();
+
+    String key();
 }

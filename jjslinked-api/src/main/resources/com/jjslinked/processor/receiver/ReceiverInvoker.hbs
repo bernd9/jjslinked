@@ -1,95 +1,10 @@
-package {{invoker.packageName}};
+{{#if invoker.packageName}}package {{invoker.packageName}};{{/if}}
 
-import java.util.*;
-import java.util.stream.*;
-import java.lang.reflect.Method;
-import java.lang.annotation.Annotation;
 import com.jjslinked.*;
-import com.jjslinked.ast.*;
 
-public class {{invoker.simpleName}} implements ReceiverInvoker {
-
-    private static final Method METHOD_TO_INVOKE = getMethodToInvoke();
-
-    private static final List<? extends Annotation> METHOD_ANNOTATIONS = Arrays.asList({{#iterate methodToInvoke.annotationClasses ", "}}{{.}}.class{{/iterate}})
-        .stream().map(c -> METHOD_TO_INVOKE.getAnnotation(c)).collect(Collectors.toList());
-
-    private static final List<Class<?>> PARAMETER_TYPES = Arrays.asList({{#iterate methodToInvoke.parameterTypes ", "}}{{.}}.class{{/iterate}});
-
-    private static final MethodContext METHOD_CONTEXT = MethodContext.builder()
-        .annotations(METHOD_ANNOTATIONS)
-        .declaringClass({{methodToInvoke.declaringClass.qualifiedName}}.class)
-        .parameterTypes(PARAMETER_TYPES)
-        .build();
-
-    private static ParameterProvider DEFAULT_PROVIDER = new MessageParameterProvider();
-
-    private static final ParameterProviderRegistry PARAMETER_PROVIDER_REGISTRY = getProviderRegistry();
-
-    public void onMessage(ClientMessage message, ApplicationContext applicationContext) throws Exception {
-        if (message.getTargetClass().equals({{methodToInvoke.declaringClass.qualifiedName}}.class)
-            && message.getMethodName().equals("{{methodToInvoke.name}}")
-            && message.getParameterTypes().equals(Arrays.asList(METHOD_TO_INVOKE.getParameterTypes()))) {
-                invoke(message, applicationContext);
-            }
-    }
-
-    public void invoke(ClientMessage message, ApplicationContext applicationContext) throws Exception  {
-        {{methodToInvoke.declaringClass.qualifiedName}} bean = applicationContext.getBean({{methodToInvoke.declaringClass.qualifiedName}}.class);
-        METHOD_TO_INVOKE.invoke(bean, prepareArgs(message, applicationContext));
-    }
-
-    private Object[] prepareArgs(ClientMessage message, ApplicationContext applicationContext) {
-        return new Object[]{
-         {{#iterate methodToInvoke.parameters ", "}}
-         getParameter{{firstToUpper parameterName}}(message, applicationContext)
-         {{/iterate}}
-        };
-    }
-
-    {{#methodToInvoke.parameters}}
-     private Object getParameter{{firstToUpper parameterName}}(ClientMessage message, ApplicationContext applicationContext) {
-            ParameterContext context = ParameterContext.builder()
-                .parameterType({{parameterType.qualifiedName}}.class)
-                .annotations(getParameterAnnotations({{#iterate annotations}}{{/iterate}}))
-                .paramName("{{parameterName}}")
-                .methodContext(METHOD_CONTEXT)
-                .build();
-            ParameterProvider provider = getParameterProvider(applicationContext {{#annotationClasses}}, {{.}}.class{{/annotationClasses}});
-            return provider.getParameter(context, message);
-     }
-    {{/methodToInvoke.parameters}}
-
-
-    private ParameterProvider getParameterProvider(ApplicationContext applicationContext, Class<? extends Annotation>... annotationClasses) {
-        Class<? extends ParameterProvider> providerClass = PARAMETER_PROVIDER_REGISTRY.getProviderClass(annotationClasses);
-        if (providerClass == null) {
-            return DEFAULT_PROVIDER;
-        }
-        return applicationContext.getBean(providerClass);
-    }
-
-    private Set<? extends Annotation> getParameterAnnotations(Class<? extends Annotation>...annotationClasses) {
-        return Arrays.stream(annotationClasses).map(METHOD_TO_INVOKE::getAnnotation).collect(Collectors.toSet());
-    }
-
-    private static Method getMethodToInvoke() {
-        try {
-            return {{methodToInvoke.declaringClass.qualifiedName}}.class.getMethod("{{methodToInvoke.name}}"
-            {{#methodToInvoke.parameters}}
-            , {{parameterType.qualifiedName}}.class
-            {{/methodToInvoke.parameters}}
-            );
-         } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-         }
-    }
-
-    private static ParameterProviderRegistry getProviderRegistry() {
-         try {
-            return (ParameterProviderRegistry) Class.forName("com.jjslinked.generated.ProviderRegistry").newInstance();
-         } catch (Exception e) {
-            throw new RuntimeException(e);
-         }
+@Registry(name= "com.jjs.generated.ReceiverInvokerRegistry", key="")
+public class {{invoker.simpleName}} extends ReceiverInvoker {
+    public {{invoker.simpleName}}() {
+        super({{methodToInvoke.declaringClass.qualifiedName}}.class, "{{methodToInvoke.name}}"{{#methodToInvoke.parameterTypes}}, {{.}}.class {{/methodToInvoke.parameterTypes}});
     }
 }

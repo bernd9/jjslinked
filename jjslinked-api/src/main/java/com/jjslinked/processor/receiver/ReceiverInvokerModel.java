@@ -19,4 +19,5 @@ public class ReceiverInvokerModel implements JavaTemplateModel {
     public ClassNode getJavaClass() {
         return invoker;
     }
+
 }

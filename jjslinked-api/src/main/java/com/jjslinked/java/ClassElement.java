@@ -17,14 +17,25 @@ public class ClassElement {
     String simpleName;
     String packageName;
 
+    String staticInitializer;
+
     @Singular
     Set<FieldElement> fieldElements;
     ConstructorElement constructorElement;
 
+    Class<?> superClass;
+
     @Singular
     List<MethodElement> methods;
 
+    @Singular
+    List<AnnotationElement> annotations;
+
     ClassElement parentClass;
+
+    public String getQualifiedName() {
+        return packageName + "." + simpleName;
+    }
 
 
 }

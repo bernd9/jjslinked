@@ -32,7 +32,7 @@ public class CodeGeneratorUtils {
     public static String getPackageName(String qualifiedName) {
         int index = qualifiedName.lastIndexOf('.');
         if (index == -1) {
-            return qualifiedName;
+            return null;
         }
         return qualifiedName.substring(0, index);
     }

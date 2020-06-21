@@ -12,4 +12,7 @@ import lombok.experimental.FieldDefaults;
 public class FieldElement {
     ClassElement fieldType;
     String fieldName;
+    boolean finalField;
+    boolean staticField;
+
 }

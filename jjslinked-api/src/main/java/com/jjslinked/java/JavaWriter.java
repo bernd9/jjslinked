@@ -1,5 +1,7 @@
 package com.jjslinked.java;
 
+import javax.annotation.processing.Filer;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.List;
@@ -9,7 +11,15 @@ import java.util.stream.Collectors;
 
 public class JavaWriter {
 
-    void write(ClassElement c, PrintWriter out) {
+    public void write(ClassElement c, Filer filer) {
+        try (PrintWriter out = new PrintWriter(filer.createSourceFile(c.getQualifiedName()).openOutputStream())) {
+            write(c, out);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void write(ClassElement c, PrintWriter out) {
         out.print("package ");
         out.print(c.getPackageName());
         out.println(";");
@@ -60,6 +70,13 @@ public class JavaWriter {
 
     private void writeField(FieldElement e, PrintWriter out) {
         out.print("\t");
+        out.print("private ");
+        if (e.isStaticField()) {
+            out.print("static ");
+        }
+        if (e.isFinalField()) {
+            out.print("final ");
+        }
         out.print(e.getFieldType().getSimpleName());
         out.print(" ");
         out.print(e.getFieldName());
@@ -86,7 +103,9 @@ public class JavaWriter {
     private static Set<String> getImports(ClassElement c) {
         Set<String> imports = new TreeSet<>();
         imports.addAll(c.getFieldElements().stream().map(FieldElement::getFieldType).map(ClassElement::getPackageName).collect(Collectors.toSet()));
-        imports.addAll(c.getConstructorElement().getParameters().stream().map(ParameterElement::getParameterType).map(ClassElement::getPackageName).collect(Collectors.toSet()));
+        if (c.getConstructorElement() != null) {
+            imports.addAll(c.getConstructorElement().getParameters().stream().map(ParameterElement::getParameterType).map(ClassElement::getPackageName).collect(Collectors.toSet()));
+        }
         imports.addAll(c.getMethods().stream().map(MethodElement::getReturnType).map(ClassElement::getPackageName).collect(Collectors.toSet()));
         imports.addAll(c.getMethods().stream().map(MethodElement::getParameters).flatMap(List::stream).map(ParameterElement::getParameterType).map(ClassElement::getPackageName).collect(Collectors.toSet()));
         imports.remove(c.getPackageName());
