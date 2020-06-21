@@ -55,7 +55,7 @@ public class RegistryAnnotationProcessor extends AbstractProcessor {
         String registryName = registry.name();
         String key = registry.key();
         String value = e.getQualifiedName().toString();
-        registries.computeIfAbsent(registryName, RegistryAnnotationProcessor.Registry::new).getItems().put(key, value);
+        registries.computeIfAbsent(registryName, name -> new Registry(name, registry.superClass())).getItems().put(key, value);
     }
 
     private void process(Registry registry) {
@@ -80,6 +80,7 @@ public class RegistryAnnotationProcessor extends AbstractProcessor {
 
         return RegistryModel.builder()
                 .registryClass(registryClass)
+                .registrySuperClass(registry.getSuperClass())
                 .registryItems(registry.getItems())
                 .build();
     }
@@ -136,6 +137,7 @@ public class RegistryAnnotationProcessor extends AbstractProcessor {
     class Registry {
 
         private final String name;
+        private final String superClass;
 
         private Map<String, String> items = new HashMap<>();
     }

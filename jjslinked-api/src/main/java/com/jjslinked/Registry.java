@@ -11,4 +11,6 @@ public @interface Registry {
     String name();
 
     String key();
+
+    String superClass() default "com.jjslinked.SimpleRegistry"; // TODO Speciel fpr providers
 }

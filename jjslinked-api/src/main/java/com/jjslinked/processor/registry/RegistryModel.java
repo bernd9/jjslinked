@@ -14,6 +14,7 @@ import java.util.Map;
 class RegistryModel implements JavaTemplateModel {
 
     private ClassNode registryClass;
+    private String registrySuperClass;
 
     @Singular
     private Map<String, String> registryItems;
