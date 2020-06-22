@@ -1,4 +1,6 @@
-package com.jjslinked;
+package com.jjslinked.parameter;
+
+import com.jjslinked.ClientMessage;
 
 public class MessageParameterProvider implements ParameterProvider {
 

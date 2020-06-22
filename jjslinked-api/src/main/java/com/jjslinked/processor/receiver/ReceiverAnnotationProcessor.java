@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @AutoService(Processor.class)
-@SupportedAnnotationTypes("com.jjslinked.Receiver")
+@SupportedAnnotationTypes("com.jjslinked.receiver.Receiver")
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class ReceiverAnnotationProcessor extends AbstractProcessor {
 

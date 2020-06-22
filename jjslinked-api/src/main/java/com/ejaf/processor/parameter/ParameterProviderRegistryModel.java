@@ -1,7 +1,7 @@
 package com.ejaf.processor.parameter;
 
+import com.injectlight.template.JavaTemplateModel;
 import com.jjslinked.ast.ClassNode;
-import com.jjslinked.template.JavaTemplateModel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

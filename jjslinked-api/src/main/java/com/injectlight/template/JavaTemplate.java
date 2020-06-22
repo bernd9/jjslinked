@@ -1,4 +1,4 @@
-package com.jjslinked.template;
+package com.injectlight.template;
 
 import javax.annotation.processing.Filer;
 import javax.tools.JavaFileObject;

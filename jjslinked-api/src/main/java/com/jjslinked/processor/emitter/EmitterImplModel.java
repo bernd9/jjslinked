@@ -1,8 +1,8 @@
 package com.jjslinked.processor.emitter;
 
+import com.injectlight.template.JavaTemplateModel;
 import com.jjslinked.ast.ClassNode;
 import com.jjslinked.ast.MethodNode;
-import com.jjslinked.template.JavaTemplateModel;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;

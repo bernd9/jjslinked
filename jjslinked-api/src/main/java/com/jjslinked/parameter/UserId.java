@@ -1,4 +1,4 @@
-package com.jjslinked;
+package com.jjslinked.parameter;
 
 import com.ejaf.Provider;
 

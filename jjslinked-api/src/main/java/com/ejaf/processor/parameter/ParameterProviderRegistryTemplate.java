@@ -1,6 +1,6 @@
 package com.ejaf.processor.parameter;
 
-import com.jjslinked.template.JavaTemplate;
+import com.injectlight.template.JavaTemplate;
 
 public class ParameterProviderRegistryTemplate extends JavaTemplate<ParameterProviderRegistryModel> {
 

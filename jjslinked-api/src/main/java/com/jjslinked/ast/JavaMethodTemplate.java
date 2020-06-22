@@ -1,6 +1,6 @@
 package com.jjslinked.ast;
 
-import com.jjslinked.template.JavaSymbolTemplate;
+import com.injectlight.template.JavaSymbolTemplate;
 
 public class JavaMethodTemplate extends JavaSymbolTemplate<MethodNode> {
 

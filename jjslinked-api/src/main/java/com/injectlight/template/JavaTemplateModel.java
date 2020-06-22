@@ -1,4 +1,4 @@
-package com.jjslinked.template;
+package com.injectlight.template;
 
 import com.jjslinked.ast.ClassNode;
 

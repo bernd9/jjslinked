@@ -1,6 +1,6 @@
 package com.ejaf;
 
-import com.jjslinked.ParameterProvider;
+import com.jjslinked.parameter.ParameterProvider;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

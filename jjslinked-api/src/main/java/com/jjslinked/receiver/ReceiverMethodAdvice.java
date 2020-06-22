@@ -1,4 +1,4 @@
-package com.jjslinked;
+package com.jjslinked.receiver;
 
 import com.ejaf.MethodAdvice;
 import com.ejaf.MethodParameter;

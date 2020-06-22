@@ -5,8 +5,6 @@ import java.util.stream.*;
 
 public class {{registryClass.simpleName}} {{#if registrySuperClass}} extends {{registrySuperClass}}{{/if}} {
 
-    private final Map<String,Class<?>> classes = new HashMap<>();
-
     private static final {{registryClass.simpleName}} INSTANCE = new {{registryClass.simpleName}}();
 
     public static {{registryClass.simpleName}} getInstance() {
@@ -15,20 +13,8 @@ public class {{registryClass.simpleName}} {{#if registrySuperClass}} extends {{r
 
     private {{registryClass.simpleName}}() {
     {{#entries}}
-    classes.put("{{key}}", {{value}}.class);
+        put("{{key}}", {{value}}.class);
     {{/entries}}
-    }
-
-    public Map<String,Class<?>> getClassMap() {
-        return classes;
-    }
-
-    public Class<?> get(String key) {
-        return classes.get(key);
-    }
-
-    public Collection<Class<?>> getAllClasses() {
-        return classes.values().stream().collect(Collectors.toSet());
     }
 
 }

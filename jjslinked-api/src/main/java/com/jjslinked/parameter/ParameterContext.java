@@ -1,5 +1,6 @@
-package com.jjslinked;
+package com.jjslinked.parameter;
 
+import com.jjslinked.MethodContext;
 import lombok.Builder;
 import lombok.Value;
 

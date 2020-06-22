@@ -1,6 +1,6 @@
 package com.jjslinked.processor.receiver;
 
-import com.jjslinked.Receiver;
+import com.jjslinked.receiver.Receiver;
 
 import javax.validation.constraints.NotNull;
 

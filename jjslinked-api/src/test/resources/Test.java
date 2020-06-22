@@ -1,6 +1,6 @@
-import com.jjslinked.UserId;
 import com.jjslinked.annotations.Client;
 import com.jjslinked.annotations.LinkedMethod;
+import com.jjslinked.parameter.UserId;
 
 @Client("testClient")
 public class Test {

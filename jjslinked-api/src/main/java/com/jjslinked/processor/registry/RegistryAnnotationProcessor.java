@@ -1,6 +1,7 @@
 package com.jjslinked.processor.registry;
 
 import com.google.auto.service.AutoService;
+import com.injectlight.util.IOUtil;
 import com.jjslinked.ast.ClassNode;
 import com.jjslinked.processor.util.CodeGeneratorUtils;
 import lombok.Getter;
@@ -10,20 +11,17 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
-import javax.tools.FileObject;
-import javax.tools.StandardLocation;
-import java.io.*;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @AutoService(Processor.class)
 @SupportedAnnotationTypes("com.jjslinked.Registry")
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class RegistryAnnotationProcessor extends AbstractProcessor {
 
-    private final Map<String, Registry> registries = new HashMap<>();
+    private final Map<String, RegistryMapping> registries = new HashMap<>();
     private final RegistryTemplate registryTemplate = new RegistryTemplate();
 
     @Override
@@ -55,73 +53,46 @@ public class RegistryAnnotationProcessor extends AbstractProcessor {
         String registryName = registry.name();
         String key = registry.key();
         String value = e.getQualifiedName().toString();
-        registries.computeIfAbsent(registryName, name -> new Registry(name, registry.superClass())).getItems().put(key, value);
+        registries.computeIfAbsent(registryName, name -> new RegistryMapping(name, registry.superClass())).getItems().put(key, value);
     }
 
-    private void process(Registry registry) {
-        log("*** processing registry %s", registry);
-        Map<String, String> items = new HashMap<>(existingItems(registry.getName()));
-        items.putAll(registry.getItems());
-        writeTextFile(registry);
-        writeRegistry(registry);
+    private void process(RegistryMapping registryMapping) {
+        log("*** processing registryMapping %s", registryMapping);
+        Map<String, String> items = new HashMap<>(existingItems(registryMapping));
+        items.putAll(registryMapping.getItems());
+        writeTextFile(registryMapping);
+        writeRegistry(registryMapping);
 
     }
 
-    private void writeRegistry(Registry registry) {
-        registryTemplate.write(registryClass(registry), processingEnv.getFiler());
+    private void writeRegistry(RegistryMapping registryMapping) {
+        registryTemplate.write(registryClass(registryMapping), processingEnv.getFiler());
     }
 
-    private RegistryModel registryClass(Registry registry) {
+    private RegistryModel registryClass(RegistryMapping registryMapping) {
         ClassNode registryClass = ClassNode.builder()
-                .packageName(CodeGeneratorUtils.getPackageName(registry.getName()))
-                .simpleName(CodeGeneratorUtils.getSimpleName(registry.getName()))
-                .qualifiedName(registry.getName())
+                .packageName(CodeGeneratorUtils.getPackageName(registryMapping.getName()))
+                .simpleName(CodeGeneratorUtils.getSimpleName(registryMapping.getName()))
+                .qualifiedName(registryMapping.getName())
                 .build();
 
         return RegistryModel.builder()
                 .registryClass(registryClass)
-                .registrySuperClass(registry.getSuperClass())
-                .registryItems(registry.getItems())
+                .registrySuperClass(registryMapping.getSuperClass())
+                .registryItems(registryMapping.getItems())
                 .build();
     }
 
 
-    private void writeTextFile(Registry registry) {
-        try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(registryTextFileForWrite(registry.getName()).openOutputStream()))) {
-            registry.getItems().entrySet().stream().map(e -> e.getKey() + ":" + e.getValue()).forEach(writer::println);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    private void writeTextFile(RegistryMapping registryMapping) {
+        IOUtil.write(registryMapping.getItems().entrySet().stream().map(e -> e.getKey() + ":" + e.getValue()).collect(Collectors.toSet()), processingEnv.getFiler(), registryMapping.getName());
+
     }
 
-    private Map<String, String> existingItems(String registry) {
-        Map<String, String> items = new HashMap<>();
-        try (BufferedReader in = new BufferedReader(new InputStreamReader(registryTextFileForRead(registry).openInputStream()))) {
-            String line;
-            while ((line = in.readLine()) != null) {
-                String[] pair = line.split(":");
-                items.put(pair[0], pair[1]);
-            }
-            return items;
-        } catch (IOException e) {
-            return Collections.emptyMap();
-        }
-    }
-
-    private FileObject registryTextFileForRead(String registry) {
-        try {
-            return processingEnv.getFiler().getResource(StandardLocation.CLASS_OUTPUT, "", registry + ".registry");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private FileObject registryTextFileForWrite(String registry) {
-        try {
-            return processingEnv.getFiler().createResource(StandardLocation.CLASS_OUTPUT, "", registry + ".registry");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    private Map<String, String> existingItems(RegistryMapping registryMapping) {
+        return IOUtil.read(processingEnv.getFiler(), registryMapping.getName()).stream()
+                .map(line -> line.split(":"))
+                .collect(Collectors.toMap(arr -> arr[0], arr -> arr[1]));
     }
 
     private void reportError(Exception e) {
@@ -134,7 +105,7 @@ public class RegistryAnnotationProcessor extends AbstractProcessor {
 
     @Getter
     @RequiredArgsConstructor
-    class Registry {
+    class RegistryMapping {
 
         private final String name;
         private final String superClass;
