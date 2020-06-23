@@ -19,7 +19,7 @@ import java.util.Set;
 @AutoService(Processor.class)
 @SupportedAnnotationTypes({"com.injectlight.Singleton", "com.injectlight.Inject"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
-public class InjectableProcessor extends AbstractProcessor {
+public class ApplicationContextProcessor extends AbstractProcessor {
 
     private static final String PACKAGE = "com.injectlight";
     private static final String CONTEXT_SIMPLE_NAME = "Context";
@@ -38,7 +38,7 @@ public class InjectableProcessor extends AbstractProcessor {
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         try {
-            if (!roundEnv.processingOver()) {
+            if (roundEnv.processingOver()) {
                 writeContext();
             } else {
                 addContextData(roundEnv);
@@ -75,53 +75,36 @@ public class InjectableProcessor extends AbstractProcessor {
             out.println("import java.lang.reflect.*;");
             out.print("public class ");
             out.print(CONTEXT_SIMPLE_NAME);
-            out.println(" {");
-            out.println(" private static final Map<Class<?>,Object> map = new HashMap<>();");
-            out.println(" static {");
+            out.println(" extends ApplicationContextBase {");
+            out.println("   ");
+            out.print(CONTEXT_SIMPLE_NAME);
+            out.println("() {");
             context.stream()
                     .map(TypeElement::getQualifiedName)
                     .map(Name::toString)
                     .forEach(className -> {
-                        out.print(" map.put(");
+                        out.print("   add(\"");
                         out.print(className);
-                        out.print(".class, create(");
-                        out.print(className);
-                        out.println(".class));");
+                        out.println("\");");
                     });
 
             fields.forEach(field -> {
-                out.print("inject(map.get(");
-                out.print(((TypeElement) field.getEnclosingElement()).getQualifiedName().toString()); // TODO remove annotations ?
-                out.print(".class), ");
-                out.print("\"");
+                out.print("   inject(\"");
+                out.print(field.asType().toString()); // TODO remove annotations ?
+                out.print("\", \"");
                 out.print(field.getSimpleName().toString()); // TODO remove annotations ?
-                out.print("\"");
-                out.print(", ");
-                out.print("map.get(");
+                out.print("\", \"");
                 out.print(field.asType().toString());
-                out.println(".class));");
+                out.println("\");");
             });
-
-            out.println(" }");
-            out.println("");
-            out.println(" private static Object create(Class<?> c) {");
-            out.println("  try {");
-            out.println("   Constructor constr = c.getDeclaredConstructor();");
-            out.println("   constr.setAccessible(true);");
-            out.println("   return constr.newInstance();");
-            out.println("  } catch (Exception e) {");
-            out.println("   throw new RuntimeException(e);");
-            out.println("  }");
-            out.println(" }");
-            out.println("");
-            out.println(" private static void inject(Object bean, String fieldName, Object value) {");
-            out.println("  try {");
-            out.println("   Field field = bean.getClass().getDeclaredField(fieldName);");
-            out.println("   field.setAccessible(true);");
-            out.println("   field.set(value);");
-            out.println("  } catch (Exception e) {");
-            out.println("   throw new RuntimeException(e);");
-            out.println("  }");
+            out.print(" private static INSTANCE = new ");
+            out.print(CONTEXT_SIMPLE_NAME);
+            out.println("();");
+            out.print(" public static ");
+            out.print(CONTEXT_SIMPLE_NAME);
+            out.println(" getInstance() {");
+            out.println("  return INSTANCE;");
+            out.println("   }");
             out.println(" }");
             out.println("}");
 

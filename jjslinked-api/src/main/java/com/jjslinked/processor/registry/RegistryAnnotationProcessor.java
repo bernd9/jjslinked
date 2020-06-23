@@ -1,6 +1,5 @@
 package com.jjslinked.processor.registry;
 
-import com.google.auto.service.AutoService;
 import com.injectlight.util.IOUtil;
 import com.jjslinked.ast.ClassNode;
 import com.jjslinked.processor.util.CodeGeneratorUtils;
@@ -16,7 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@AutoService(Processor.class)
+//@AutoService(Processor.class)
 @SupportedAnnotationTypes("com.jjslinked.Registry")
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class RegistryAnnotationProcessor extends AbstractProcessor {
