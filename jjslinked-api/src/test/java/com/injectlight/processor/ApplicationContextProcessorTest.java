@@ -17,17 +17,19 @@ class ApplicationContextProcessorTest {
     private Compiler compiler;
     private JavaFileObject bean1;
     private JavaFileObject bean2;
+    private JavaFileObject bean3;
 
     @BeforeEach
     void init() {
         compiler = javac().withProcessors(new ApplicationContextProcessor());
         bean1 = JavaFileObjects.forResource("com/injectlight/processor/Test1.java");
         bean2 = JavaFileObjects.forResource("com/injectlight/processor/Test2.java");
+        bean3 = JavaFileObjects.forResource("com/injectlight/processor/Test3.java");
     }
 
     @Test
     void test() {
-        Compilation compilation = compiler.compile(bean1, bean2);
+        Compilation compilation = compiler.compile(bean1, bean2, bean3);
         ProcessorTestUtil.getSources(compilation).forEach(System.out::println);
         assertSuccess(compilation);
     }

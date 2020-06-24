@@ -1,17 +1,21 @@
 package com.injectlight;
 
+import lombok.NonNull;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ApplicationContextBase {
 
     private Map<Class<?>, Object> beans = new HashMap<>();
 
-    public <T> T getBean(Class<?> c) {
+    public ApplicationContextBase() {
+        beans.put(getClass(), this);
+    }
+
+    public <T> T getBean(Class<T> c) {
         List<Object> result = beans.entrySet().stream()
                 .filter(e -> c.isAssignableFrom(e.getKey()))
                 .map(Map.Entry::getValue)
@@ -26,7 +30,24 @@ public class ApplicationContextBase {
         }
     }
 
+    public <T> T getBean(String className) {
+        return (T) getBean(classForName(className));
+    }
 
+    public <T> Set<T> getBeans(Class<T> c) {
+        return beans.entrySet().stream()
+                .filter(e -> c.isAssignableFrom(e.getKey()))
+                .map(Map.Entry::getValue)
+                .map(c::cast)
+                .collect(Collectors.toSet());
+    }
+
+    public <T> Set<T> getBeans(String c) {
+        return (Set<T>) getBeans(classForName(c));
+    }
+
+
+    @SuppressWarnings("unused")
     protected Object add(String className) {
         Class<?> c = classForName(className);
         Object o = createInstance(c);
@@ -34,39 +55,52 @@ public class ApplicationContextBase {
         return o;
     }
 
+    @SuppressWarnings("unused")
     protected void inject(String beanClass, String fieldName, String valueClass) {
-        try {
-            doInject(getByClassName(beanClass), fieldName, getByClassName(valueClass));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        doInjectForAll(getBeans(beanClass), fieldName, getBean(valueClass));
+    }
+
+    private void doInjectForAll(@NonNull Set<Object> beans, @NonNull String fieldName, @NonNull Object value) {
+        beans.forEach(bean -> doInject(bean, fieldName, value));
+    }
+
+
+    private void doInject(@NonNull Object bean, @NonNull String fieldName, @NonNull Object value) {
+        getField(bean, fieldName).filter(field -> field.getType().isAssignableFrom(value.getClass())).ifPresent(field -> {
+            field.setAccessible(true);
+            try {
+                field.set(bean, value);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+    }
+
+    private Optional<Field> getField(Object bean, String fieldName) {
+        Class<?> c = bean.getClass();
+        while (c != null) {
+            try {
+                Field field = c.getDeclaredField(fieldName);
+                return Optional.of(field);
+            } catch (NoSuchFieldException e) {
+            }
+            c = c.getSuperclass();
         }
+        return Optional.empty();
+
+
     }
 
-
-    private void doInject(Object bean, String fieldName, Object value) throws Exception {
-        Field field = bean.getClass().getDeclaredField(fieldName);
-        field.setAccessible(true);
-        field.set(bean, value);
-    }
-
-
-    private Object getByClassName(String name) {
-        return beans.entrySet().stream()
-                .filter(e -> e.getKey().getName().equals(name))
-                .map(Map.Entry::getValue)
-                .findFirst().orElseThrow();
-    }
 
     private static Object createInstance(Class<?> c) {
-
         try {
-            Constructor constr = c.getDeclaredConstructor();
-            constr.setAccessible(true);
-            return constr.newInstance();
+            Constructor constructor = c.getDeclaredConstructor();
+            constructor.setAccessible(true);
+            return constructor.newInstance();
         } catch (Exception e1) {
             throw new RuntimeException(e1);
         }
-
     }
 
     private static Class<?> classForName(String className) {

@@ -76,9 +76,10 @@ public class ApplicationContextProcessor extends AbstractProcessor {
             out.print("public class ");
             out.print(CONTEXT_SIMPLE_NAME);
             out.println(" extends ApplicationContextBase {");
-            out.println("   public ");
+            out.print("   public ");
             out.print(CONTEXT_SIMPLE_NAME);
             out.println("() {");
+            out.println("   super();");
             context.stream()
                     .map(TypeElement::getQualifiedName)
                     .map(Name::toString)
