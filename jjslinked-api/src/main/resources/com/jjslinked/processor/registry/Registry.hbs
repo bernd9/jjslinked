@@ -2,7 +2,9 @@
 
 import java.util.*;
 import java.util.stream.*;
+import com.injectlight.*;
 
+@Singleton
 public class {{registryClass.simpleName}} {{#if registrySuperClass}} extends {{registrySuperClass}}{{/if}} {
 
     private static final {{registryClass.simpleName}} INSTANCE = new {{registryClass.simpleName}}();

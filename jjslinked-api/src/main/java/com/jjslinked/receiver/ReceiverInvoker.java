@@ -1,6 +1,6 @@
 package com.jjslinked.receiver;
 
-import com.jjslinked.ApplicationContext;
+import com.injectlight.ApplicationContextBase;
 import com.jjslinked.ClientMessage;
 import com.jjslinked.MethodContext;
 import com.jjslinked.parameter.MessageParameterProvider;
@@ -16,8 +16,7 @@ import java.util.Collection;
 
 public abstract class ReceiverInvoker {
 
-    private static ParameterProvider DEFAULT_PROVIDER = new MessageParameterProvider();
-    private static final ParameterProviderRegistry PROVIDER_REGISTRY = getProviderRegistry();
+    private static Class<? extends ParameterProvider> DEFAULT_PROVIDER_CLASS = MessageParameterProvider.class;
 
     private final Class<?> beanClass;
     private final Method method;
@@ -34,7 +33,7 @@ public abstract class ReceiverInvoker {
     }
 
 
-    public void onMessage(ClientMessage message, ApplicationContext applicationContext) throws Exception {
+    public void onMessage(ClientMessage message, ApplicationContextBase applicationContext) throws Exception {
         if (beanClass.getName().equals(message.getTargetClass())
                 && message.getMethodName().equals(method.getName())
                 && message.getParameterTypes().equals(Arrays.asList(method.getParameterTypes()))) {
@@ -42,12 +41,12 @@ public abstract class ReceiverInvoker {
         }
     }
 
-    private void invoke(ClientMessage message, ApplicationContext applicationContext) throws Exception {
+    private void invoke(ClientMessage message, ApplicationContextBase applicationContext) throws Exception {
         Object bean = applicationContext.getBean(beanClass);
         method.invoke(bean, prepareArgs(message, applicationContext));
     }
 
-    private Object[] prepareArgs(ClientMessage message, ApplicationContext applicationContext) {
+    private Object[] prepareArgs(ClientMessage message, ApplicationContextBase applicationContext) {
         Object[] parameters = new Object[method.getParameters().length];
         for (int parameterIndex = 0; parameterIndex < parameters.length; parameterIndex++) {
             parameters[parameterIndex] = getParameter(parameterIndex, message, applicationContext);
@@ -58,7 +57,8 @@ public abstract class ReceiverInvoker {
     private Method getMethod(Class<?> beanClass, String name, Class<?>... parameterTypes) {
         Method method;
         try {
-            method = beanClass.getMethod(name, parameterTypes);
+            method = beanClass.getDeclaredMethod(name, parameterTypes);
+            method.setAccessible(true);
         } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
@@ -66,7 +66,7 @@ public abstract class ReceiverInvoker {
         return method;
     }
 
-    private Object getParameter(int index, ClientMessage message, ApplicationContext applicationContext) {
+    private Object getParameter(int index, ClientMessage message, ApplicationContextBase applicationContext) {
         ParameterProvider provider = getParameterProvider(applicationContext, getParameterAnnotations(index));
         return provider.getParameter(getParameterContext(index), message);
     }
@@ -98,19 +98,12 @@ public abstract class ReceiverInvoker {
     }
 
 
-    private ParameterProvider getParameterProvider(ApplicationContext applicationContext, Collection<? extends Annotation> annotationClasses) {
-        Class<? extends ParameterProvider> providerClass = PROVIDER_REGISTRY.getProviderClass(annotationClasses);
+    private ParameterProvider getParameterProvider(ApplicationContextBase applicationContext, Collection<? extends Annotation> annotationClasses) {
+        ParameterProviderRegistry parameterProviderRegistry = applicationContext.getBean(ParameterProviderRegistry.class);
+        Class<? extends ParameterProvider> providerClass = parameterProviderRegistry.getProviderClass(annotationClasses);
         if (providerClass == null) {
-            return DEFAULT_PROVIDER;
+            providerClass = DEFAULT_PROVIDER_CLASS;
         }
         return applicationContext.getBean(providerClass);
-    }
-
-    private static ParameterProviderRegistry getProviderRegistry() {
-        try {
-            return (ParameterProviderRegistry) Class.forName("com.jjslinked.generated.ProviderRegistry").getConstructor().newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 }

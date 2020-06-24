@@ -1,5 +1,6 @@
 package com.injectlight;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
@@ -9,7 +10,6 @@ import java.util.stream.Collectors;
 public class ApplicationContextBase {
 
     private Map<Class<?>, Object> beans = new HashMap<>();
-
 
     public <T> T getBean(Class<?> c) {
         List<Object> result = beans.entrySet().stream()
@@ -52,21 +52,26 @@ public class ApplicationContextBase {
 
     private Object getByClassName(String name) {
         return beans.entrySet().stream()
-                .filter(e -> e.getKey().toString().equals(name))
+                .filter(e -> e.getKey().getName().equals(name))
+                .map(Map.Entry::getValue)
                 .findFirst().orElseThrow();
     }
 
     private static Object createInstance(Class<?> c) {
+
         try {
-            return c.getConstructor().newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+            Constructor constr = c.getDeclaredConstructor();
+            constr.setAccessible(true);
+            return constr.newInstance();
+        } catch (Exception e1) {
+            throw new RuntimeException(e1);
         }
+
     }
 
     private static Class<?> classForName(String className) {
         try {
-            return Class.forName(className);
+            return ClassLoader.getSystemClassLoader().loadClass(className);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

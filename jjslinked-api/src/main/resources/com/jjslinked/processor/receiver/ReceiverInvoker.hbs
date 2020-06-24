@@ -1,8 +1,11 @@
 {{#if invoker.packageName}}package {{invoker.packageName}};{{/if}}
 
 import com.jjslinked.*;
+import com.jjslinked.receiver.*;
+import com.injectlight.*;
 
-@Registry(name= "com.jjs.generated.ReceiverInvokerRegistry", key="")
+@Singleton
+@Registry(name= "com.jjslinked.generated.ReceiverInvokerRegistry", key="")
 public class {{invoker.simpleName}} extends ReceiverInvoker {
     public {{invoker.simpleName}}() {
         super({{methodToInvoke.declaringClass.qualifiedName}}.class, "{{methodToInvoke.name}}"{{#methodToInvoke.parameterTypes}}, {{.}}.class {{/methodToInvoke.parameterTypes}});

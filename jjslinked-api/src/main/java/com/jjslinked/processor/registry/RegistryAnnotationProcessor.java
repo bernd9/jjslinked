@@ -1,5 +1,6 @@
 package com.jjslinked.processor.registry;
 
+import com.google.auto.service.AutoService;
 import com.injectlight.util.IOUtil;
 import com.jjslinked.ast.ClassNode;
 import com.jjslinked.processor.util.CodeGeneratorUtils;
@@ -15,31 +16,23 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-//@AutoService(Processor.class)
+@AutoService(Processor.class)
 @SupportedAnnotationTypes("com.jjslinked.Registry")
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class RegistryAnnotationProcessor extends AbstractProcessor {
 
-    private final Map<String, RegistryMapping> registries = new HashMap<>();
     private final RegistryTemplate registryTemplate = new RegistryTemplate();
-
-    @Override
-    public synchronized void init(ProcessingEnvironment processingEnv) {
-        registries.clear();
-        super.init(processingEnv);
-    }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         try {
-            if (roundEnv.processingOver()) {
-                log("number of registries : %d", registries.size());
-                registries.values().forEach(this::process);
-            } else {
+            if (!roundEnv.processingOver()) {
+                Map<String, RegistryMapping> registries = new HashMap<>();
                 roundEnv.getElementsAnnotatedWith(com.jjslinked.Registry.class)
                         .stream()
                         .map(e -> (TypeElement) e)
-                        .forEach(this::addRegistration);
+                        .forEach(e -> addRegistration(e, registries));
+                registries.values().forEach(this::process);
             }
         } catch (Exception e) {
             reportError(e);
@@ -47,7 +40,7 @@ public class RegistryAnnotationProcessor extends AbstractProcessor {
         return true;
     }
 
-    private void addRegistration(TypeElement e) {
+    private void addRegistration(TypeElement e, Map<String, RegistryMapping> registries) {
         com.jjslinked.Registry registry = e.getAnnotation(com.jjslinked.Registry.class);
         String registryName = registry.name();
         String key = registry.key();

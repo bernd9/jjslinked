@@ -7,5 +7,5 @@ import com.injectlight.Singleton;
 class Test2 {
 
     @Inject
-    private Test1 test;
+    private Test1 testValue;
 }

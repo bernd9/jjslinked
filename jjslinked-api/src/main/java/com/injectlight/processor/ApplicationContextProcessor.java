@@ -22,7 +22,7 @@ import java.util.Set;
 public class ApplicationContextProcessor extends AbstractProcessor {
 
     private static final String PACKAGE = "com.injectlight";
-    private static final String CONTEXT_SIMPLE_NAME = "Context";
+    private static final String CONTEXT_SIMPLE_NAME = "ApplicationContext";
     private static final String CONTEXT = PACKAGE + "." + CONTEXT_SIMPLE_NAME;
 
     private final Set<TypeElement> context = new HashSet<>();
@@ -76,7 +76,7 @@ public class ApplicationContextProcessor extends AbstractProcessor {
             out.print("public class ");
             out.print(CONTEXT_SIMPLE_NAME);
             out.println(" extends ApplicationContextBase {");
-            out.println("   ");
+            out.println("   public ");
             out.print(CONTEXT_SIMPLE_NAME);
             out.println("() {");
             context.stream()
@@ -90,22 +90,25 @@ public class ApplicationContextProcessor extends AbstractProcessor {
 
             fields.forEach(field -> {
                 out.print("   inject(\"");
-                out.print(field.asType().toString()); // TODO remove annotations ?
+                out.print(((TypeElement) field.getEnclosingElement()).getQualifiedName()); // TODO remove annotations ?
                 out.print("\", \"");
                 out.print(field.getSimpleName().toString()); // TODO remove annotations ?
                 out.print("\", \"");
                 out.print(field.asType().toString());
                 out.println("\");");
             });
-            out.print(" private static INSTANCE = new ");
+            out.println(" }");
+            out.print(" private static ");
+            out.print(CONTEXT_SIMPLE_NAME);
+            out.print(" INSTANCE = new ");
             out.print(CONTEXT_SIMPLE_NAME);
             out.println("();");
             out.print(" public static ");
             out.print(CONTEXT_SIMPLE_NAME);
             out.println(" getInstance() {");
             out.println("  return INSTANCE;");
-            out.println("   }");
             out.println(" }");
+
             out.println("}");
 
         } catch (IOException e) {
