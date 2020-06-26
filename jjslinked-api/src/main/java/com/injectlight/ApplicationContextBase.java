@@ -16,13 +16,10 @@ public class ApplicationContextBase {
     }
 
     public <T> T getBean(Class<T> c) {
-        List<Object> result = beans.entrySet().stream()
-                .filter(e -> c.isAssignableFrom(e.getKey()))
-                .map(Map.Entry::getValue)
-                .collect(Collectors.toList());
+        List<Object> result = new ArrayList<>(getBeans(c));
         switch (result.size()) {
             case 0:
-                throw new IllegalArgumentException("no such bean " + c.getName());
+                throw new IllegalArgumentException("no bean of type " + c.getName());
             case 1:
                 return (T) result.get(0);
             default:
@@ -57,10 +54,16 @@ public class ApplicationContextBase {
 
     @SuppressWarnings("unused")
     protected void inject(String beanClass, String fieldName, String valueClass) {
-        doInjectForAll(getBeans(beanClass), fieldName, getBean(valueClass));
+        doInjectInTypeHirarachy(getBeans(beanClass), fieldName, getBean(valueClass));
     }
 
-    private void doInjectForAll(@NonNull Set<Object> beans, @NonNull String fieldName, @NonNull Object value) {
+    @SuppressWarnings("unused")
+    protected void injectAll(String beanClass, String fieldName, String valueClass) {
+        doInjectInTypeHirarachy(getBeans(beanClass), fieldName, getBeans(valueClass));
+    }
+    
+
+    private void doInjectInTypeHirarachy(@NonNull Set<Object> beans, @NonNull String fieldName, @NonNull Object value) {
         beans.forEach(bean -> doInject(bean, fieldName, value));
     }
 
@@ -88,8 +91,6 @@ public class ApplicationContextBase {
             c = c.getSuperclass();
         }
         return Optional.empty();
-
-
     }
 
 

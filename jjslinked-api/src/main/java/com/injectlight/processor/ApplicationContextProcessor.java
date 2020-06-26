@@ -2,6 +2,7 @@ package com.injectlight.processor;
 
 import com.google.auto.service.AutoService;
 import com.injectlight.Inject;
+import com.injectlight.InjectAll;
 import com.injectlight.Singleton;
 
 import javax.annotation.processing.*;
@@ -26,12 +27,15 @@ public class ApplicationContextProcessor extends AbstractProcessor {
     private static final String CONTEXT = PACKAGE + "." + CONTEXT_SIMPLE_NAME;
 
     private final Set<TypeElement> context = new HashSet<>();
-    private final Set<VariableElement> fields = new HashSet<>();
+    private final Set<VariableElement> simpleFields = new HashSet<>();
+    private final Set<VariableElement> collectionFields = new HashSet<>();
+
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         context.clear();
-        fields.clear();
+        simpleFields.clear();
+        collectionFields.clear();
         super.init(processingEnv);
     }
 
@@ -52,6 +56,7 @@ public class ApplicationContextProcessor extends AbstractProcessor {
     private void addContextData(RoundEnvironment roundEnv) {
         processSingletons(roundEnv);
         processInjects(roundEnv);
+        processInjectAlls(roundEnv);
     }
 
     private void processSingletons(RoundEnvironment roundEnv) {
@@ -63,7 +68,13 @@ public class ApplicationContextProcessor extends AbstractProcessor {
     private void processInjects(RoundEnvironment roundEnv) {
         roundEnv.getElementsAnnotatedWith(Inject.class).stream()
                 .map(VariableElement.class::cast)
-                .forEach(fields::add);
+                .forEach(simpleFields::add);
+    }
+
+    private void processInjectAlls(RoundEnvironment roundEnv) {
+        roundEnv.getElementsAnnotatedWith(InjectAll.class).stream()
+                .map(VariableElement.class::cast)
+                .forEach(collectionFields::add);
     }
 
     private void writeContext() {
@@ -89,9 +100,18 @@ public class ApplicationContextProcessor extends AbstractProcessor {
                         out.println("\");");
                     });
 
-            fields.forEach(field -> {
+            simpleFields.forEach(field -> {
                 out.print("   inject(\"");
                 out.print(((TypeElement) field.getEnclosingElement()).getQualifiedName()); // TODO remove annotations ?
+                out.print("\", \"");
+                out.print(field.getSimpleName().toString()); // TODO remove annotations ?
+                out.print("\", \"");
+                out.print(field.asType().toString());
+                out.println("\");");
+            });
+            collectionFields.forEach(field -> {
+                out.print("   injectAll(\"");
+                out.print(getGenericType(field).getQualifiedName()); // TODO remove annotations ?
                 out.print("\", \"");
                 out.print(field.getSimpleName().toString()); // TODO remove annotations ?
                 out.print("\", \"");
@@ -116,6 +136,11 @@ public class ApplicationContextProcessor extends AbstractProcessor {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private TypeElement getGenericType(VariableElement collectionVariable) {
+        TypeElement collectionClass = (TypeElement) collectionVariable.getEnclosingElement();
+        return (TypeElement) collectionClass.getTypeParameters().get(0);
     }
 
 
