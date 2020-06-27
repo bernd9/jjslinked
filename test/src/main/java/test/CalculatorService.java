@@ -1,13 +1,19 @@
 package test;
 
-import com.jjslinked.annotations.Client;
-import com.jjslinked.annotations.LinkedMethod;
+import com.injectlight.Inject;
+import com.injectlight.Singleton;
+import com.jjslinked.receiver.Receiver;
 
-@Client("calculator")
+import javax.validation.constraints.NotNull;
+
+@Singleton
 public class CalculatorService {
 
-    @LinkedMethod("square")
-    int square(int i) {
+    @Inject
+    private TestBean123 testBean123;
+
+    @Receiver
+    int square(@NotNull Integer i) {
         return i*i;
     }
 }
