@@ -1,6 +1,6 @@
 package com.injectlight.processor;
 
-import com.ejaf.processor.ProcessorTestUtil;
+import com.ejaf.processor.ProcessorTestUtilOld;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.Compiler;
 import com.google.testing.compile.JavaFileObjects;
@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.tools.JavaFileObject;
 
-import static com.ejaf.processor.ProcessorTestUtil.assertSuccess;
+import static com.ejaf.processor.ProcessorTestUtilOld.assertSuccess;
 import static com.google.testing.compile.Compiler.javac;
 
 class ApplicationContextProcessorTest {
@@ -30,7 +30,7 @@ class ApplicationContextProcessorTest {
     @Test
     void test() {
         Compilation compilation = compiler.compile(bean1, bean2, bean3);
-        ProcessorTestUtil.getSources(compilation).forEach(System.out::println);
+        ProcessorTestUtilOld.getSources(compilation).forEach(System.out::println);
         assertSuccess(compilation);
     }
 

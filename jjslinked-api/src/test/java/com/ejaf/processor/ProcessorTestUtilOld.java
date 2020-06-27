@@ -15,11 +15,11 @@ import java.util.Locale;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ProcessorTestUtil {
+public class ProcessorTestUtilOld {
 
     public static void assertSuccess(Compilation compilation) {
         if (compilation.status() != Compilation.Status.SUCCESS) {
-            throw new RuntimeException(compilation.errors().stream().map(ProcessorTestUtil::asString).collect(Collectors.joining("\n\n")));
+            throw new RuntimeException(compilation.errors().stream().map(ProcessorTestUtilOld::asString).collect(Collectors.joining("\n\n")));
         }
     }
 
@@ -35,7 +35,7 @@ public class ProcessorTestUtil {
     }
 
     public static Collection<String> getSources(Compilation compilation) {
-        return compilation.generatedSourceFiles().stream().map(ProcessorTestUtil::getSource).collect(Collectors.toList());
+        return compilation.generatedSourceFiles().stream().map(ProcessorTestUtilOld::getSource).collect(Collectors.toList());
     }
 
     public static String getSource(JavaFileObject fileObject) {

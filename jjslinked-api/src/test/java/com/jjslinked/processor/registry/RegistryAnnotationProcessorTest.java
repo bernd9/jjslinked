@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.tools.JavaFileObject;
 
-import static com.ejaf.processor.ProcessorTestUtil.assertSuccess;
+import static com.ejaf.processor.ProcessorTestUtilOld.assertSuccess;
 import static com.google.testing.compile.Compiler.javac;
 
 class RegistryAnnotationProcessorTest {
@@ -28,7 +28,7 @@ class RegistryAnnotationProcessorTest {
     @Test
     void test() {
         Compilation compilation = compiler.compile(bean);
-        //ProcessorTestUtil.getSources(compilation).forEach(System.out::println);
+        //ProcessorTestUtilOld.getSources(compilation).forEach(System.out::println);
         assertSuccess(compilation);
     }
 }

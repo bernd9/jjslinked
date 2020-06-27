@@ -10,11 +10,14 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.util.SimpleTypeVisitor9;
 import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 @AutoService(Processor.class)
@@ -111,11 +114,11 @@ public class ApplicationContextProcessor extends AbstractProcessor {
             });
             collectionFields.forEach(field -> {
                 out.print("   injectAll(\"");
-                out.print(getGenericType(field).getQualifiedName()); // TODO remove annotations ?
+                out.print(((TypeElement) field.getEnclosingElement()).getQualifiedName()); // TODO remove annotations ?
                 out.print("\", \"");
                 out.print(field.getSimpleName().toString()); // TODO remove annotations ?
                 out.print("\", \"");
-                out.print(field.asType().toString());
+                out.print(getGenericType(field));
                 out.println("\");");
             });
             out.println(" }");
@@ -138,9 +141,9 @@ public class ApplicationContextProcessor extends AbstractProcessor {
 
     }
 
-    private TypeElement getGenericType(VariableElement collectionVariable) {
-        TypeElement collectionClass = (TypeElement) collectionVariable.getEnclosingElement();
-        return (TypeElement) collectionClass.getTypeParameters().get(0);
+    private String getGenericType(VariableElement collectionVariable) {
+        GenericTypeVisitor visitor = new GenericTypeVisitor();
+        return collectionVariable.asType().accept(visitor, null).orElseThrow(() -> new IllegalStateException(collectionFields + " must have generic type"));
     }
 
 
@@ -150,5 +153,18 @@ public class ApplicationContextProcessor extends AbstractProcessor {
 
     private void log(String message, Object... args) {
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, String.format(message, args));
+    }
+
+
+    class GenericTypeVisitor extends SimpleTypeVisitor9<Optional<String>, Void> {
+
+        @Override
+        public Optional<String> visitDeclared(DeclaredType t, Void aVoid) {
+            if (t.getTypeArguments() != null) {
+                return t.getTypeArguments().stream().map(Object::toString).findFirst();
+            }
+            return null;
+        }
+
     }
 }
