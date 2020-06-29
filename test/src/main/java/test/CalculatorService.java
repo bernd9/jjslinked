@@ -1,7 +1,7 @@
 package test;
 
-import com.injectlight.Inject;
-import com.injectlight.Singleton;
+import com.ejc.Inject;
+import com.ejc.Singleton;
 import com.jjslinked.receiver.Receiver;
 
 import javax.validation.constraints.NotNull;

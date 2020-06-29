@@ -1,7 +1,7 @@
 package test;
 
-import com.injectlight.InjectAll;
-import com.injectlight.Singleton;
+import com.ejc.InjectAll;
+import com.ejc.Singleton;
 
 import java.util.Set;
 
