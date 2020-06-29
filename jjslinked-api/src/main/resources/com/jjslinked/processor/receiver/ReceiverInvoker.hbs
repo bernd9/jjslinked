@@ -5,8 +5,7 @@ import com.jjslinked.receiver.*;
 import com.injectlight.*;
 
 @Singleton
-@Registry(name= "com.jjslinked.generated.ReceiverInvokerRegistry", key="")
-public class {{invoker.simpleName}} extends ReceiverInvoker {
+public class {{invoker.simpleName}} extends ReceiverInvokerImpl {
     public {{invoker.simpleName}}() {
         super({{methodToInvoke.declaringClass.qualifiedName}}.class, "{{methodToInvoke.name}}"{{#methodToInvoke.parameterTypes}}, {{.}}.class {{/methodToInvoke.parameterTypes}});
     }

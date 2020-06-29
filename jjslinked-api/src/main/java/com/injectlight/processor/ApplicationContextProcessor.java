@@ -1,12 +1,14 @@
 package com.injectlight.processor;
 
 import com.google.auto.service.AutoService;
+import com.injectlight.Init;
 import com.injectlight.Inject;
 import com.injectlight.InjectAll;
 import com.injectlight.Singleton;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
@@ -21,7 +23,7 @@ import java.util.Optional;
 import java.util.Set;
 
 @AutoService(Processor.class)
-@SupportedAnnotationTypes({"com.injectlight.Singleton", "com.injectlight.Inject"})
+@SupportedAnnotationTypes({"com.injectlight.Singleton", "com.injectlight.Inject", "com.injectlight.Init"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class ApplicationContextProcessor extends AbstractProcessor {
 
@@ -32,6 +34,7 @@ public class ApplicationContextProcessor extends AbstractProcessor {
     private final Set<TypeElement> context = new HashSet<>();
     private final Set<VariableElement> simpleFields = new HashSet<>();
     private final Set<VariableElement> collectionFields = new HashSet<>();
+    private final Set<ExecutableElement> initializers = new HashSet<>();
 
 
     @Override
@@ -60,7 +63,9 @@ public class ApplicationContextProcessor extends AbstractProcessor {
         processSingletons(roundEnv);
         processInjects(roundEnv);
         processInjectAlls(roundEnv);
+        processInitializers(roundEnv);
     }
+
 
     private void processSingletons(RoundEnvironment roundEnv) {
         roundEnv.getElementsAnnotatedWith(Singleton.class).stream()
@@ -72,6 +77,19 @@ public class ApplicationContextProcessor extends AbstractProcessor {
         roundEnv.getElementsAnnotatedWith(Inject.class).stream()
                 .map(VariableElement.class::cast)
                 .forEach(simpleFields::add);
+    }
+
+    private void processInitializers(RoundEnvironment roundEnv) {
+        roundEnv.getElementsAnnotatedWith(Init.class).stream()
+                .map(ExecutableElement.class::cast)
+                .peek(this::validateNoPatameters)
+                .forEach(initializers::add);
+    }
+
+    private void validateNoPatameters(ExecutableElement e) {
+        if (e.getParameters() != null && !e.getParameters().isEmpty()) {
+            throw new IllegalStateException(e + "  must have no parameters");
+        }
     }
 
     private void processInjectAlls(RoundEnvironment roundEnv) {
@@ -119,6 +137,13 @@ public class ApplicationContextProcessor extends AbstractProcessor {
                 out.print(field.getSimpleName().toString()); // TODO remove annotations ?
                 out.print("\", \"");
                 out.print(getGenericType(field));
+                out.println("\");");
+            });
+            initializers.forEach(method -> {
+                out.print("   invokeInitMethod(\"");
+                out.print(((TypeElement) method.getEnclosingElement()).getQualifiedName()); // TODO remove annotations ?
+                out.print("\", \"");
+                out.print(method.getSimpleName());
                 out.println("\");");
             });
             out.println(" }");

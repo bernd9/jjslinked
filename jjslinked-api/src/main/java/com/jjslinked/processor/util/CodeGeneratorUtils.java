@@ -1,6 +1,5 @@
 package com.jjslinked.processor.util;
 
-import com.jjslinked.annotations.LinkedMethod;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -57,9 +56,6 @@ public class CodeGeneratorUtils {
         return CodeGeneratorUtils.firstToUpperCase(e.getSimpleName().toString()) + "Invoker";
     }
 
-    public static boolean isLinkedMethod(ExecutableElement executableElement) {
-        return executableElement.getAnnotation(LinkedMethod.class) != null;
-    }
 
     public static boolean isImplemented(ExecutableElement executableElement) { //TODO Geht das auch bein interface so ?
         return !isAbstract(executableElement);

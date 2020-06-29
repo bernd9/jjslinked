@@ -1,14 +1,11 @@
-package com.jjslinked.parameter;
-
-import com.ejc.Provider;
+package com.injectlight;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Provider(UserIdParameterProvider.class)
+@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
-@Target(ElementType.PARAMETER)
-public @interface UserId {
+public @interface Init {
 }

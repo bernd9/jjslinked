@@ -4,6 +4,7 @@ import lombok.NonNull;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -61,7 +62,25 @@ public class ApplicationContextBase {
     protected void injectAll(String beanClass, String fieldName, String valueClass) {
         doInjectInTypeHirarachy(getBeans(beanClass), fieldName, getBeans(valueClass));
     }
-    
+
+    @SuppressWarnings("unused")
+    protected void invokeInitMethod(String beanClass, String methodName) {
+        doInvokeInTypeHierarchy(getBeans(beanClass), methodName);
+    }
+
+    private void doInvokeInTypeHierarchy(@NonNull Set<Object> beans, String method) {
+        beans.forEach(bean -> doInvoke(bean, method));
+    }
+
+    private void doInvoke(Object bean, String methodName) {
+        try {
+            Method method = bean.getClass().getMethod(methodName);
+            method.invoke(bean);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 
     private void doInjectInTypeHirarachy(@NonNull Set<Object> beans, @NonNull String fieldName, @NonNull Object value) {
         beans.forEach(bean -> doInject(bean, fieldName, value));

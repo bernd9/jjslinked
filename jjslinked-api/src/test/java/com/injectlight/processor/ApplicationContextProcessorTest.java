@@ -1,6 +1,6 @@
 package com.injectlight.processor;
 
-import com.ejaf.processor.ProcessorTestUtilOld;
+import com.ejc.processor.ProcessorTestUtilOld;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.Compiler;
 import com.google.testing.compile.JavaFileObjects;
@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.tools.JavaFileObject;
 
-import static com.ejaf.processor.ProcessorTestUtilOld.assertSuccess;
+import static com.ejc.processor.ProcessorTestUtilOld.assertSuccess;
 import static com.google.testing.compile.Compiler.javac;
 
 class ApplicationContextProcessorTest {
