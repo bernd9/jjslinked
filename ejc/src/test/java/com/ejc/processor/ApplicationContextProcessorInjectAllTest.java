@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 
 import javax.tools.JavaFileObject;
 
-import static com.ejc.processor.ProcessorTestUtil.assertSuccess;
 import static com.google.testing.compile.Compiler.javac;
 
 class ApplicationContextProcessorInjectAllTest {
@@ -27,7 +26,7 @@ class ApplicationContextProcessorInjectAllTest {
     @Test
     void test() {
         Compilation compilation = compiler.compile(javaFileObjects);
-        assertSuccess(compilation);
+        ProcessorTestUtil.assertSuccess(compilation);
 
     }
 

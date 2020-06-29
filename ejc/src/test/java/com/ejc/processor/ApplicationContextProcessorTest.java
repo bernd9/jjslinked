@@ -3,14 +3,12 @@ package com.ejc.processor;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.Compiler;
 import com.google.testing.compile.JavaFileObjects;
-import com.webtwins.processor.ProcessorTestUtilOld;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.tools.JavaFileObject;
 
 import static com.google.testing.compile.Compiler.javac;
-import static com.webtwins.processor.ProcessorTestUtilOld.assertSuccess;
 
 class ApplicationContextProcessorTest {
 
@@ -30,8 +28,8 @@ class ApplicationContextProcessorTest {
     @Test
     void test() {
         Compilation compilation = compiler.compile(bean1, bean2, bean3);
-        ProcessorTestUtilOld.getSources(compilation).forEach(System.out::println);
-        assertSuccess(compilation);
+        ProcessorTestUtil.getSources(compilation).forEach(System.out::println);
+        ProcessorTestUtil.assertSuccess(compilation);
     }
 
 }
