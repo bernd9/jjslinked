@@ -1,6 +1,7 @@
-package com.webtwins.processor;
+package com.jjslinked.processor;
 
 import com.google.testing.compile.Compilation;
+import com.google.testing.compile.JavaFileObjects;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -10,16 +11,32 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+// TODO remove duplicate class from ejc
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ProcessorTestUtilOld {
+public class ProcessorTestUtil {
+
+    public static JavaFileObject[] javaFileObjects(String directory, String... javaFileNames) {
+        List<JavaFileObject> fileObjects = javaFileObjectList(directory, javaFileNames);
+        return fileObjects.toArray(new JavaFileObject[fileObjects.size()]);
+    }
+
+    public static List<JavaFileObject> javaFileObjectList(String directory, String... javaFileNames) {
+        return Arrays.stream(javaFileNames)
+                .map(name -> directory + "/" + name)
+                .map(JavaFileObjects::forResource)
+                .collect(Collectors.toList());
+    }
+
 
     public static void assertSuccess(Compilation compilation) {
         if (compilation.status() != Compilation.Status.SUCCESS) {
-            throw new RuntimeException(compilation.errors().stream().map(ProcessorTestUtilOld::asString).collect(Collectors.joining("\n\n")));
+            throw new RuntimeException(compilation.errors().stream().map(ProcessorTestUtil::asString).collect(Collectors.joining("\n\n")));
         }
     }
 
@@ -35,7 +52,7 @@ public class ProcessorTestUtilOld {
     }
 
     public static Collection<String> getSources(Compilation compilation) {
-        return compilation.generatedSourceFiles().stream().map(ProcessorTestUtilOld::getSource).collect(Collectors.toList());
+        return compilation.generatedSourceFiles().stream().map(ProcessorTestUtil::getSource).collect(Collectors.toList());
     }
 
     public static String getSource(JavaFileObject fileObject) {

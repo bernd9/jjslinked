@@ -1,16 +1,16 @@
 package com.jjslinked.processor.receiver;
 
-import com.webtwins.processor.ProcessorTestUtilOld;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.Compiler;
 import com.google.testing.compile.JavaFileObjects;
+import com.jjslinked.processor.ProcessorTestUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.tools.JavaFileObject;
 
-import static com.webtwins.processor.ProcessorTestUtilOld.assertSuccess;
 import static com.google.testing.compile.Compiler.javac;
+import static com.jjslinked.processor.ProcessorTestUtil.assertSuccess;
 
 class ReceiverProcessorTest {
 
@@ -26,7 +26,7 @@ class ReceiverProcessorTest {
     @Test
     void test() {
         Compilation compilation = compiler.compile(bean);
-        ProcessorTestUtilOld.getSources(compilation).forEach(System.out::println);
+        ProcessorTestUtil.getSources(compilation).forEach(System.out::println);
         assertSuccess(compilation);
     }
 

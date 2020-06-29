@@ -1,7 +1,7 @@
 package com.jjslinked.processor.registry;
 
+import com.ejc.util.IOUtils;
 import com.google.auto.service.AutoService;
-import com.ejc.util.IOUtil;
 import com.jjslinked.ast.ClassNode;
 import com.jjslinked.processor.util.CodeGeneratorUtils;
 import lombok.Getter;
@@ -77,12 +77,12 @@ public class RegistryAnnotationProcessor extends AbstractProcessor {
 
 
     private void writeTextFile(RegistryMapping registryMapping) {
-        IOUtil.write(registryMapping.getItems().entrySet().stream().map(e -> e.getKey() + ":" + e.getValue()).collect(Collectors.toSet()), processingEnv.getFiler(), registryMapping.getName());
+        IOUtils.write(registryMapping.getItems().entrySet().stream().map(e -> e.getKey() + ":" + e.getValue()).collect(Collectors.toSet()), processingEnv.getFiler(), registryMapping.getName());
 
     }
 
     private Map<String, String> existingItems(RegistryMapping registryMapping) {
-        return IOUtil.read(processingEnv.getFiler(), registryMapping.getName()).stream()
+        return IOUtils.read(processingEnv.getFiler(), registryMapping.getName()).stream()
                 .map(line -> line.split(":"))
                 .collect(Collectors.toMap(arr -> arr[0], arr -> arr[1]));
     }

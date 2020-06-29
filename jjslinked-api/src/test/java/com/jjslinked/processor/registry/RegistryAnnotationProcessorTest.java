@@ -3,12 +3,12 @@ package com.jjslinked.processor.registry;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.Compiler;
 import com.google.testing.compile.JavaFileObjects;
+import com.jjslinked.processor.ProcessorTestUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.tools.JavaFileObject;
 
-import static com.webtwins.processor.ProcessorTestUtilOld.assertSuccess;
 import static com.google.testing.compile.Compiler.javac;
 
 class RegistryAnnotationProcessorTest {
@@ -29,6 +29,6 @@ class RegistryAnnotationProcessorTest {
     void test() {
         Compilation compilation = compiler.compile(bean);
         //ProcessorTestUtilOld.getSources(compilation).forEach(System.out::println);
-        assertSuccess(compilation);
+        ProcessorTestUtil.assertSuccess(compilation);
     }
 }
