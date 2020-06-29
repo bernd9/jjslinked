@@ -1,8 +1,6 @@
 package test;
 
-
 import com.ejc.Singleton;
-import com.jjslinked.receiver.ReceiverInvokerDispatcher;
 
 @Singleton
 public class TestBean123 {
