@@ -1,6 +1,6 @@
 package com.jjslinked.receiver;
 
-import com.injectlight.ApplicationContextBase;
+import com.ejc.ApplicationContextBase;
 import com.jjslinked.ClientMessage;
 import com.jjslinked.MethodContext;
 import com.jjslinked.parameter.MessageParameterProvider;

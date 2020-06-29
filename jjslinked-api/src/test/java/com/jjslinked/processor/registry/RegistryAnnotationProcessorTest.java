@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.tools.JavaFileObject;
 
-import static com.ejc.processor.ProcessorTestUtilOld.assertSuccess;
+import static com.webtwins.processor.ProcessorTestUtilOld.assertSuccess;
 import static com.google.testing.compile.Compiler.javac;
 
 class RegistryAnnotationProcessorTest {

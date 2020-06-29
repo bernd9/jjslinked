@@ -1,6 +1,6 @@
 package com.jjslinked.parameter;
 
-import com.injectlight.Singleton;
+import com.ejc.Singleton;
 
 import java.lang.annotation.Annotation;
 import java.util.Collection;

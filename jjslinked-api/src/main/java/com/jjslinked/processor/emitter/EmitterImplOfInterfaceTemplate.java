@@ -1,6 +1,6 @@
 package com.jjslinked.processor.emitter;
 
-import com.injectlight.template.JavaTemplate;
+import com.jjslinked.template.JavaTemplate;
 
 public class EmitterImplOfInterfaceTemplate extends JavaTemplate<EmitterImplModel> {
 

@@ -1,6 +1,6 @@
 package com.jjslinked.processor.receiver;
 
-import com.ejc.processor.ProcessorTestUtilOld;
+import com.webtwins.processor.ProcessorTestUtilOld;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.Compiler;
 import com.google.testing.compile.JavaFileObjects;
@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.tools.JavaFileObject;
 
-import static com.ejc.processor.ProcessorTestUtilOld.assertSuccess;
+import static com.webtwins.processor.ProcessorTestUtilOld.assertSuccess;
 import static com.google.testing.compile.Compiler.javac;
 
 class ReceiverProcessorTest {

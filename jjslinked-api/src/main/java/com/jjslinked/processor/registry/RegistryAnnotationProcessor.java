@@ -1,7 +1,7 @@
 package com.jjslinked.processor.registry;
 
 import com.google.auto.service.AutoService;
-import com.injectlight.util.IOUtil;
+import com.ejc.util.IOUtil;
 import com.jjslinked.ast.ClassNode;
 import com.jjslinked.processor.util.CodeGeneratorUtils;
 import lombok.Getter;

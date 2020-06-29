@@ -1,7 +1,7 @@
 package com.jjslinked.receiver;
 
 import com.google.common.base.Functions;
-import com.injectlight.*;
+import com.ejc.*;
 import com.jjslinked.ClientMessage;
 
 import java.util.Map;

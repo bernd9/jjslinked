@@ -1,7 +1,7 @@
 package com.jjslinked.processor.registry;
 
-import com.injectlight.template.JavaTemplateModel;
 import com.jjslinked.ast.ClassNode;
+import com.jjslinked.template.JavaTemplateModel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Singular;

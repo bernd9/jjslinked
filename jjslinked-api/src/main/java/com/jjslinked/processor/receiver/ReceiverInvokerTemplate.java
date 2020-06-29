@@ -1,6 +1,6 @@
 package com.jjslinked.processor.receiver;
 
-import com.injectlight.template.JavaTemplate;
+import com.jjslinked.template.JavaTemplate;
 
 public class ReceiverInvokerTemplate extends JavaTemplate<ReceiverInvokerModel> {
 
