@@ -8,7 +8,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import java.util.Set;
 
 @RequiredArgsConstructor
-public class StoredSet {
+public class StoredInitMethods {
 
     private final String filename;
     private final ProcessingEnvironment processingEnvironment;
