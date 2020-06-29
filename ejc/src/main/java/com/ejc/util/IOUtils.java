@@ -1,4 +1,4 @@
-package com.injectlight.util;
+package com.ejc.util;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -10,7 +10,7 @@ import java.io.*;
 import java.util.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class IOUtil {
+public class IOUtils {
 
     public static void addLines(Collection<String> lines, Filer filer, String resource) {
         Set<String> set = new HashSet<>(read(filer, resource));

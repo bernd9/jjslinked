@@ -1,4 +1,4 @@
-package com.injectlight;
+package com.ejc;
 
 import lombok.NonNull;
 
@@ -28,8 +28,13 @@ public class ApplicationContextBase {
         }
     }
 
-    public <T> T getBean(String className) {
-        return (T) getBean(classForName(className));
+    private <T> T getBeanToInject(String className) {
+        try {
+            return (T) getBean(classForName(className));
+        } catch (ClassNotFoundException e) {
+            // never allow dependency to be null
+            throw new RuntimeException("no such bean: " + className);
+        }
     }
 
     public <T> Set<T> getBeans(Class<T> c) {
@@ -40,22 +45,32 @@ public class ApplicationContextBase {
                 .collect(Collectors.toSet());
     }
 
-    public <T> Set<T> getBeans(String c) {
-        return (Set<T>) getBeans(classForName(c));
+    private <T> Set<T> getBeans(String c) {
+        try {
+            return (Set<T>) getBeans(classForName(c));
+        } catch (ClassNotFoundException e) {
+            // May happen
+            return Collections.emptySet();
+        }
     }
 
 
     @SuppressWarnings("unused")
-    protected Object add(String className) {
-        Class<?> c = classForName(className);
-        Object o = createInstance(c);
-        beans.put(c, o);
-        return o;
+    protected void add(String className) {
+        Class<?> c = null;
+        try {
+            c = classForName(className);
+            Object o = createInstance(c);
+            beans.put(c, o);
+        } catch (ClassNotFoundException e) {
+            // May happen for deleted classes
+        }
+
     }
 
     @SuppressWarnings("unused")
     protected void inject(String beanClass, String fieldName, String valueClass) {
-        doInjectInTypeHirarachy(getBeans(beanClass), fieldName, getBean(valueClass));
+        doInjectInTypeHirarachy(getBeans(beanClass), fieldName, getBeanToInject(valueClass));
     }
 
     @SuppressWarnings("unused")
@@ -76,6 +91,8 @@ public class ApplicationContextBase {
         try {
             Method method = bean.getClass().getMethod(methodName);
             method.invoke(bean);
+        } catch (NoSuchMethodException nsm) {
+            // May happen when file is out of sync
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -123,11 +140,8 @@ public class ApplicationContextBase {
         }
     }
 
-    private static Class<?> classForName(String className) {
-        try {
-            return ClassLoader.getSystemClassLoader().loadClass(className);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    // TODO könnte gelöscht worden sein, oder ?
+    private static Class<?> classForName(String className) throws ClassNotFoundException {
+        return ClassLoader.getSystemClassLoader().loadClass(className);
     }
 }
