@@ -4,10 +4,11 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Optional;
+import java.util.HashSet;
 import java.util.Set;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -36,17 +37,20 @@ public class BeanUtils {
         return ClassLoader.getSystemClassLoader().loadClass(className);
     }
 
-    static Optional<Field> getField(Object bean, String fieldName) {
+    private static Set<Field> getFields(Object bean, String fieldName, Class<? extends Annotation> annotationClass) {
+        Set<Field> fields = new HashSet<>();
         Class<?> c = bean.getClass();
-        while (c != null) {
+        while (c != null && c != Object.class) {
             try {
                 Field field = c.getDeclaredField(fieldName);
-                return Optional.of(field);
+                if (field.isAnnotationPresent(annotationClass)) {
+                    fields.add(field);
+                }
             } catch (NoSuchFieldException e) {
             }
             c = c.getSuperclass();
         }
-        return Optional.empty();
+        return fields;
     }
 
 
@@ -66,13 +70,13 @@ public class BeanUtils {
     }
 
 
-    static void doInjectInTypeHirarachy(@NonNull Set<Object> beans, @NonNull String fieldName, @NonNull Object value) {
-        beans.forEach(bean -> doInject(bean, fieldName, value));
+    static void doInjectInTypeHirarachy(@NonNull Set<Object> beans, @NonNull String fieldName, @NonNull Object value, Class<? extends Annotation> annotationClass) {
+        beans.forEach(bean -> doInject(bean, fieldName, value, annotationClass));
     }
 
 
-    private static void doInject(@NonNull Object bean, @NonNull String fieldName, @NonNull Object value) {
-        getField(bean, fieldName).filter(field -> field.getType().isAssignableFrom(value.getClass())).ifPresent(field -> {
+    private static void doInject(@NonNull Object bean, @NonNull String fieldName, @NonNull Object value, Class<? extends Annotation> annotationClass) {
+        getFields(bean, fieldName, annotationClass).stream().filter(field -> field.getType().isAssignableFrom(value.getClass())).forEach(field -> {
             field.setAccessible(true);
             try {
                 field.set(bean, value);
