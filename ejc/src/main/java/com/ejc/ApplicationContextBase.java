@@ -28,7 +28,7 @@ public class ApplicationContextBase {
         }
     }
 
-    private <T> T getBeanToInject(String className) {
+    <T> T getBeanToInject(String className) {
         try {
             return (T) getBean(classForName(className));
         } catch (ClassNotFoundException e) {

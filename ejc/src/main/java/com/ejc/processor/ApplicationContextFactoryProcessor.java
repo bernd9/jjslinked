@@ -1,14 +1,14 @@
 package com.ejc.processor;
 
-import com.ejc.*;
+import com.ejc.Application;
+import com.ejc.Init;
+import com.ejc.InjectAll;
 import com.ejc.util.ElementUtils;
+import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Name;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.util.SimpleTypeVisitor9;
 import javax.tools.Diagnostic;
@@ -20,18 +20,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-//@AutoService(Processor.class)
-@SupportedAnnotationTypes({"com.ejc.Singleton", "com.ejc.Inject", "com.ejc.Init", "com.ejc.Application"})
+@AutoService(Processor.class)
+@SupportedAnnotationTypes({"com.ejc.processor.SingletonLoader", "com.ejc.processor.Injector"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
-public class ApplicationContextProcessor extends AbstractProcessor {
+public class ApplicationContextFactoryProcessor extends AbstractProcessor {
 
-    private static final String PACKAGE = "com.ejc";
-    private static final String CONTEXT_SIMPLE_NAME = "ApplicationContext";
-    private static final String CONTEXT = PACKAGE + "." + CONTEXT_SIMPLE_NAME;
+    private static final String PACKAGE = "com.ejc.generated";
+    private static final String CONTEXT_FACTORY_SIMPLE_NAME = "ApplicationContextFactory";
+    private static final String CONTEXT_FACTORY = PACKAGE + "." + CONTEXT_FACTORY_SIMPLE_NAME;
 
-    private final Set<TypeElement> context = new HashSet<>();
-    private final Set<VariableElement> simpleFields = new HashSet<>();
+    private final Set<TypeElement> loaders = new HashSet<>();
+    private final Set<TypeElement> injectors = new HashSet<>();
     private final Set<VariableElement> collectionFields = new HashSet<>();
     private final Set<ExecutableElement> initializers = new HashSet<>();
 
@@ -40,9 +41,10 @@ public class ApplicationContextProcessor extends AbstractProcessor {
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
-        context.clear();
-        simpleFields.clear();
+        loaders.clear();
+        injectors.clear();
         collectionFields.clear();
+        initializers.clear();
         super.init(processingEnv);
     }
 
@@ -52,9 +54,10 @@ public class ApplicationContextProcessor extends AbstractProcessor {
         // TODO Das Ergebnis muss in einer Textdate gespeichert und erweitert werden. JSON ? Oder besser Zeilen ?
         try {
             if (roundEnv.processingOver()) {
+                addUnchanged();
                 writeContext();
             } else {
-                addContextData(roundEnv);
+                processAnnotations(roundEnv);
             }
         } catch (Exception e) {
             reportError(e);
@@ -62,25 +65,59 @@ public class ApplicationContextProcessor extends AbstractProcessor {
         return true;
     }
 
-    private void addContextData(RoundEnvironment roundEnv) {
-        processSingletons(roundEnv);
-        processInjects(roundEnv);
-        processInjectAlls(roundEnv);
-        processInitializers(roundEnv);
-        processApplication(roundEnv);
+    private void processAnnotations(RoundEnvironment roundEnv) {
+        processSingletonLoaders(roundEnv);
+        processInjectors(roundEnv);
     }
 
 
-    private void processSingletons(RoundEnvironment roundEnv) {
-        roundEnv.getElementsAnnotatedWith(Singleton.class).stream()
+    private void addUnchanged() {
+        addUnchangedLoaders();
+        addUnchangedInjectors();
+    }
+
+
+    private void processSingletonLoaders(RoundEnvironment roundEnv) {
+        roundEnv.getElementsAnnotatedWith(SingletonLoader.class).stream()
                 .map(TypeElement.class::cast)
-                .forEach(context::add);
+                .forEach(loaders::add);
     }
 
-    private void processInjects(RoundEnvironment roundEnv) {
-        roundEnv.getElementsAnnotatedWith(Inject.class).stream()
-                .map(VariableElement.class::cast)
-                .forEach(simpleFields::add);
+    private void addUnchangedLoaders() {
+        if (loaders.size() > 0) {
+            PackageElement packageElement = findPackage(loaders.iterator().next());
+            addUnchangedLoaders(packageElement);
+        }
+    }
+
+    private void addUnchangedLoaders(PackageElement pack) {
+        pack.getEnclosedElements().stream()
+                .map(TypeElement.class::cast)
+                .filter(t -> t.getAnnotation(SingletonLoader.class) != null)
+                .forEach(loaders::add);
+
+    }
+
+    private void addUnchangedInjectors() {
+        if (injectors.size() > 0) {
+            PackageElement packageElement = findPackage(injectors.iterator().next());
+            addUnchangedInjectors(packageElement);
+        }
+    }
+
+    private void addUnchangedInjectors(PackageElement pack) {
+        pack.getEnclosedElements().stream()
+                .map(TypeElement.class::cast)
+                .filter(t -> t.getAnnotation(Injector.class) != null)
+                .forEach(injectors::add);
+
+    }
+
+
+    private void processInjectors(RoundEnvironment roundEnv) {
+        roundEnv.getElementsAnnotatedWith(Injector.class).stream()
+                .map(TypeElement.class::cast)
+                .forEach(injectors::add);
     }
 
     private void processInitializers(RoundEnvironment roundEnv) {
@@ -122,70 +159,29 @@ public class ApplicationContextProcessor extends AbstractProcessor {
     }
 
     private void writeContext() {
-        try (PrintWriter out = new PrintWriter(new OutputStreamWriter(processingEnv.getFiler().createSourceFile(CONTEXT).openOutputStream()))) {
+        Stream<String> injectorNames = injectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);
+        Stream<String> loaderNames = loaders.stream().map(TypeElement::getQualifiedName).map(Name::toString);
+        try (PrintWriter out = new PrintWriter(new OutputStreamWriter(processingEnv.getFiler().createSourceFile(CONTEXT_FACTORY).openOutputStream()))) {
             out.print("package ");
             out.print(packageName);
             out.println(";");
             out.println("import java.util.*;");
             out.println("import java.lang.reflect.*;");
             out.print("public class ");
-            out.print(CONTEXT_SIMPLE_NAME);
+            out.print(CONTEXT_FACTORY_SIMPLE_NAME);
             out.print(" extends ");
-            out.print(ApplicationContextBase.class.getName());
+            out.print(ApplicationContextFactoryBase.class.getName());
             out.println(" {");
             out.print("   public ");
-            out.print(CONTEXT_SIMPLE_NAME);
+            out.print(CONTEXT_FACTORY_SIMPLE_NAME);
             out.println("() {");
             out.println("   super();");
-            context.stream()
-                    .map(TypeElement::getQualifiedName)
-                    .map(Name::toString)
-                    .forEach(className -> {
-                        out.print("   add(\"");
-                        out.print(className);
-                        out.println("\");");
-                    });
-
-            simpleFields.forEach(field -> {
-                out.print("   inject(\"");
-                out.print(((TypeElement) field.getEnclosingElement()).getQualifiedName()); // TODO remove annotations ?
-                out.print("\", \"");
-                out.print(field.getSimpleName().toString()); // TODO remove annotations ?
-                out.print("\", \"");
-                out.print(field.asType().toString());
-                out.println("\");");
-            });
-            collectionFields.forEach(field -> {
-                out.print("   injectAll(\"");
-                out.print(((TypeElement) field.getEnclosingElement()).getQualifiedName()); // TODO remove annotations ?
-                out.print("\", \"");
-                out.print(field.getSimpleName().toString()); // TODO remove annotations ?
-                out.print("\", \"");
-                out.print(getGenericType(field));
-                out.println("\");");
-            });
-            initializers.forEach(method -> {
-                out.print("   invokeInitMethod(\"");
-                out.print(((TypeElement) method.getEnclosingElement()).getQualifiedName()); // TODO remove annotations ?
-                out.print("\", \"");
-                out.print(method.getSimpleName());
-                out.println("\");");
-            });
+            injectorNames.map(name -> String.format("addInjector(\"%s\");\n")).forEach(out::println);
+            loaderNames.map(name -> String.format("addLoader(\"%s\");\n")).forEach(out::println);
             out.println(" }");
-            out.print(" private static ");
-            out.print(CONTEXT_SIMPLE_NAME);
-            out.print(" INSTANCE = new ");
-            out.print(CONTEXT_SIMPLE_NAME);
-            out.println("();");
-            out.print(" public static ");
-            out.print(CONTEXT_SIMPLE_NAME);
-            out.println(" getInstance() {");
-            out.println("  return INSTANCE;");
-            out.println(" }");
-
             out.println("}");
-
-        } catch (IOException e) {
+        } catch (
+                IOException e) {
             throw new RuntimeException(e);
         }
 
@@ -203,6 +199,17 @@ public class ApplicationContextProcessor extends AbstractProcessor {
 
     private void log(String message, Object... args) {
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, String.format(message, args));
+    }
+
+    private PackageElement findPackage(Element element) {
+        Element e = element.getEnclosingElement();
+        while (e != null) {
+            if (e instanceof PackageElement) {
+                return (PackageElement) e;
+            }
+            e = e.getEnclosingElement();
+        }
+        throw new IllegalStateException();
     }
 
 
