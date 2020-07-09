@@ -1,7 +1,6 @@
 package com.ejc.processor;
 
 import com.ejc.Application;
-import com.ejc.Init;
 import com.ejc.InjectAll;
 import com.ejc.util.ElementUtils;
 import com.google.auto.service.AutoService;
@@ -15,15 +14,13 @@ import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.lang.annotation.Annotation;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @AutoService(Processor.class)
-@SupportedAnnotationTypes({"com.ejc.processor.SingletonLoader", "com.ejc.processor.Injector"})
+@SupportedAnnotationTypes({"com.ejc.processor.SingletonLoader", "com.ejc.processor.Injector", "com.ejc.processor.Initializer"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class ApplicationContextFactoryProcessor extends AbstractProcessor {
 
@@ -33,16 +30,21 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
 
     private final Set<TypeElement> loaders = new HashSet<>();
     private final Set<TypeElement> injectors = new HashSet<>();
+    private final Set<TypeElement> multiInjectors = new HashSet<>();
     private final Set<VariableElement> collectionFields = new HashSet<>();
-    private final Set<ExecutableElement> initializers = new HashSet<>();
+    private final Set<TypeElement> initializers = new HashSet<>();
 
     private String packageName = PACKAGE;
+
+    private PackageElement generatedClassPackage;
 
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
+        generatedClassPackage = processingEnv.getElementUtils().getPackageElement(PACKAGE);
         loaders.clear();
         injectors.clear();
+        multiInjectors.clear();
         collectionFields.clear();
         initializers.clear();
         super.init(processingEnv);
@@ -53,11 +55,13 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
         // TODO Es kommen wohl nur geänderte Dateien an.
         // TODO Das Ergebnis muss in einer Textdate gespeichert und erweitert werden. JSON ? Oder besser Zeilen ?
         try {
-            if (roundEnv.processingOver()) {
-                addUnchanged();
-                writeContext();
+            if (!roundEnv.processingOver()) {
+                processSingletonLoaders(roundEnv);
+                processInjectors(roundEnv);
+                processMultiInjectors(roundEnv);
+                processInitializers(roundEnv);
             } else {
-                processAnnotations(roundEnv);
+                writeContext();
             }
         } catch (Exception e) {
             reportError(e);
@@ -65,66 +69,56 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
         return true;
     }
 
-    private void processAnnotations(RoundEnvironment roundEnv) {
-        processSingletonLoaders(roundEnv);
-        processInjectors(roundEnv);
-    }
-
-
-    private void addUnchanged() {
-        addUnchangedLoaders();
-        addUnchangedInjectors();
-    }
-
-
-    private void processSingletonLoaders(RoundEnvironment roundEnv) {
-        roundEnv.getElementsAnnotatedWith(SingletonLoader.class).stream()
-                .map(TypeElement.class::cast)
-                .forEach(loaders::add);
-    }
-
-    private void addUnchangedLoaders() {
-        if (loaders.size() > 0) {
-            PackageElement packageElement = findPackage(loaders.iterator().next());
-            addUnchangedLoaders(packageElement);
-        }
-    }
-
-    private void addUnchangedLoaders(PackageElement pack) {
-        pack.getEnclosedElements().stream()
+    private void processSingletonLoaders(RoundEnvironment roundEnvironment) {
+        getGeneratedClassPackage(SingletonLoader.class, roundEnvironment)
+                .map(PackageElement::getEnclosedElements)
+                .orElse(Collections.emptyList()).stream()
+                .filter(TypeElement.class::isInstance)
                 .map(TypeElement.class::cast)
                 .filter(t -> t.getAnnotation(SingletonLoader.class) != null)
                 .forEach(loaders::add);
-
     }
 
-    private void addUnchangedInjectors() {
-        if (injectors.size() > 0) {
-            PackageElement packageElement = findPackage(injectors.iterator().next());
-            addUnchangedInjectors(packageElement);
-        }
-    }
 
-    private void addUnchangedInjectors(PackageElement pack) {
-        pack.getEnclosedElements().stream()
+    private void processInjectors(RoundEnvironment roundEnvironment) {
+        getGeneratedClassPackage(Injector.class, roundEnvironment)
+                .map(PackageElement::getEnclosedElements)
+                .orElse(Collections.emptyList()).stream()
+                .filter(TypeElement.class::isInstance)
                 .map(TypeElement.class::cast)
                 .filter(t -> t.getAnnotation(Injector.class) != null)
                 .forEach(injectors::add);
-
     }
 
 
-    private void processInjectors(RoundEnvironment roundEnv) {
-        roundEnv.getElementsAnnotatedWith(Injector.class).stream()
+    private void processMultiInjectors(RoundEnvironment roundEnvironment) {
+        getGeneratedClassPackage(MultiInjector.class, roundEnvironment)
+                .map(PackageElement::getEnclosedElements)
+                .orElse(Collections.emptyList()).stream()
+                .filter(TypeElement.class::isInstance)
                 .map(TypeElement.class::cast)
-                .forEach(injectors::add);
+                .filter(t -> t.getAnnotation(MultiInjector.class) != null)
+                .forEach(multiInjectors::add);
     }
 
-    private void processInitializers(RoundEnvironment roundEnv) {
-        roundEnv.getElementsAnnotatedWith(Init.class).stream()
-                .map(ExecutableElement.class::cast)
-                .peek(this::validateNoParameters)
+
+    private void processInitializers(RoundEnvironment roundEnvironment) {
+        getGeneratedClassPackage(Initializer.class, roundEnvironment)
+                .map(PackageElement::getEnclosedElements)
+                .orElse(Collections.emptyList()).stream()
+                .filter(TypeElement.class::isInstance)
+                .map(TypeElement.class::cast)
+                .filter(t -> t.getAnnotation(Initializer.class) != null)
                 .forEach(initializers::add);
+    }
+
+
+    private Optional<PackageElement> getGeneratedClassPackage(Class<? extends Annotation> a, RoundEnvironment roundEnvironment) {
+        Set<? extends Element> e = roundEnvironment.getElementsAnnotatedWith(a);
+        if (e.size() > 0) {
+            return Optional.of(e.iterator().next()).map(Element::getEnclosingElement).map(PackageElement.class::cast);
+        }
+        return Optional.empty();
     }
 
     private void processApplication(RoundEnvironment roundEnv) {
@@ -160,7 +154,9 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
 
     private void writeContext() {
         Stream<String> injectorNames = injectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);
+        Stream<String> multiInjectorNames = multiInjectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);
         Stream<String> loaderNames = loaders.stream().map(TypeElement::getQualifiedName).map(Name::toString);
+        Stream<String> initializerNames = initializers.stream().map(TypeElement::getQualifiedName).map(Name::toString);
         try (PrintWriter out = new PrintWriter(new OutputStreamWriter(processingEnv.getFiler().createSourceFile(CONTEXT_FACTORY).openOutputStream()))) {
             out.print("package ");
             out.print(packageName);
@@ -175,9 +171,11 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
             out.print("   public ");
             out.print(CONTEXT_FACTORY_SIMPLE_NAME);
             out.println("() {");
-            out.println("   super();");
-            injectorNames.map(name -> String.format("addInjector(\"%s\");\n")).forEach(out::println);
-            loaderNames.map(name -> String.format("addLoader(\"%s\");\n")).forEach(out::println);
+            out.println("    super();");
+            injectorNames.map(name -> String.format("    addInjector(\"%s\");", name)).forEach(out::println);
+            multiInjectorNames.map(name -> String.format("    addMultiInjector(\"%s\");", name)).forEach(out::println);
+            loaderNames.map(name -> String.format("    addSingletonLoader(\"%s\");", name)).forEach(out::println);
+            initializerNames.map(name -> String.format("    addInitializer(\"%s\");", name)).forEach(out::println);
             out.println(" }");
             out.println("}");
         } catch (

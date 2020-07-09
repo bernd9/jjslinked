@@ -1,12 +1,12 @@
 package com.ejc.processor;
 
-import com.ejc.Inject;
+import com.ejc.Init;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
@@ -15,17 +15,17 @@ import java.util.Set;
 import java.util.UUID;
 
 @AutoService(Processor.class)
-@SupportedAnnotationTypes({"com.ejc.Inject"})
+@SupportedAnnotationTypes({"com.ejc.Init"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
-public class InjectAnnotationProcessor extends AbstractProcessor {
+public class InitAnnotationProcessor extends AbstractProcessor {
 
-    private static final String PACKAGE = "com.ejc.generated.inject";
+    private static final String PACKAGE = "com.ejc.generated.init";
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         try {
             if (!roundEnv.processingOver()) {
-                processInjects(roundEnv);
+                processInits(roundEnv);
             }
         } catch (Exception e) {
             reportError(e);
@@ -33,46 +33,48 @@ public class InjectAnnotationProcessor extends AbstractProcessor {
         return true;
     }
 
-    private void processInjects(RoundEnvironment roundEnv) {
-        roundEnv.getElementsAnnotatedWith(Inject.class).stream()
-                .map(VariableElement.class::cast)
-                .forEach(this::writeInjector);
+    private void processInits(RoundEnvironment roundEnv) {
+        roundEnv.getElementsAnnotatedWith(Init.class).stream()
+                .map(ExecutableElement.class::cast)
+                .peek(this::validateNoParameters)
+                .forEach(this::writeIntializer);
+    }
+
+    private void validateNoParameters(ExecutableElement element) {
+        if (!element.getParameters().isEmpty()) {
+            throw new IllegalStateException(element + " must have no parameters");
+        }
     }
 
 
-    private void writeInjector(VariableElement e) {
+    private void writeIntializer(ExecutableElement e) {
         log("processing %s", e);
-        String injectorSimpleName = "Injector_" + randomString();
-        String injectorQualifiedName = PACKAGE + "." + injectorSimpleName;
-        String fieldDeclaringClass = ((TypeElement) e.getEnclosingElement()).getQualifiedName().toString();
-        String fieldType = e.asType().toString();
-        String fieldName = e.getSimpleName().toString();
-        try (PrintWriter out = new PrintWriter(new OutputStreamWriter(processingEnv.getFiler().createSourceFile(injectorQualifiedName).openOutputStream()))) {
+        String initializerSimpleName = "Initializer_" + randomString();
+        String initializerQualifiedName = PACKAGE + "." + initializerSimpleName;
+        String ownerClass = ((TypeElement) e.getEnclosingElement()).getQualifiedName().toString();
+        String methodName = e.getSimpleName().toString();
+        try (PrintWriter out = new PrintWriter(new OutputStreamWriter(processingEnv.getFiler().createSourceFile(initializerQualifiedName).openOutputStream()))) {
             out.print("package ");
             out.print(PACKAGE);
             out.println(";");
             out.println("import com.ejc.processor.*;");
             out.println("import java.lang.reflect.*;");
-            out.println("@Injector");
+            out.println("@Initializer");
             out.print("public class ");
-            out.print(injectorSimpleName);
+            out.print(initializerSimpleName);
             out.print(" extends ");
-            out.print(InjectorBase.class.getName());
+            out.print(InitializerBase.class.getName());
             out.println(" {");
             out.print(" public ");
-            out.print(injectorSimpleName);
+            out.print(initializerSimpleName);
             out.println("() {");
             out.print("   super(");
             out.print("\"");
-            out.print(fieldDeclaringClass);
+            out.print(ownerClass);
             out.print("\"");
             out.print(", ");
             out.print("\"");
-            out.print(fieldName);
-            out.print("\"");
-            out.print(", ");
-            out.print("\"");
-            out.print(fieldType);
+            out.print(methodName);
             out.print("\"");
             out.println(");");
             out.println("  }");

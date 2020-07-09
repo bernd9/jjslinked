@@ -41,7 +41,7 @@ public class SingletonAnnotationProcessor extends AbstractProcessor {
 
     private void writeLoader(TypeElement e) {
         log("processing %s", e.getQualifiedName());
-        String simpleName = "Loader" + randomString();
+        String simpleName = "Loader_" + randomString();
         String qualifiedName = PACKAGE + "." + simpleName;
         try (PrintWriter out = new PrintWriter(new OutputStreamWriter(processingEnv.getFiler().createSourceFile(qualifiedName).openOutputStream()))) {
             out.print("package ");
@@ -52,7 +52,9 @@ public class SingletonAnnotationProcessor extends AbstractProcessor {
             out.println("@SingletonLoader");
             out.print("public class ");
             out.print(simpleName);
-            out.println(" extends SingletonLoaderBase {");
+            out.print(" extends ");
+            out.print(SingletonLoaderBase.class.getName());
+            out.println(" {");
             out.print("   public ");
             out.print(simpleName);
             out.println("() {");

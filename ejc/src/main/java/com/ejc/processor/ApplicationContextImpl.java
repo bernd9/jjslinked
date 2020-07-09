@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class ApplicationContextImpl implements ApplicationContext {
+public class ApplicationContextImpl extends ApplicationContext {
 
     private final Set<Object> beans = new HashSet<>();
 
@@ -16,8 +16,7 @@ public class ApplicationContextImpl implements ApplicationContext {
         beans.add(this);
     }
 
-    @Override
-    public void addBean(Object bean) {
+    void addBean(Object bean) {
         beans.add(bean);
     }
 
@@ -35,10 +34,20 @@ public class ApplicationContextImpl implements ApplicationContext {
     }
 
     @Override
+    public <T> T getBean(String c) {
+        try {
+            return (T) getBean(BeanUtils.classForName(c));
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public <T> Set<T> getBeans(Class<T> c) {
         return beans.stream()
                 .filter(e -> c.isAssignableFrom(e.getClass()))
                 .map(c::cast)
                 .collect(Collectors.toSet());
     }
+
 }

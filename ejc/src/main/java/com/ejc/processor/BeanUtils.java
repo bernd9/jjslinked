@@ -11,9 +11,9 @@ import java.util.Optional;
 import java.util.Set;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-class BeanUtils {
+public class BeanUtils {
 
-    static Object createInstance(String c) {
+    public static Object createInstance(String c) {
         try {
             return createInstance(classForName(c));
         } catch (ClassNotFoundException e) {

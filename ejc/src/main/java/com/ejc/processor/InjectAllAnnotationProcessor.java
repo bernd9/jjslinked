@@ -1,25 +1,28 @@
 package com.ejc.processor;
 
-import com.ejc.Inject;
+import com.ejc.InjectAll;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.util.SimpleTypeVisitor9;
 import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 @AutoService(Processor.class)
-@SupportedAnnotationTypes({"com.ejc.Inject"})
+@SupportedAnnotationTypes({"com.ejc.InjectAll"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
-public class InjectAnnotationProcessor extends AbstractProcessor {
+public class InjectAllAnnotationProcessor extends AbstractProcessor {
 
-    private static final String PACKAGE = "com.ejc.generated.inject";
+    private static final String PACKAGE = "com.ejc.generated.multiinject";
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -34,15 +37,20 @@ public class InjectAnnotationProcessor extends AbstractProcessor {
     }
 
     private void processInjects(RoundEnvironment roundEnv) {
-        roundEnv.getElementsAnnotatedWith(Inject.class).stream()
+        roundEnv.getElementsAnnotatedWith(InjectAll.class).stream()
                 .map(VariableElement.class::cast)
+                .peek(this::validateType)
                 .forEach(this::writeInjector);
+    }
+
+    private void validateType(VariableElement element) {
+        // TODO must be a Set
     }
 
 
     private void writeInjector(VariableElement e) {
         log("processing %s", e);
-        String injectorSimpleName = "Injector_" + randomString();
+        String injectorSimpleName = "MultiInjector_" + randomString();
         String injectorQualifiedName = PACKAGE + "." + injectorSimpleName;
         String fieldDeclaringClass = ((TypeElement) e.getEnclosingElement()).getQualifiedName().toString();
         String fieldType = e.asType().toString();
@@ -53,11 +61,11 @@ public class InjectAnnotationProcessor extends AbstractProcessor {
             out.println(";");
             out.println("import com.ejc.processor.*;");
             out.println("import java.lang.reflect.*;");
-            out.println("@Injector");
+            out.println("@MultiInjector");
             out.print("public class ");
             out.print(injectorSimpleName);
             out.print(" extends ");
-            out.print(InjectorBase.class.getName());
+            out.print(MultiInjectorBase.class.getName());
             out.println(" {");
             out.print(" public ");
             out.print(injectorSimpleName);
@@ -72,7 +80,7 @@ public class InjectAnnotationProcessor extends AbstractProcessor {
             out.print("\"");
             out.print(", ");
             out.print("\"");
-            out.print(fieldType);
+            out.print(getGenericType(e));
             out.print("\"");
             out.println(");");
             out.println("  }");
@@ -92,5 +100,23 @@ public class InjectAnnotationProcessor extends AbstractProcessor {
 
     private void log(String message, Object... args) {
         processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, String.format(message, args));
+    }
+
+    private String getGenericType(VariableElement collectionVariable) {
+        GenericTypeVisitor visitor = new GenericTypeVisitor();
+        return collectionVariable.asType().accept(visitor, null).orElseThrow(() -> new IllegalStateException(collectionVariable + " must have generic type"));
+    }
+
+
+    class GenericTypeVisitor extends SimpleTypeVisitor9<Optional<String>, Void> {
+
+        @Override
+        public Optional<String> visitDeclared(DeclaredType t, Void aVoid) {
+            if (t.getTypeArguments() != null) {
+                return t.getTypeArguments().stream().map(Object::toString).findFirst();
+            }
+            return null;
+        }
+
     }
 }

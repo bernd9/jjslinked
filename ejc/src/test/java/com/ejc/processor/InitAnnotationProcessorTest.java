@@ -10,26 +10,23 @@ import javax.tools.JavaFileObject;
 
 import static com.google.testing.compile.Compiler.javac;
 
-class ApplicationContextProcessorTest {
+class InitAnnotationProcessorTest {
 
     private Compiler compiler;
-    private JavaFileObject bean1;
-    private JavaFileObject bean2;
-    private JavaFileObject bean3;
+    private JavaFileObject bean;
 
     @BeforeEach
     void init() {
-        compiler = javac().withProcessors(new ApplicationContextProcessor());
-        bean1 = JavaFileObjects.forResource("com/ejc/processor/Test1.java");
-        bean2 = JavaFileObjects.forResource("com/ejc/processor/Test2.java");
-        bean3 = JavaFileObjects.forResource("com/ejc/processor/Test3.java");
+        compiler = javac().withProcessors(new InitAnnotationProcessor());
+        bean = JavaFileObjects.forResource("com/ejc/processor/Test3.java");
     }
 
     @Test
     void test() {
-        Compilation compilation = compiler.compile(bean1, bean2, bean3);
+        Compilation compilation = compiler.compile(bean);
         ProcessorTestUtil.getSources(compilation).forEach(System.out::println);
         ProcessorTestUtil.assertSuccess(compilation);
     }
+
 
 }
