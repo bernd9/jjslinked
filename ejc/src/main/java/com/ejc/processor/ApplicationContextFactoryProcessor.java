@@ -172,10 +172,10 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
             out.print(CONTEXT_FACTORY_SIMPLE_NAME);
             out.println("() {");
             out.println("    super();");
-            injectorNames.map(name -> String.format("    addInjector(\"%s\");", name)).forEach(out::println);
-            multiInjectorNames.map(name -> String.format("    addMultiInjector(\"%s\");", name)).forEach(out::println);
-            loaderNames.map(name -> String.format("    addSingletonLoader(\"%s\");", name)).forEach(out::println);
-            initializerNames.map(name -> String.format("    addInitializer(\"%s\");", name)).forEach(out::println);
+            injectorNames.map(name -> String.format("    addInjector(%s.class);", name)).forEach(out::println);
+            multiInjectorNames.map(name -> String.format("    addMultiInjector(%s.class);", name)).forEach(out::println);
+            loaderNames.map(name -> String.format("    addSingletonLoader(%s.class);", name)).forEach(out::println);
+            initializerNames.map(name -> String.format("    addInitializer(%s.class);", name)).forEach(out::println);
             out.println(" }");
             out.println("}");
         } catch (

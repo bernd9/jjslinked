@@ -32,6 +32,7 @@ public class BeanUtils {
     }
 
     static Class<?> classForName(String className) throws ClassNotFoundException {
+        //return Class.forName(className);
         return ClassLoader.getSystemClassLoader().loadClass(className);
     }
 

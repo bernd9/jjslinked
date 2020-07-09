@@ -1,9 +1,9 @@
 package com.ejc.generated.singleton;
 
+import com.ejc.processor.Injector;
 import com.ejc.processor.InjectorBase;
-import com.ejc.processor.SingletonLoader;
 
-@SingletonLoader
+@Injector
 public class TestInjector extends InjectorBase {
     public TestInjector() {
         super("", "", "");

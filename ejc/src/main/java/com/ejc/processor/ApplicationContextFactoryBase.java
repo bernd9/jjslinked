@@ -11,19 +11,19 @@ public class ApplicationContextFactoryBase {
     private final Set<MultiInjectorBase> multiInjectors = new HashSet<>();
     private final Set<InitializerBase> initializers = new HashSet<>();
 
-    public void addSingletonLoader(String loaderClassName) {
+    public void addSingletonLoader(Class<? extends SingletonLoaderBase> loaderClassName) {
         singletonLoaders.add((SingletonLoaderBase) BeanUtils.createInstance(loaderClassName));
     }
 
-    public void addInjector(String injectorClassName) {
+    public void addInjector(Class<? extends InjectorBase> injectorClassName) {
         injectors.add((InjectorBase) BeanUtils.createInstance(injectorClassName));
     }
 
-    public void addMultiInjector(String injectorClassName) {
+    public void addMultiInjector(Class<? extends MultiInjectorBase> injectorClassName) {
         multiInjectors.add((MultiInjectorBase) BeanUtils.createInstance(injectorClassName));
     }
 
-    public void addInitializer(String initializerName) {
+    public void addInitializer(Class<? extends InitializerBase> initializerName) {
         initializers.add((InitializerBase) BeanUtils.createInstance(initializerName));
     }
 
