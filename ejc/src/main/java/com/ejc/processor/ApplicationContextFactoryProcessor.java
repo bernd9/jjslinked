@@ -23,7 +23,6 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
 
     private static final String PACKAGE = "com.ejc.generated";
     private static final String CONTEXT_FACTORY_SIMPLE_NAME = "ApplicationContextFactory";
-    private static final String CONTEXT_FACTORY = PACKAGE + "." + CONTEXT_FACTORY_SIMPLE_NAME;
 
     private final Set<TypeElement> loaders = new HashSet<>();
     private final Set<TypeElement> injectors = new HashSet<>();
@@ -144,7 +143,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
         }
 
         packageName = ElementUtils.getPackageName(appClass.getQualifiedName());
-        includeApps.addAll(Arrays.asList(appClass.getAnnotation(Application.class).include()));
+        // TODO  includeApps.addAll(Arrays.asList(appClass.getAnnotation(Application.class).include()));
 
     }
 
@@ -154,7 +153,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
         Stream<String> loaderNames = loaders.stream().map(TypeElement::getQualifiedName).map(Name::toString);
         Stream<String> initializerNames = initializers.stream().map(TypeElement::getQualifiedName).map(Name::toString);
         Stream<String> propertyInjectorNames = propertyInjectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);
-        try (PrintWriter out = new PrintWriter(new OutputStreamWriter(processingEnv.getFiler().createSourceFile(CONTEXT_FACTORY).openOutputStream()))) {
+        try (PrintWriter out = new PrintWriter(new OutputStreamWriter(processingEnv.getFiler().createSourceFile(packageName + "." + CONTEXT_FACTORY_SIMPLE_NAME).openOutputStream()))) {
             out.print("package ");
             out.print(packageName);
             out.println(";");
@@ -169,6 +168,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
             out.print(CONTEXT_FACTORY_SIMPLE_NAME);
             out.println("() {");
             out.println("    super();");
+            // TODO
             //includeApps.stream().map(Class::getName).map(name -> String.format("    addApplication(%s.class);", name)).forEach(out::println);
             injectorNames.map(name -> String.format("    addInjector(%s.class);", name)).forEach(out::println);
             multiInjectorNames.map(name -> String.format("    addMultiInjector(%s.class);", name)).forEach(out::println);

@@ -17,7 +17,7 @@ public class SystemPropertyInjectorBase {
     public void doInject(ApplicationContext context) {
         try {
             Class<?> declaringClass = BeanUtils.classForName(declaringClassName);
-            Field field = declaringClass.getField(fieldName);
+            Field field = declaringClass.getDeclaredField(fieldName);
             Object fieldValue = getSystemPropertyConverted(field.getType(), defaultValue);
             context.getBeans(declaringClass).forEach(bean -> doInject(bean, declaringClass, fieldValue));
         } catch (Exception e) {
@@ -31,6 +31,7 @@ public class SystemPropertyInjectorBase {
             if (clazz.equals(declaringClass)) {
                 try {
                     doInject(bean, clazz.getDeclaredField(fieldName), fieldValue);
+                    break;
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }

@@ -27,6 +27,7 @@ public class InjectorBase {
             if (clazz.equals(declaringClass)) {
                 try {
                     doInject(bean, clazz.getDeclaredField(fieldName), fieldValue);
+                    break;
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
