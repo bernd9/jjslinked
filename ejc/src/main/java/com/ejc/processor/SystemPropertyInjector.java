@@ -1,4 +1,4 @@
-package com.ejc;
+package com.ejc.processor;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,6 +7,5 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
-public @interface Application {
-    Class<?>[] include() default {};
+public @interface SystemPropertyInjector {
 }

@@ -15,6 +15,8 @@ public abstract class ApplicationContext {
 
     public abstract <T> Set<T> getBeans(Class<T> c);
 
+    public abstract Set<Object> getBeans();
+
     public static synchronized ApplicationContext getInstance() {
         if (instance == null) {
             ApplicationContextFactoryBase factory = (ApplicationContextFactoryBase) BeanUtils.createInstance("com.ejc.generated.ApplicationContextFactory");

@@ -1,15 +1,14 @@
 package com.ejc.processor;
 
 import com.ejc.ApplicationContext;
+import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ApplicationContextImpl extends ApplicationContext {
 
+    @Getter
     private final Set<Object> beans = new HashSet<>();
 
     public ApplicationContextImpl() {
@@ -18,6 +17,10 @@ public class ApplicationContextImpl extends ApplicationContext {
 
     void addBean(Object bean) {
         beans.add(bean);
+    }
+
+    void addBeans(Collection<Object> beans) {
+        beans.addAll(beans);
     }
 
     @Override
