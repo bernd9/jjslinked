@@ -10,4 +10,7 @@ public class InjectAllTest {
 
     @InjectAll
     private Set<CalculatorService> calculatorServices;
+
+    @InjectAll
+    private Set<Object> objects;
 }

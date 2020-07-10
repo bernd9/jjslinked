@@ -11,7 +11,7 @@ import javax.validation.constraints.NotNull;
 public class CalculatorService {
 
     @Inject
-    private TestBean123 testBean123;
+    private TestApp testApp;
 
     @Receiver
     int square(@NotNull Integer i) {
@@ -20,6 +20,6 @@ public class CalculatorService {
 
     @Init
     void init() {
-        System.out.println("Huhu 2 !");
+       // System.out.println("Huhu 2 !");
     }
 }
