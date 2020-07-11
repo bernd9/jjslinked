@@ -54,7 +54,7 @@ public class MethodAnnotationProcessor extends AbstractProcessor {
     private void writeProxyAndLoader(Map<TypeElement, Set<ExecutableElement>> proxyMethods) {
         proxyMethods.entrySet().forEach(e -> {
             writeProxy(e.getKey(), e.getValue());
-            writeLoader(e.getKey());
+            writeSingletonLoader(e.getKey());
         });
     }
 
@@ -161,7 +161,8 @@ public class MethodAnnotationProcessor extends AbstractProcessor {
         return handlers;
     }
 
-    private void writeLoader(TypeElement e) {
+    private void writeSingletonLoader(TypeElement e) {
+        // TODO reuse code here instead of c&p
         log("processing %s", e.getQualifiedName());
         String simpleName = "Loader_" + randomString();
         String qualifiedName = PACKAGE + "." + simpleName;
@@ -188,8 +189,8 @@ public class MethodAnnotationProcessor extends AbstractProcessor {
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
-
     }
+
 
     private String randomString() {
         return UUID.randomUUID().toString().replace("-", "");
