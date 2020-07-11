@@ -3,7 +3,10 @@ package com.ejc.processor;
 import com.ejc.Singleton;
 import com.google.auto.service.AutoService;
 
-import javax.annotation.processing.*;
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Processor;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
@@ -12,13 +15,18 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @AutoService(Processor.class)
-@SupportedAnnotationTypes({"com.ejc.Singleton"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class SingletonAnnotationProcessor extends AbstractProcessor {
 
     private static final String PACKAGE = "com.ejc.generated.singleton";
+
+    @Override
+    public Set<String> getSupportedAnnotationTypes() {
+        return ProcessorConfig.getSingletonAnnotations().stream().map(Class::getName).collect(Collectors.toSet());
+    }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {

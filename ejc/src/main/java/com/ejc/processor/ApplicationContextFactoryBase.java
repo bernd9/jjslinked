@@ -50,6 +50,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
         doMultiInjection(context, factories);
         doPropertyInjection(context, factories);
         doInitialize(context, factories);
+        ApplicationContext.instance = context;
         return context;
     }
 

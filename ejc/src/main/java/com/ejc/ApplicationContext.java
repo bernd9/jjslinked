@@ -1,13 +1,13 @@
 package com.ejc;
 
-import com.ejc.processor.ApplicationContextFactoryBase;
-import com.ejc.processor.BeanUtils;
+import lombok.Getter;
 
 import java.util.Set;
 
 public abstract class ApplicationContext {
 
-    private static ApplicationContext instance;
+    @Getter
+    public static ApplicationContext instance;
 
     public abstract <T> T getBean(Class<T> c);
 
@@ -17,12 +17,4 @@ public abstract class ApplicationContext {
 
     public abstract Set<Object> getBeans();
 
-    public static synchronized ApplicationContext getInstance() {
-        if (instance == null) {
-            ApplicationContextFactoryBase factory = (ApplicationContextFactoryBase) BeanUtils.createInstance("com.ejc.generated.ApplicationContextFactory");
-            instance = factory.createContext();
-        }
-        return instance;
-
-    }
 }

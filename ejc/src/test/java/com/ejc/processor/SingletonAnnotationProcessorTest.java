@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import javax.tools.JavaFileObject;
 
 import static com.google.testing.compile.Compiler.javac;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SingletonAnnotationProcessorTest {
 
@@ -29,7 +30,8 @@ class SingletonAnnotationProcessorTest {
     void test() {
         Compilation compilation = compiler.compile(bean1, bean2, bean3);
         ProcessorTestUtil.getSources(compilation).forEach(System.out::println);
-        ProcessorTestUtil.assertSuccess(compilation);
+        assertEquals(Compilation.Status.SUCCESS, compilation.status());
+        assertEquals(3, compilation.generatedSourceFiles().size());
     }
 
 }
