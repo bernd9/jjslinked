@@ -1,7 +1,9 @@
 package com.ejc.processor;
 
 import com.ejc.Application;
+import com.ejc.ApplicationContextFactory;
 import com.ejc.util.ElementUtils;
+import com.ejc.util.IOUtils;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.*;
@@ -57,6 +59,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 processApplication(roundEnv);
             } else {
                 writeApplicationContextFactory();
+                writeContextFile();
             }
         } catch (Exception e) {
             reportError(e);
@@ -147,13 +150,17 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
 
     }
 
+    private String factoryQualifiedName() {
+        return packageName + "." + CONTEXT_FACTORY_SIMPLE_NAME;
+    }
+
     private void writeApplicationContextFactory() {
         Stream<String> injectorNames = injectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);
         Stream<String> multiInjectorNames = multiInjectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);
         Stream<String> loaderNames = loaders.stream().map(TypeElement::getQualifiedName).map(Name::toString);
         Stream<String> initializerNames = initializers.stream().map(TypeElement::getQualifiedName).map(Name::toString);
         Stream<String> propertyInjectorNames = propertyInjectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);
-        try (PrintWriter out = new PrintWriter(new OutputStreamWriter(processingEnv.getFiler().createSourceFile(packageName + "." + CONTEXT_FACTORY_SIMPLE_NAME).openOutputStream()))) {
+        try (PrintWriter out = new PrintWriter(new OutputStreamWriter(processingEnv.getFiler().createSourceFile(factoryQualifiedName()).openOutputStream()))) {
             out.print("package ");
             out.print(packageName);
             out.println(";");
@@ -182,6 +189,10 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
             throw new RuntimeException(e);
         }
 
+    }
+
+    private void writeContextFile() {
+        IOUtils.write(Collections.singletonList(factoryQualifiedName()), processingEnv.getFiler(), "META-INF/services/" + ApplicationContextFactory.class.getName());
     }
 
     private void reportError(Exception e) {

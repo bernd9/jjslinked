@@ -2,20 +2,19 @@ package com.ejc.processor;
 
 import com.ejc.ApplicationContext;
 import com.ejc.ApplicationContextFactory;
-import lombok.AccessLevel;
 import lombok.Getter;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-@Getter(AccessLevel.PACKAGE)
+@Getter
 public class ApplicationContextFactoryBase implements ApplicationContextFactory {
     private final Set<SingletonLoaderBase> singletonLoaders = new HashSet<>();
     private final Set<InjectorBase> injectors = new HashSet<>();
     private final Set<MultiInjectorBase> multiInjectors = new HashSet<>();
     private final Set<InitializerBase> initializers = new HashSet<>();
     private final Set<SystemPropertyInjectorBase> propertyInjectors = new HashSet<>();
-    //private final Set<ApplicationContextFactoryBase> contextFactories = new HashSet<>();
 
     @SuppressWarnings("unused")
     public void addSingletonLoader(Class<? extends SingletonLoaderBase> loaderClass) {
@@ -42,24 +41,58 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
         initializers.add((InitializerBase) BeanUtils.createInstance(initializerClass));
     }
 
-    /*
-    @SuppressWarnings("unused")
-    public void addApplication(Class<? extends ApplicationContextFactoryBase> factory) {
-        contextFactories.add((ApplicationContextFactoryBase) BeanUtils.createInstance(factory));
-    }
-    */
-
     @Override
     public ApplicationContext createContext() {
         ApplicationContextImpl context = new ApplicationContextImpl();
-        //contextFactories.stream().map(ApplicationContextFactoryBase::createContext).map(ApplicationContext::getBeans).forEach(context::addBeans);
-        singletonLoaders.stream().map(SingletonLoaderBase::load).forEach(context::addBean);
-        propertyInjectors.forEach(injector -> injector.doInject(context));
-        injectors.forEach(injector -> injector.doInject(context));
-        multiInjectors.forEach(injector -> injector.doInject(context));
-        initializers.parallelStream().forEach(initializer -> initializer.invokeInit(context));
+        List<ApplicationContextFactory> factories = loadFactories().collect(Collectors.toList());
+        addSingletons(context, factories);
+        doInjection(context, factories);
+        doMultiInjection(context, factories);
+        doPropertyInjection(context, factories);
+        doInitialize(context, factories);
         return context;
     }
 
+    private Stream<ApplicationContextFactory> loadFactories() {
+        ServiceLoader<ApplicationContextFactory> loader = ServiceLoader.load(ApplicationContextFactory.class);
+        return loader.stream().map(ServiceLoader.Provider::get);
+    }
 
+    private void addSingletons(ApplicationContextImpl context, List<ApplicationContextFactory> factories) {
+        // TODO annotation to replace beans, then take care for injectors etc !
+        // idea: save th replacement and execute existing injectors
+        factories.stream()
+                .map(ApplicationContextFactory::getSingletonLoaders)
+                .flatMap(Collection::stream)
+                .map(SingletonLoaderBase::load)
+                .forEach(context::addBean);
+    }
+
+    private void doInjection(ApplicationContextImpl context, List<ApplicationContextFactory> factories) {
+        factories.stream()
+                .map(ApplicationContextFactory::getInjectors)
+                .flatMap(Collection::stream)
+                .forEach(injector -> injector.doInject(context));
+    }
+
+    private void doMultiInjection(ApplicationContextImpl context, List<ApplicationContextFactory> factories) {
+        factories.stream()
+                .map(ApplicationContextFactory::getMultiInjectors)
+                .flatMap(Collection::stream)
+                .forEach(injector -> injector.doInject(context));
+    }
+
+    private void doPropertyInjection(ApplicationContextImpl context, List<ApplicationContextFactory> factories) {
+        factories.stream()
+                .map(ApplicationContextFactory::getPropertyInjectors)
+                .flatMap(Collection::stream)
+                .forEach(injector -> injector.doInject(context));
+    }
+
+    private void doInitialize(ApplicationContextImpl context, List<ApplicationContextFactory> factories) {
+        factories.stream()
+                .map(ApplicationContextFactory::getInitializers)
+                .flatMap(Collection::stream)
+                .forEach(initializer -> initializer.invokeInit(context));
+    }
 }
