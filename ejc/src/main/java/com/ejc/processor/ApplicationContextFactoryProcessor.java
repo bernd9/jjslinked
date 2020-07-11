@@ -133,8 +133,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
         List<TypeElement> classes = roundEnv.getElementsAnnotatedWith(Application.class).stream()
                 .map(TypeElement.class::cast)
                 .collect(Collectors.toList());
-// TODO Manifestdate mit Mainmethode
-        TypeElement appClass = null;
+        TypeElement appClass;
         switch (classes.size()) {
             case 0:
                 return;
@@ -142,12 +141,10 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 appClass = classes.get(0);
                 break;
             default:
-                throw new IllegalStateException("Multiple Application-classes");
+                throw new IllegalStateException("Multiple Application-annotations");
         }
 
         packageName = ElementUtils.getPackageName(appClass.getQualifiedName());
-        // TODO  includeApps.addAll(Arrays.asList(appClass.getAnnotation(Application.class).include()));
-
     }
 
     private String factoryQualifiedName() {
@@ -175,8 +172,6 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
             out.print(CONTEXT_FACTORY_SIMPLE_NAME);
             out.println("() {");
             out.println("    super();");
-            // TODO
-            //includeApps.stream().map(Class::getName).map(name -> String.format("    addApplication(%s.class);", name)).forEach(out::println);
             injectorNames.map(name -> String.format("    addInjector(%s.class);", name)).forEach(out::println);
             multiInjectorNames.map(name -> String.format("    addMultiInjector(%s.class);", name)).forEach(out::println);
             loaderNames.map(name -> String.format("    addSingletonLoader(%s.class);", name)).forEach(out::println);
