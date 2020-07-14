@@ -8,20 +8,19 @@ import java.lang.reflect.Method;
 
 
 @RequiredArgsConstructor
-public abstract class MethodAdvice<A extends Annotation> {
+public abstract class MethodAdvice {
 
     @Getter
-    private final Class<A> annotationClass;
+    private final Class<? extends Annotation> annotationClass;
 
     public Object invoke(Object bean, String methodName, Class<?>[] types, Object[] args) {
         try {
             Method method = bean.getClass().getSuperclass().getDeclaredMethod(methodName, types);
-            A annotation = method.getAnnotation(annotationClass);
-            return invoke(bean, method, annotation, args);
+            return invoke(bean, method, args);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    public abstract Object invoke(Object bean, Method method, A annotation, Object[] parameters);
+    public abstract Object invoke(Object bean, Method method, Object[] parameters);
 }

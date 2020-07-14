@@ -15,19 +15,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class AdviceClassAnnotationProcessorTest {
 
     private Compiler compiler;
-    private JavaFileObject handler;
-    private JavaFileObject annotation;
+    private JavaFileObject bean;
+
 
     @BeforeEach
     void init() {
-        compiler = javac().withProcessors(new AdviceClassAnnotationProcessor());
-        handler = JavaFileObjects.forResource("com/ejc/processor/TestMethodHandler.java");
-        annotation = JavaFileObjects.forResource("com/ejc/processor/TestAnnotation.java");
+        compiler = javac().withProcessors(new AdviceClassAnnotationProcessor(TestAnnotation.class, TestMethodHandler.class));
+        bean = JavaFileObjects.forResource("com/ejc/processor/AdviceClassTestBean.java");
     }
 
     @Test
     void test() {
-        Compilation compilation = compiler.compile(handler, annotation);
+        Compilation compilation = compiler.compile(bean);
         assertSuccess(compilation);
         assertEquals(1, compilation.generatedSourceFiles().size());
     }

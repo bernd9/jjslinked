@@ -10,5 +10,9 @@ import java.lang.annotation.*;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
 public @interface Advice {
-    Class<? extends Annotation> value();
+    Class<? extends Annotation> annotation();
+
+    Class<?> declaringClass();
+
+    String signature();
 }
