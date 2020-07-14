@@ -6,7 +6,7 @@ import lombok.RequiredArgsConstructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import static com.ejc.processor.BeanUtils.classForName;
+import static com.ejc.processor.InstanceUtils.classForName;
 
 @RequiredArgsConstructor
 public class InitializerBase {

@@ -7,6 +7,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.ANNOTATION_TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface HandlerClass {
-    Class<? extends MethodHandler> value();
+public @interface AdviceClass {
+    Class<? extends MethodAdvice<?>> value();
 }

@@ -18,27 +18,27 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
 
     @SuppressWarnings("unused")
     public void addSingletonLoader(Class<? extends SingletonLoaderBase> loaderClass) {
-        singletonLoaders.add((SingletonLoaderBase) BeanUtils.createInstance(loaderClass));
+        singletonLoaders.add((SingletonLoaderBase) InstanceUtils.createInstance(loaderClass));
     }
 
     @SuppressWarnings("unused")
     public void addInjector(Class<? extends InjectorBase> injectorClass) {
-        injectors.add((InjectorBase) BeanUtils.createInstance(injectorClass));
+        injectors.add((InjectorBase) InstanceUtils.createInstance(injectorClass));
     }
 
     @SuppressWarnings("unused")
     public void addMultiInjector(Class<? extends MultiInjectorBase> injectorClass) {
-        multiInjectors.add((MultiInjectorBase) BeanUtils.createInstance(injectorClass));
+        multiInjectors.add((MultiInjectorBase) InstanceUtils.createInstance(injectorClass));
     }
 
     @SuppressWarnings("unused")
     public void addPropertyInjector(Class<? extends SystemPropertyInjectorBase> propertyInjectorClass) {
-        propertyInjectors.add((SystemPropertyInjectorBase) BeanUtils.createInstance(propertyInjectorClass));
+        propertyInjectors.add((SystemPropertyInjectorBase) InstanceUtils.createInstance(propertyInjectorClass));
     }
 
     @SuppressWarnings("unused")
     public void addInitializer(Class<? extends InitializerBase> initializerClass) {
-        initializers.add((InitializerBase) BeanUtils.createInstance(initializerClass));
+        initializers.add((InitializerBase) InstanceUtils.createInstance(initializerClass));
     }
 
     @Override

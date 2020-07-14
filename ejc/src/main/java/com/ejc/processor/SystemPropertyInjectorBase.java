@@ -16,7 +16,7 @@ public class SystemPropertyInjectorBase {
 
     public void doInject(ApplicationContext context) {
         try {
-            Class<?> declaringClass = BeanUtils.classForName(declaringClassName);
+            Class<?> declaringClass = InstanceUtils.classForName(declaringClassName);
             Field field = declaringClass.getDeclaredField(fieldName);
             Object fieldValue = getSystemPropertyConverted(field.getType(), defaultValue);
             context.getBeans(declaringClass).forEach(bean -> doInject(bean, declaringClass, fieldValue));

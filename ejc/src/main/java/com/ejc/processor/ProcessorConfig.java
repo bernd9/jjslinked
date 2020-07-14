@@ -1,7 +1,7 @@
 package com.ejc.processor;
 
 
-import com.ejc.MethodHandler;
+import com.ejc.MethodAdvice;
 import com.ejc.Singleton;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -19,7 +19,7 @@ public class ProcessorConfig {
     private static Set<Class<? extends Annotation>> singletonAnnotations = new HashSet<>();
 
     @Getter
-    private static Map<Class<? extends Annotation>, MethodHandler<?>> methodAnnotations = new HashMap();
+    private static Map<Class<? extends Annotation>, MethodAdvice<?>> methodAnnotations = new HashMap();
 
     static {
         singletonAnnotations.add(Singleton.class);
@@ -30,7 +30,7 @@ public class ProcessorConfig {
         singletonAnnotations.add(c);
     }
 
-    public static void addMethodHandlerAnnotation(Class<? extends Annotation> c, MethodHandler<?> invocationHandler) {
+    public static void addMethodHandlerAnnotation(Class<? extends Annotation> c, MethodAdvice<?> invocationHandler) {
         validateTarget(ElementType.METHOD, c);
         methodAnnotations.put(c, invocationHandler);
     }

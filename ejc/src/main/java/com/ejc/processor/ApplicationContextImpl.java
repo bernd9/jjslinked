@@ -39,7 +39,7 @@ public class ApplicationContextImpl extends ApplicationContext {
     @Override
     public <T> T getBean(String c) {
         try {
-            return (T) getBean(BeanUtils.classForName(c));
+            return (T) getBean(InstanceUtils.classForName(c));
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }

@@ -8,6 +8,6 @@ public class SingletonLoaderBase {
     private final String classname;
 
     Object load() {
-        return BeanUtils.createInstance(classname);
+        return InstanceUtils.createInstance(classname);
     }
 }

@@ -1,6 +1,6 @@
 package com.ejc.processor;
 
-import com.ejc.MethodHandler;
+import com.ejc.MethodAdvice;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -17,11 +17,13 @@ import java.io.PrintWriter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Deprecated
 @AutoService(Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class MethodAnnotationProcessor extends AbstractProcessor {
     private static final String PACKAGE = "com.ejc.generated.proxies";
 
+    // TODO Some parts of the code will be usefull
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         return ProcessorConfig.getMethodAnnotations().keySet().stream().map(Class::getName).collect(Collectors.toSet());
@@ -116,7 +118,7 @@ public class MethodAnnotationProcessor extends AbstractProcessor {
 
                     out.printf("  %s", executable.getReturnType());
                     out.println(" returnValue = null;");
-                    out.println(" for (MethodHandler handler : handlers) {");
+                    out.println(" for (MethodHandlerRef handler : handlers) {");
                     out.printf("   returnValue = (%s.class) handler.invoke()", executable.getReturnType());
                     out.println(";");
                     out.println("  }");
@@ -151,8 +153,8 @@ public class MethodAnnotationProcessor extends AbstractProcessor {
                 .collect(Collectors.joining(", ")) + "]";
     }
 
-    private List<MethodHandler> handlers(ExecutableElement executable) {
-        List<MethodHandler> handlers = new ArrayList<>();
+    private List<MethodAdvice> handlers(ExecutableElement executable) {
+        List<MethodAdvice> handlers = new ArrayList<>();
         ProcessorConfig.getMethodAnnotations().entrySet().forEach(e -> {
             if (executable.getAnnotation(e.getKey()) != null) {
                 handlers.add(e.getValue());

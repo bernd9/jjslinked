@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Field;
 
-import static com.ejc.processor.BeanUtils.classForName;
+import static com.ejc.processor.InstanceUtils.classForName;
 
 @RequiredArgsConstructor
 public class MultiInjectorBase {

@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class SingletonAnnotationProcessor extends AbstractProcessor {
 
-    private static final String PACKAGE = "com.ejc.generated.singleton";
+    static final String PACKAGE = "com.ejc.generated.singleton";
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {

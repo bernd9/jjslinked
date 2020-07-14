@@ -8,9 +8,11 @@ import org.junit.jupiter.api.Test;
 
 import javax.tools.JavaFileObject;
 
+import static com.ejc.processor.ProcessorTestUtil.assertSuccess;
 import static com.google.testing.compile.Compiler.javac;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class HandlerClassAnnotationProcessorTest {
+class AdviceClassAnnotationProcessorTest {
 
     private Compiler compiler;
     private JavaFileObject handler;
@@ -18,7 +20,7 @@ class HandlerClassAnnotationProcessorTest {
 
     @BeforeEach
     void init() {
-        compiler = javac().withProcessors(new HandlerClassAnnotationProcessor());
+        compiler = javac().withProcessors(new AdviceClassAnnotationProcessor());
         handler = JavaFileObjects.forResource("com/ejc/processor/TestMethodHandler.java");
         annotation = JavaFileObjects.forResource("com/ejc/processor/TestAnnotation.java");
     }
@@ -26,8 +28,8 @@ class HandlerClassAnnotationProcessorTest {
     @Test
     void test() {
         Compilation compilation = compiler.compile(handler, annotation);
-        ProcessorTestUtil.getSources(compilation).forEach(System.out::println);
-        ProcessorTestUtil.assertSuccess(compilation);
+        assertSuccess(compilation);
+        assertEquals(1, compilation.generatedSourceFiles().size());
     }
 
 

@@ -13,7 +13,7 @@ public class InjectorBase {
 
     public void doInject(ApplicationContext context) {
         try {
-            Class<?> declaringClass = BeanUtils.classForName(declaringClassName);
+            Class<?> declaringClass = InstanceUtils.classForName(declaringClassName);
             Object fieldValue = context.getBean(fieldType);
             context.getBeans(declaringClass).forEach(bean -> doInject(bean, declaringClass, fieldValue));
         } catch (ClassNotFoundException e) {
