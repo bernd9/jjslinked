@@ -21,7 +21,7 @@ public class AdviceClassAnnotationProcessor<A extends Annotation> extends Generi
     }
 
     @Override
-    protected void processMethod(ExecutableElement method, A annotation, String adviceAnnotation) {
+    protected void processMethod(ExecutableElement method, String adviceAnnotation) {
         log("processing %s ", method);
         String packageName = methodAdviceClass.getPackageName();
         String simpleName = "Advice_" + randomString();

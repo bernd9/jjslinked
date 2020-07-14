@@ -9,6 +9,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
 import java.lang.annotation.Annotation;
 import java.util.Collections;
@@ -66,7 +67,7 @@ abstract class GenericMethodAnnotationProcessor<A extends Annotation> extends Ab
     }
 
     private void processMethod(ExecutableElement method) {
-        processMethod(method, method.getAnnotation(annotationClass), adviceAnnotation(method));
+        processMethod(method, adviceAnnotation(method));
     }
 
     private String adviceAnnotation(ExecutableElement method) {
@@ -80,7 +81,11 @@ abstract class GenericMethodAnnotationProcessor<A extends Annotation> extends Ab
     private String signature(ExecutableElement method) {
         return new StringBuilder(method.getSimpleName())
                 .append("(")
-                .append(parameterList(method))
+                .append(method.getParameters().stream()
+                        .map(VariableElement::asType)
+                        .map(Object::toString)
+                        // TODO Generics ?
+                        .collect(Collectors.joining(", ")))
                 .append(")")
                 .toString();
     }
@@ -92,7 +97,7 @@ abstract class GenericMethodAnnotationProcessor<A extends Annotation> extends Ab
 
     }
 
-    protected abstract void processMethod(ExecutableElement method, A annotation, String adviceAnnotation);
+    protected abstract void processMethod(ExecutableElement method, String adviceAnnotation);
 
     protected String randomString() {
         return UUID.randomUUID().toString().replace("-", "");
