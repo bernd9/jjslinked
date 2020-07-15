@@ -1,6 +1,5 @@
 package com.ejc.processor;
 
-import com.ejc.MethodAdvice;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.Processor;
@@ -9,13 +8,14 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationHandler;
 
 @AutoService(Processor.class)
 public class AdviceClassAnnotationProcessor<A extends Annotation> extends GenericMethodAnnotationProcessor<A> {
 
-    private final Class<MethodAdvice> methodAdviceClass;
+    private final Class<InvocationHandler> methodAdviceClass;
 
-    public AdviceClassAnnotationProcessor(Class<A> annotationClass, Class<MethodAdvice> methodAdviceClass) {
+    public AdviceClassAnnotationProcessor(Class<A> annotationClass, Class<InvocationHandler> methodAdviceClass) {
         super(annotationClass);
         this.methodAdviceClass = methodAdviceClass;
     }

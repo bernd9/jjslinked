@@ -2,8 +2,8 @@ package com.ejc.processor;
 
 import com.ejc.Application;
 import com.ejc.ApplicationContextFactory;
-import com.ejc.util.ElementUtils;
 import com.ejc.util.IOUtils;
+import com.ejc.util.ReflectionUtils;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.*;
@@ -144,7 +144,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 throw new IllegalStateException("Multiple Application-annotations");
         }
 
-        packageName = ElementUtils.getPackageName(appClass.getQualifiedName());
+        packageName = ReflectionUtils.getPackageName(appClass.getQualifiedName());
     }
 
     private String factoryQualifiedName() {
