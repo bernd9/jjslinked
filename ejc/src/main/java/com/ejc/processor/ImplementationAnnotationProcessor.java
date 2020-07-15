@@ -1,10 +1,10 @@
 package com.ejc.processor;
 
-import com.ejc.Singleton;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.io.IOException;
@@ -13,10 +13,13 @@ import java.io.PrintWriter;
 import java.util.Set;
 import java.util.UUID;
 
+import static com.ejc.util.ReflectionUtils.getAnnotationMirrorOptional;
+import static com.ejc.util.ReflectionUtils.getAnnotationValue;
+
 @AutoService(Processor.class)
-@SupportedAnnotationTypes({"com.ejc.Singleton"})
+@SupportedAnnotationTypes({"com.ejc.processor.Implementation"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
-public class SingletonAnnotationProcessor extends AbstractProcessor {
+public class ImplementationAnnotationProcessor extends AbstractProcessor {
 
     private static final String PACKAGE = "com.ejc.generated.singleton";
 
@@ -33,9 +36,16 @@ public class SingletonAnnotationProcessor extends AbstractProcessor {
     }
 
     private void processSingletons(RoundEnvironment roundEnv) {
-        roundEnv.getElementsAnnotatedWith(Singleton.class).stream()
+        roundEnv.getElementsAnnotatedWith(Implementation.class).stream()
                 .map(TypeElement.class::cast)
                 .forEach(this::writeLoader);
+    }
+
+    private String getSuperClassToOverride(TypeElement e) {
+        return getAnnotationMirrorOptional(e, Implementation.class)
+                .map(mirror -> getAnnotationValue(mirror, "forClass"))
+                .map(AnnotationValue::getValue)
+                .map(Object::toString).orElseThrow();
     }
 
     private void writeLoader(TypeElement e) {
@@ -48,7 +58,7 @@ public class SingletonAnnotationProcessor extends AbstractProcessor {
             out.println(";");
             out.println("import com.ejc.processor.*;");
             out.println("import java.lang.reflect.*;");
-            out.printf("@SingletonLoader(\"%s\")", e.getQualifiedName());
+            out.printf("@ImplementationLoader(\"%s\")", getSuperClassToOverride(e));
             out.println();
             out.print("public class ");
             out.print(simpleName);
@@ -66,6 +76,7 @@ public class SingletonAnnotationProcessor extends AbstractProcessor {
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
+
     }
 
     private String randomString() {

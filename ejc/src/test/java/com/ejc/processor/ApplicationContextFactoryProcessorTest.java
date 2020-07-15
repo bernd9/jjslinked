@@ -13,22 +13,27 @@ import static com.google.testing.compile.Compiler.javac;
 class ApplicationContextFactoryProcessorTest {
 
     private Compiler compiler;
-    private JavaFileObject loader;
+    private JavaFileObject loader1;
+    private JavaFileObject loader2;
+    private JavaFileObject loader3;
     private JavaFileObject injector;
     private JavaFileObject initializer;
 
     @BeforeEach
     void init() {
         compiler = javac().withProcessors(new ApplicationContextFactoryProcessor());
-        loader = JavaFileObjects.forResource("com/ejc/generated/singleton/TestSingletonLoader.java");
+        loader1 = JavaFileObjects.forResource("com/ejc/generated/singleton/TestSingletonLoader1.java");
+        loader2 = JavaFileObjects.forResource("com/ejc/generated/singleton/TestSingletonLoader2.java");
+        loader3 = JavaFileObjects.forResource("com/ejc/generated/singleton/TestSingletonLoader3.java");
         injector = JavaFileObjects.forResource("com/ejc/generated/inject/TestInjector.java");
         initializer = JavaFileObjects.forResource("com/ejc/generated/init/TestInitializer.java");
     }
 
     @Test
     void test() {
-        Compilation compilation = compiler.compile(loader, injector, initializer);
+        Compilation compilation = compiler.compile(loader1, loader2, loader3, injector, initializer);
         ProcessorTestUtil.assertSuccess(compilation);
+        // TODO check results. Tool to load compiled class ?
     }
 
 }

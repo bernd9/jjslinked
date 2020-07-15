@@ -9,6 +9,8 @@ public interface ApplicationContextFactory {
 
     Set<SingletonLoaderBase> getSingletonLoaders();
 
+    Set<SingletonLoaderBase> getImplementationLoaders();
+
     Set<InjectorBase> getInjectors();
 
     Set<MultiInjectorBase> getMultiInjectors();

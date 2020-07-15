@@ -10,6 +10,7 @@ import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -51,6 +52,14 @@ public class ReflectionUtils {
                 .filter(mirror -> mirror.getAnnotationType().toString().equals(annotationClass.getName()))
                 .collect(Collectors.toSet()));
     }
+
+    // TODO findOnly ..
+    public static Optional<? extends AnnotationMirror> getAnnotationMirrorOptional(Element annotated, Class<? extends Annotation> annotationClass) {
+        return annotated.getAnnotationMirrors().stream()
+                .filter(mirror -> mirror.getAnnotationType().toString().equals(annotationClass.getName()))
+                .findFirst();
+    }
+
 
     public static Map<String, String> getAnnotationValues(AnnotationMirror annotationMirror) {
         Map<String, String> map = new HashMap<>();

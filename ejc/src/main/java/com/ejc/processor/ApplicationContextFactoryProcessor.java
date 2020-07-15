@@ -27,6 +27,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     private static final String CONTEXT_FACTORY_SIMPLE_NAME = "ApplicationContextFactory";
 
     private final Set<TypeElement> loaders = new HashSet<>();
+    private final Set<TypeElement> implLoaders = new HashSet<>();
     private final Set<TypeElement> injectors = new HashSet<>();
     private final Set<TypeElement> multiInjectors = new HashSet<>();
     private final Set<VariableElement> collectionFields = new HashSet<>();
@@ -39,6 +40,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         loaders.clear();
+        implLoaders.clear();
         injectors.clear();
         multiInjectors.clear();
         collectionFields.clear();
@@ -52,6 +54,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
         try {
             if (!roundEnv.processingOver()) {
                 processSingletonLoaders(roundEnv);
+                processImplLoaders(roundEnv);
                 processPropertyInjectors(roundEnv);
                 processInjectors(roundEnv);
                 processMultiInjectors(roundEnv);
@@ -66,6 +69,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
         }
         return true;
     }
+
 
     private void processPropertyInjectors(RoundEnvironment roundEnvironment) {
         getGeneratedClassPackage(SystemPropertyInjector.class, roundEnvironment)
@@ -87,6 +91,15 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 .forEach(loaders::add);
     }
 
+    private void processImplLoaders(RoundEnvironment roundEnvironment) {
+        getGeneratedClassPackage(ImplementationLoader.class, roundEnvironment)
+                .map(PackageElement::getEnclosedElements)
+                .orElse(Collections.emptyList()).stream()
+                .filter(TypeElement.class::isInstance)
+                .map(TypeElement.class::cast)
+                .filter(t -> t.getAnnotation(ImplementationLoader.class) != null)
+                .forEach(implLoaders::add);
+    }
 
     private void processInjectors(RoundEnvironment roundEnvironment) {
         getGeneratedClassPackage(Injector.class, roundEnvironment)
@@ -155,6 +168,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
         Stream<String> injectorNames = injectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);
         Stream<String> multiInjectorNames = multiInjectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);
         Stream<String> loaderNames = loaders.stream().map(TypeElement::getQualifiedName).map(Name::toString);
+        Stream<String> implLoaderNames = implLoaders.stream().map(TypeElement::getQualifiedName).map(Name::toString);
         Stream<String> initializerNames = initializers.stream().map(TypeElement::getQualifiedName).map(Name::toString);
         Stream<String> propertyInjectorNames = propertyInjectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);
         try (PrintWriter out = new PrintWriter(new OutputStreamWriter(processingEnv.getFiler().createSourceFile(factoryQualifiedName()).openOutputStream()))) {
@@ -175,6 +189,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
             injectorNames.map(name -> String.format("    addInjector(%s.class);", name)).forEach(out::println);
             multiInjectorNames.map(name -> String.format("    addMultiInjector(%s.class);", name)).forEach(out::println);
             loaderNames.map(name -> String.format("    addSingletonLoader(%s.class);", name)).forEach(out::println);
+            implLoaderNames.map(name -> String.format("    addImplementationLoader(%s.class);", name)).forEach(out::println);
             initializerNames.map(name -> String.format("    addInitializer(%s.class);", name)).forEach(out::println);
             propertyInjectorNames.map(name -> String.format("    addPropertyInjector(%s.class);", name)).forEach(out::println);
             out.println(" }");

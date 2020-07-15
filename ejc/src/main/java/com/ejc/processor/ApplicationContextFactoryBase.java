@@ -11,6 +11,7 @@ import java.util.stream.Stream;
 @Getter
 public class ApplicationContextFactoryBase implements ApplicationContextFactory {
     private final Set<SingletonLoaderBase> singletonLoaders = new HashSet<>();
+    private final Set<SingletonLoaderBase> implementationLoaders = new HashSet<>();
     private final Set<InjectorBase> injectors = new HashSet<>();
     private final Set<MultiInjectorBase> multiInjectors = new HashSet<>();
     private final Set<InitializerBase> initializers = new HashSet<>();
@@ -19,6 +20,11 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     @SuppressWarnings("unused")
     public void addSingletonLoader(Class<? extends SingletonLoaderBase> loaderClass) {
         singletonLoaders.add((SingletonLoaderBase) InstanceUtils.createInstance(loaderClass));
+    }
+
+    @SuppressWarnings("unused")
+    public void addImplementationLoader(Class<? extends SingletonLoaderBase> loaderClass) {
+        implementationLoaders.add((SingletonLoaderBase) InstanceUtils.createInstance(loaderClass));
     }
 
     @SuppressWarnings("unused")
@@ -46,6 +52,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
         ApplicationContextImpl context = new ApplicationContextImpl();
         List<ApplicationContextFactory> factories = loadFactories().collect(Collectors.toList());
         addSingletons(context, factories);
+        addImplementations(context, factories);
         doInjection(context, factories);
         doMultiInjection(context, factories);
         doPropertyInjection(context, factories);
@@ -53,6 +60,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
         ApplicationContext.instance = context;
         return context;
     }
+
 
     private Stream<ApplicationContextFactory> loadFactories() {
         ServiceLoader<ApplicationContextFactory> loader = ServiceLoader.load(ApplicationContextFactory.class);
@@ -62,12 +70,22 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     private void addSingletons(ApplicationContextImpl context, List<ApplicationContextFactory> factories) {
         // TODO annotation to replace beans, then take care for injectors etc !
         // idea: save th replacement and execute existing injectors
+        Map<String, SingletonLoaderBase> loaders = new HashMap<>();
         factories.stream()
                 .map(ApplicationContextFactory::getSingletonLoaders)
                 .flatMap(Collection::stream)
-                .map(SingletonLoaderBase::load)
-                .forEach(context::addBean);
+                .forEach(loader -> loaders.put(loader.getClass().getAnnotation(SingletonLoader.class).value(), loader));
+        factories.stream()
+                .map(ApplicationContextFactory::getImplementationLoaders)
+                .flatMap(Collection::stream)
+                .forEach(loader -> loaders.put(loader.getClass().getAnnotation(ImplementationLoader.class).value(), loader));
+        loaders.values().stream().map(SingletonLoaderBase::load).forEach(context::addBean);
     }
+
+    private void addImplementations(ApplicationContextImpl context, List<ApplicationContextFactory> factories) {
+
+    }
+
 
     private void doInjection(ApplicationContextImpl context, List<ApplicationContextFactory> factories) {
         factories.stream()
