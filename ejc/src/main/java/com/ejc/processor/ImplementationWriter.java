@@ -26,7 +26,7 @@ import static com.ejc.util.JavaPoetUtils.parameterTypeListBlock;
 import static com.ejc.util.ReflectionUtils.*;
 
 @RequiredArgsConstructor
-public class ImplementationWriter {
+class ImplementationWriter {
     private final String superClassQualifiedName;
     private final Map<String, List<TypeElement>> advices;
     private final ProcessingEnvironment processingEnvironment;
@@ -100,7 +100,7 @@ public class ImplementationWriter {
 
     private CodeBlock createMethodParameterBlock(ExecutableElement orig) {
         return CodeBlock.builder()
-                .addStatement("Object[] args = new Object[]{}", ReflectionUtils.parameterNameList(orig))
+                .addStatement("Object[] args = new Object[]{$L}", ReflectionUtils.parameterNameList(orig))
                 .build();
     }
 

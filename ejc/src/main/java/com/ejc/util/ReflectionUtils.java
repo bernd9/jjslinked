@@ -23,7 +23,7 @@ public class ReflectionUtils {
                 .append(method.getParameters().stream()
                         .map(VariableElement::asType)
                         .map(Object::toString)
-                        .collect(Collectors.joining(", ")))
+                        .collect(Collectors.joining(",")))
                 .append(")")
                 .toString();
     }
