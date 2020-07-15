@@ -12,10 +12,10 @@ repositories {
 }
 
 dependencies {
-    annotationProcessor(group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7')
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor(group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7')
     annotationProcessor files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
-    
+
 
     compile 'org.projectlombok:lombok:1.18.12'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
