@@ -6,7 +6,10 @@ import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.*;
+import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
@@ -25,7 +28,7 @@ import static com.ejc.util.ReflectionUtils.*;
 @RequiredArgsConstructor
 public class ImplementationWriter {
     private final String superClassQualifiedName;
-    private final Map<String, List<Name>> advices;
+    private final Map<String, List<TypeElement>> advices;
     private final ProcessingEnvironment processingEnvironment;
 
     void write() throws IOException {
@@ -77,7 +80,7 @@ public class ImplementationWriter {
     private CodeBlock createAdviceListBlock(String signature) {
         CodeBlock.Builder builder = CodeBlock.builder()
                 .addStatement("$T<$T> advices = new $T<>()", List.class, InvocationHandler.class, ArrayList.class);
-        advices.get(signature).forEach(advice -> builder.addStatement("advices.add($T.getInstance().getBean($L.class))", ApplicationContext.class, advice.toString()));
+        advices.get(signature).forEach(advice -> builder.addStatement("advices.add($T.getInstance().getBean($L.class))", ApplicationContext.class, advice.asType()));
         return builder.build();
     }
 

@@ -7,27 +7,67 @@ import lombok.RequiredArgsConstructor;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.Name;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.TypeElement;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
-import static com.ejc.util.ReflectionUtils.getAnnotationMirror;
-import static com.ejc.util.ReflectionUtils.getAnnotationValues;
+import static com.ejc.util.ReflectionUtils.*;
 
 @AutoService(Processor.class)
 @SupportedAnnotationTypes({"com.ejc.Advice"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class AdviceAnnotationProcessor extends AbstractProcessor {
 
+    @Override
+    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        Collection<AdviceMapping> adviceTargetDescriptions = adviceTargetDescriptions(roundEnv);
+        Collection<ImplementationData> originalClasses = originalClasses(adviceTargetDescriptions);
+        originalClasses.forEach(this::writeImplementation);
+        return false;
+    }
+
+    private void writeImplementation(ImplementationData superClass) {
+        ImplementationWriter writer = new ImplementationWriter(superClass.getOriginalClassQualifiedName(), superClass.getAdvices(), processingEnv);
+        try {
+            writer.write();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Collection<ImplementationData> originalClasses(Collection<AdviceMapping> adviceMappings) {
+        Map<String, ImplementationData> originalClasses = new HashMap<>();
+        adviceMappings.stream()
+                .forEach(mapping -> {
+                    String qualifiedName = mapping.getDeclaringClass();
+                    ImplementationData implementationData = originalClasses.computeIfAbsent(qualifiedName, ImplementationData::new);
+                    implementationData.putAdvice(mapping.getSignature(), mapping.getAdvice());
+                });
+        return originalClasses.values();
+    }
+
+
+    private Collection<AdviceMapping> adviceTargetDescriptions(RoundEnvironment roundEnv) {
+        return roundEnv.getElementsAnnotatedWith(Advice.class)
+                .stream().map(TypeElement.class::cast)
+                .map(AdviceReflection::new)
+                .peek(AdviceReflection::doReflection)
+                .map(AdviceReflection::getTargets)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+    }
+
     @Getter
     @RequiredArgsConstructor
-    class OriginalClass {
+    class ImplementationData {
 
-        private final String qualifiedName;
-        private final Map<String, List<Name>> advices = new HashMap<>();
+        private final String originalClassQualifiedName;
+        private final Map<String, List<TypeElement>> advices = new HashMap<>();
 
-        void putAdvice(String signature, Name adviceName) {
+        void putAdvice(String signature, TypeElement adviceName) {
             advices.computeIfAbsent(signature, s -> new ArrayList<>()).add(adviceName);
         }
     }
@@ -37,40 +77,29 @@ public class AdviceAnnotationProcessor extends AbstractProcessor {
         private final TypeElement advice;
 
         @Getter
-        private String declaringClass;
-
-        @Getter
-        private String signature;
-
-        @Getter
-        private Name adviceName;
+        private Set<AdviceMapping> targets = new HashSet<>();
 
         void doReflection() {
-            Map<String, String> annotationValues = getAnnotationValues(getAnnotationMirror(advice, Advice.class));
-            declaringClass = annotationValues.get("declaringClass").replace(".class", "");
-            signature = annotationValues.get("signature");
-            adviceName = advice.getQualifiedName();
+            AnnotationMirror adviceMirror = getAnnotationMirror(advice, Advice.class);
+            AnnotationValue targets = getAnnotationValue(adviceMirror, "targets");
+            List<AnnotationMirror> adviceTargets = (List<AnnotationMirror>) targets.getValue();
+            adviceTargets.forEach(this::doReflection);
+        }
+
+        private void doReflection(AnnotationMirror adviceTarget) {
+            Map<String, String> annotationValues = getAnnotationValues(adviceTarget);
+            String declaringClass = annotationValues.get("declaringClass").replace(".class", "");
+            String signature = annotationValues.get("signature");
+            targets.add(new AdviceMapping(declaringClass, signature, advice));
+
         }
     }
 
-    @Override
-    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        Map<String, OriginalClass> originalClasses = new HashMap<>();
-        roundEnv.getElementsAnnotatedWith(Advice.class)
-                .stream().map(TypeElement.class::cast)
-                .map(AdviceReflection::new)
-                .peek(AdviceReflection::doReflection)
-                .forEach(reflection -> originalClasses.computeIfAbsent(reflection.getDeclaringClass(), OriginalClass::new).putAdvice(reflection.getSignature(), reflection.getAdviceName()));
-        originalClasses.values().forEach(this::writeImplementation);
-        return false;
-    }
-
-    private void writeImplementation(OriginalClass superClass) {
-        ImplementationWriter writer = new ImplementationWriter(superClass.getQualifiedName(), superClass.getAdvices(), processingEnv);
-        try {
-            writer.write();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+    @Getter
+    @RequiredArgsConstructor
+    class AdviceMapping {
+        private final String declaringClass;
+        private final String signature;
+        private final TypeElement advice;
     }
 }

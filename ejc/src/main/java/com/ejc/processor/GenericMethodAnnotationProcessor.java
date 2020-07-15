@@ -1,19 +1,16 @@
 package com.ejc.processor;
 
-import com.google.common.collect.Iterables;
 import lombok.RequiredArgsConstructor;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.SourceVersion;
-import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.tools.Diagnostic;
 import java.lang.annotation.Annotation;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -51,20 +48,6 @@ abstract class GenericMethodAnnotationProcessor<A extends Annotation> extends Ab
                 .forEach(this::processMethod);
     }
 
-    private AnnotationMirror getAnnotationMirror(ExecutableElement method) {
-        return Iterables.getOnlyElement(method.getAnnotationMirrors().stream()
-                .filter(mirror -> mirror.getAnnotationType().toString().equals(annotationClass.getName()))
-                .collect(Collectors.toSet()));
-    }
-
-    private Map<String, String> getAnnotationValues(ExecutableElement method) {
-        return getAnnotationMirror(method).getElementValues().entrySet().stream()
-                .collect(Collectors.toMap(e -> getName(e.getKey()), e -> e.getValue().getValue().toString()));
-    }
-
-    private String getName(ExecutableElement e) {
-        return e.getSimpleName().toString();
-    }
 
     private void processMethod(ExecutableElement method) {
         processMethod(method, adviceAnnotation(method));
@@ -88,13 +71,6 @@ abstract class GenericMethodAnnotationProcessor<A extends Annotation> extends Ab
                         .collect(Collectors.joining(", ")))
                 .append(")")
                 .toString();
-    }
-
-    private String parameterList(ExecutableElement method) {
-        return method.getParameters().stream()
-                .map(param -> param.asType().toString() + ".class") // TODO Generics ?
-                .collect(Collectors.joining(", "));
-
     }
 
     protected abstract void processMethod(ExecutableElement method, String adviceAnnotation);

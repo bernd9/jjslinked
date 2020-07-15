@@ -12,7 +12,6 @@ import java.lang.annotation.*;
 public @interface Advice {
     Class<? extends Annotation> annotation();
 
-    Class<?> declaringClass();
+    AdviceTarget[] targets();
 
-    String signature();
 }

@@ -35,6 +35,7 @@ public class AdviceClassAnnotationProcessor<A extends Annotation> extends Generi
             out.println("import com.ejc.*;");
             out.println("import java.lang.reflect.*;");
             out.println(adviceAnnotation);
+            // TODO Statt Vererbung muss das ein Wrapper sein
             out.printf("public class %s extends %s {", simpleName, methodAdviceClass.getName());
             out.println("}");
         } catch (IOException ex) {
