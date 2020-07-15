@@ -3,9 +3,15 @@ package test;
 import com.ejc.Inject;
 import com.ejc.Singleton;
 import com.ejc.SystemProperty;
+import com.jjslinked.Emitter;
 
 @Singleton
 public class TestBean1 {
+
+    @Emitter
+    void test() {
+
+    }
 
     @Inject
     private TestBean1 testBean1;
