@@ -11,6 +11,7 @@ public class InjectorBase {
     private final String fieldName;
     private final String fieldType;
 
+    // TODO Test mit Superklassen
     public void doInject(ApplicationContext context) {
         try {
             Class<?> declaringClass = InstanceUtils.classForName(declaringClassName);
@@ -23,7 +24,7 @@ public class InjectorBase {
 
     private void doInject(Object bean, Class<?> declaringClass, Object fieldValue) {
         Class<?> clazz = bean.getClass();
-        while (clazz != null && clazz.equals(Object.class)) {
+        while (clazz != null && !clazz.equals(Object.class)) {
             if (clazz.equals(declaringClass)) {
                 try {
                     doInject(bean, clazz.getDeclaredField(fieldName), fieldValue);
