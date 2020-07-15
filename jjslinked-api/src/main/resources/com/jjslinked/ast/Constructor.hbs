@@ -1,3 +1,0 @@
-public {{declaringClass.simpleName}}({{#iterate parameters ", "}}{{#anotations}}@{{qualifiedName}} {{/anotations}}{{parameterType.qualifiedName}} {{parameterName}}{{/iterate}}) {
-    super({{#iterate superParameters ", "}}{{parameterName}}{{/iterate}});
-}

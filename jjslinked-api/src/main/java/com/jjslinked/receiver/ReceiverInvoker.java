@@ -1,11 +1,11 @@
 package com.jjslinked.receiver;
 
-import com.ejc.ApplicationContextBase;
+import com.ejc.ApplicationContext;
 import com.jjslinked.ClientMessage;
 
 public interface ReceiverInvoker {
 
-    Object onMessage(ClientMessage message, ApplicationContextBase applicationContext) throws Exception;
+    Object onMessage(ClientMessage message, ApplicationContext applicationContext) throws Exception;
 
     String getBeanClass();
 }

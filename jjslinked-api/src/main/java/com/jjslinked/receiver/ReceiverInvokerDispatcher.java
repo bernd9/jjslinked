@@ -1,7 +1,7 @@
 package com.jjslinked.receiver;
 
-import com.google.common.base.Functions;
 import com.ejc.*;
+import com.google.common.base.Functions;
 import com.jjslinked.ClientMessage;
 
 import java.util.Map;
@@ -15,7 +15,7 @@ public class ReceiverInvokerDispatcher {
     private Set<ReceiverInvoker> invokers;
 
     @Inject
-    private ApplicationContextBase applicationContext;
+    private ApplicationContext applicationContext;
 
     private Map<String, ReceiverInvoker> invokersByClassName;
 

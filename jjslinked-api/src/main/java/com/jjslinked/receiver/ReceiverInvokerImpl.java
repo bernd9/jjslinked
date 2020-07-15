@@ -1,6 +1,6 @@
 package com.jjslinked.receiver;
 
-import com.ejc.ApplicationContextBase;
+import com.ejc.ApplicationContext;
 import com.jjslinked.ClientMessage;
 import com.jjslinked.MethodContext;
 import com.jjslinked.parameter.MessageParameterProvider;
@@ -37,7 +37,7 @@ public abstract class ReceiverInvokerImpl implements ReceiverInvoker {
     }
 
     @Override
-    public Object onMessage(ClientMessage message, ApplicationContextBase applicationContext) throws Exception {
+    public Object onMessage(ClientMessage message, ApplicationContext applicationContext) throws Exception {
         if (beanClass.getName().equals(message.getTargetClass())
                 && message.getMethodName().equals(method.getName())
                 && message.getParameterTypes().equals(Arrays.asList(method.getParameterTypes()))) {
@@ -46,7 +46,7 @@ public abstract class ReceiverInvokerImpl implements ReceiverInvoker {
         return null;
     }
 
-    private Object invoke(ClientMessage message, ApplicationContextBase applicationContext) throws Exception {
+    private Object invoke(ClientMessage message, ApplicationContext applicationContext) throws Exception {
         Object bean = applicationContext.getBean(beanClass);
         Object returnValue = method.invoke(bean, prepareArgs(message, applicationContext));
         return returnsVoid(method) ? Void.TYPE : returnValue;
@@ -56,7 +56,7 @@ public abstract class ReceiverInvokerImpl implements ReceiverInvoker {
         return Void.TYPE.isAssignableFrom(method.getReturnType()) || Void.class.isAssignableFrom(method.getReturnType());
     }
 
-    private Object[] prepareArgs(ClientMessage message, ApplicationContextBase applicationContext) {
+    private Object[] prepareArgs(ClientMessage message, ApplicationContext applicationContext) {
         Object[] parameters = new Object[method.getParameters().length];
         for (int parameterIndex = 0; parameterIndex < parameters.length; parameterIndex++) {
             parameters[parameterIndex] = getParameter(parameterIndex, message, applicationContext);
@@ -76,7 +76,7 @@ public abstract class ReceiverInvokerImpl implements ReceiverInvoker {
         return method;
     }
 
-    private Object getParameter(int index, ClientMessage message, ApplicationContextBase applicationContext) {
+    private Object getParameter(int index, ClientMessage message, ApplicationContext applicationContext) {
         ParameterProvider provider = getParameterProvider(applicationContext, getParameterAnnotations(index));
         return provider.getParameter(getParameterContext(index), message);
     }
@@ -108,7 +108,7 @@ public abstract class ReceiverInvokerImpl implements ReceiverInvoker {
     }
 
 
-    private ParameterProvider getParameterProvider(ApplicationContextBase applicationContext, Collection<? extends Annotation> annotationClasses) {
+    private ParameterProvider getParameterProvider(ApplicationContext applicationContext, Collection<? extends Annotation> annotationClasses) {
         ParameterProviderRegistry parameterProviderRegistry = applicationContext.getBean(ParameterProviderRegistry.class);
         Class<? extends ParameterProvider> providerClass = parameterProviderRegistry.getProviderClass(annotationClasses);
         if (providerClass == null) {
