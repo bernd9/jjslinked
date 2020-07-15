@@ -1,20 +1,24 @@
 package com.ejc.processor;
 
 import com.ejc.Singleton;
+import com.ejc.util.ReflectionUtils;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 @AutoService(Processor.class)
-@SupportedAnnotationTypes("com.ejc.Singleton")
+@SupportedAnnotationTypes({"com.ejc.Singleton", "com.ejc.processor.Implementation"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class SingletonAnnotationProcessor extends AbstractProcessor {
 
@@ -33,9 +37,26 @@ public class SingletonAnnotationProcessor extends AbstractProcessor {
     }
 
     private void processSingletons(RoundEnvironment roundEnv) {
+        Map<String, TypeElement> typeElements = new HashMap<>();
         roundEnv.getElementsAnnotatedWith(Singleton.class).stream()
                 .map(TypeElement.class::cast)
-                .forEach(this::writeLoader);
+                .forEach(e -> typeElements.put(e.getQualifiedName().toString(), e));
+        typeElements.forEach((name, e) -> {
+            log("singleton: %s -> %s ", name, e);
+        });
+        roundEnv.getElementsAnnotatedWith(Implementation.class).stream()
+                .map(TypeElement.class::cast)
+                .forEach(e -> {
+
+                    AnnotationMirror impl = ReflectionUtils.getAnnotationMirror(e, Implementation.class);
+                    String superClass = ReflectionUtils.getAnnotationValue(impl, "forClass").getValue().toString();
+                    log("found implementation: %s %s ", superClass, e);
+                    typeElements.put(superClass, e);
+                });
+        typeElements.forEach((name, e) -> {
+            log("singleton after mapping: %s -> %s ", name, e);
+        });
+        typeElements.values().forEach(this::writeLoader);
     }
 
 
@@ -78,6 +99,6 @@ public class SingletonAnnotationProcessor extends AbstractProcessor {
     }
 
     private void log(String message, Object... args) {
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, String.format(message, args));
+        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, getClass().getSimpleName() + ": " + String.format(message, args));
     }
 }

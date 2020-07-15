@@ -10,11 +10,11 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,16 +33,16 @@ class ImplementationWriter {
 
     void write() throws IOException {
         String implName = superClassQualifiedName + "Impl";
-        TypeSpec typeSpec = TypeSpec.classBuilder(getSimpleName(implName))
+        TypeSpec.Builder builder = TypeSpec.classBuilder(getSimpleName(implName))
                 .addAnnotation(createImplAnnotation())
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(asTypeMirror(superClassQualifiedName))
-                .addMethods(createImplMethods())
-                .build();
+                .addMethods(createImplMethods());
+        advices.values().stream().flatMap(List::stream).forEach(builder::addOriginatingElement);
+        TypeSpec typeSpec = builder.build();
 
         JavaFile javaFile = JavaFile.builder(getPackageName(implName), typeSpec).build();
         javaFile.writeTo(processingEnvironment.getFiler());
-        javaFile.writeTo(Path.of("testxyz"));
     }
 
     private AnnotationSpec createImplAnnotation() {
@@ -66,14 +66,17 @@ class ImplementationWriter {
 
     private MethodSpec createImplMethod(ExecutableElement orig) {
         String signature = signature(orig);
-        return MethodSpec.overriding(orig)
+        MethodSpec.Builder builder = MethodSpec.overriding(orig)
                 .addModifiers(Modifier.PUBLIC)
                 .addCode(createAdviceListBlock(signature))
                 .addCode(createMethodInstanceBlock(orig))
                 .addCode(createMethodParameterBlock(orig))
-                .addCode(createAdviceExecutionBlock())
-                .addStatement(createReturnStatement(orig))
-                .build();
+                .addCode(createAdviceExecutionBlock());
+        if (orig.getReturnType().getKind() != TypeKind.VOID) {
+            builder.addCode(createReturnStatement(orig));
+        }
+        return builder.build();
+
     }
 
 
@@ -85,13 +88,17 @@ class ImplementationWriter {
     }
 
     private CodeBlock createMethodInstanceBlock(ExecutableElement e) {
-        return CodeBlock.builder()
+        CodeBlock.Builder builder = CodeBlock.builder()
                 .addStatement("$T method", Method.class)
-                .beginControlFlow("try")
-                .add("method = getClass().getSuperclass().getDeclaredMethod(\"$L\",", e.getSimpleName())
-                .add(parameterTypeListBlock(e))
-                .addStatement(")")
-                .nextControlFlow("catch ($T e)", NoSuchMethodException.class)
+                .beginControlFlow("try");
+        if (e.getParameters().isEmpty()) {
+            builder.addStatement("method = getClass().getSuperclass().getDeclaredMethod(\"$L\")", e.getSimpleName());
+        } else {
+            builder.add("method = getClass().getSuperclass().getDeclaredMethod(\"$L\",", e.getSimpleName())
+                    .add(parameterTypeListBlock(e))
+                    .add(");");
+        }
+        return builder.nextControlFlow("catch ($T e)", NoSuchMethodException.class)
                 .addStatement("throw new $T(e)", RuntimeException.class)
                 .endControlFlow()
                 .addStatement("method.setAccessible(true)")
@@ -120,7 +127,7 @@ class ImplementationWriter {
 
     private CodeBlock createReturnStatement(ExecutableElement orig) {
         return CodeBlock.builder()
-                .add("return ($T) rv", orig.getReturnType())
+                .addStatement("return ($T) rv", orig.getReturnType())
                 .build();
     }
 

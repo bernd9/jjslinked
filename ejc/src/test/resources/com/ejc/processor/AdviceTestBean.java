@@ -6,9 +6,26 @@ import com.ejc.Singleton;
 class AdviceTestBean {
 
     @TestAnnotation
-    void testInit(int i, String s) {
+    void test1(int i, String s) {
 
     }
+
+    @TestAnnotation
+    void test2() {
+
+    }
+
+    @TestAnnotation
+    String test3() {
+        return "Huhu !";
+    }
+
+
+    @TestAnnotation
+    int test4(String s) {
+        return s.length();
+    }
+
 
     int xyz(String s) {
         return (int) s.length();

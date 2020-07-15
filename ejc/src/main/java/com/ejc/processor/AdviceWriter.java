@@ -14,7 +14,6 @@ import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationHandler;
-import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.UUID;
@@ -32,15 +31,16 @@ class AdviceWriter {
         String simpleName = advice.getSimpleName() + "Mapped";
         //String qualifiedName = PACKAGE + "." + simpleName;
 
-        TypeSpec typeSpec = TypeSpec.classBuilder(simpleName)
+        TypeSpec.Builder builder = TypeSpec.classBuilder(simpleName)
                 .addAnnotation(createAdviceAnnotation())
                 .addModifiers(Modifier.PUBLIC)
-                .superclass(advice)
-                .build();
+                .superclass(advice);
 
+        methods.stream().map(ExecutableElement::getEnclosingElement).forEach(builder::addOriginatingElement);
+
+        TypeSpec typeSpec = builder.build();
         JavaFile javaFile = JavaFile.builder(advice.getPackageName(), typeSpec).build();
         javaFile.writeTo(processingEnvironment.getFiler());
-        javaFile.writeTo(Path.of("testxyz"));
     }
 
     private AnnotationSpec createAdviceAnnotation() {

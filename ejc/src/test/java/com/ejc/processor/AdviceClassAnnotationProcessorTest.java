@@ -16,17 +16,21 @@ class AdviceClassAnnotationProcessorTest {
 
     private Compiler compiler;
     private JavaFileObject bean;
+    private JavaFileObject annotation;
+    private JavaFileObject handler;
 
 
     @BeforeEach
     void init() {
-        compiler = javac().withProcessors(new AdviceClassAnnotationProcessor(TestAnnotation.class, TestMethodHandler.class));
+        compiler = javac().withProcessors(new AdviceClassAnnotationProcessor());
         bean = JavaFileObjects.forResource("com/ejc/processor/AdviceTestBean.java");
+        annotation = JavaFileObjects.forResource("com/ejc/processor/TestAnnotation.java");
+        handler = JavaFileObjects.forResource("com/ejc/processor/TestHandler.java");
     }
 
     @Test
     void test() {
-        Compilation compilation = compiler.compile(bean);
+        Compilation compilation = compiler.compile(bean, annotation, handler);
         assertSuccess(compilation);
         assertEquals(1, compilation.generatedSourceFiles().size());
     }
