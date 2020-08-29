@@ -16,7 +16,7 @@ public class InstanceUtils {
         }
     }
 
-    static Object createInstance(Class<?> c) {
+    public static Object createInstance(Class<?> c) {
         try {
             Constructor constructor = c.getDeclaredConstructor();
             constructor.setAccessible(true);
@@ -26,7 +26,7 @@ public class InstanceUtils {
         }
     }
 
-    static Class<?> classForName(String className) throws ClassNotFoundException {
+    public static Class<?> classForName(String className) throws ClassNotFoundException {
         //return Class.forName(className);
         return ClassLoader.getSystemClassLoader().loadClass(className);
     }

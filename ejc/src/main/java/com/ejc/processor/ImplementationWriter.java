@@ -1,6 +1,7 @@
 package com.ejc.processor;
 
 import com.ejc.ApplicationContext;
+import com.ejc.Singleton;
 import com.ejc.util.ReflectionUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,7 @@ class ImplementationWriter {
     void write() throws IOException {
         String implName = superClassQualifiedName + "Impl";
         TypeSpec.Builder builder = TypeSpec.classBuilder(getSimpleName(implName))
-                .addAnnotation(createImplAnnotation())
+                .addAnnotation(createSingeltonAnnotation())
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(asTypeMirror(superClassQualifiedName))
                 .addMethods(createImplMethods());
@@ -45,9 +46,8 @@ class ImplementationWriter {
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
-    private AnnotationSpec createImplAnnotation() {
-        return AnnotationSpec.builder(Implementation.class)
-                .addMember("forClass", String.format("\"%s\"", superClassQualifiedName))
+    private AnnotationSpec createSingeltonAnnotation() {
+        return AnnotationSpec.builder(Singleton.class)
                 .build();
     }
 

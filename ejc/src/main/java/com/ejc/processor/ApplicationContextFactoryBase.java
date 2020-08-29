@@ -3,115 +3,192 @@ package com.ejc.processor;
 import com.ejc.ApplicationContext;
 import com.ejc.ApplicationContextFactory;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Getter
 public class ApplicationContextFactoryBase implements ApplicationContextFactory {
-    private final Set<SingletonLoaderBase> singletonLoaders = new HashSet<>();
-    private final Set<SingletonLoaderBase> implementationLoaders = new HashSet<>();
-    private final Set<InjectorBase> injectors = new HashSet<>();
-    private final Set<MultiInjectorBase> multiInjectors = new HashSet<>();
-    private final Set<InitializerBase> initializers = new HashSet<>();
-    private final Set<SystemPropertyInjectorBase> propertyInjectors = new HashSet<>();
+    private final Set<Class<?>> beanClasses = new HashSet<>();
+    private final Set<Object> loadedBeans = new HashSet<>();
+    private final Map<Class<?>, Set<Object>> cache = new HashMap<>();
 
-    @SuppressWarnings("unused")
-    public void addSingletonLoader(Class<? extends SingletonLoaderBase> loaderClass) {
-        singletonLoaders.add((SingletonLoaderBase) InstanceUtils.createInstance(loaderClass));
-    }
-
-    @SuppressWarnings("unused")
-    public void addImplementationLoader(Class<? extends SingletonLoaderBase> loaderClass) {
-        implementationLoaders.add((SingletonLoaderBase) InstanceUtils.createInstance(loaderClass));
-    }
-
-    @SuppressWarnings("unused")
-    public void addInjector(Class<? extends InjectorBase> injectorClass) {
-        injectors.add((InjectorBase) InstanceUtils.createInstance(injectorClass));
-    }
-
-    @SuppressWarnings("unused")
-    public void addMultiInjector(Class<? extends MultiInjectorBase> injectorClass) {
-        multiInjectors.add((MultiInjectorBase) InstanceUtils.createInstance(injectorClass));
-    }
-
-    @SuppressWarnings("unused")
-    public void addPropertyInjector(Class<? extends SystemPropertyInjectorBase> propertyInjectorClass) {
-        propertyInjectors.add((SystemPropertyInjectorBase) InstanceUtils.createInstance(propertyInjectorClass));
-    }
-
-    @SuppressWarnings("unused")
-    public void addInitializer(Class<? extends InitializerBase> initializerClass) {
-        initializers.add((InitializerBase) InstanceUtils.createInstance(initializerClass));
-    }
+    private final Set<SingleValueInjector> singleValueInjectors = new HashSet<>();
+    private final Set<MultiValueInjector> multiValueInjectors = new HashSet<>();
+    private final Set<InitInvoker> initInvokers = new HashSet<>();
 
     @Override
     public ApplicationContext createContext() {
-        ApplicationContextImpl context = new ApplicationContextImpl();
-        List<ApplicationContextFactory> factories = loadFactories().collect(Collectors.toList());
-        addSingletons(context, factories);
-        addImplementations(context, factories);
-        doInjection(context, factories);
-        doMultiInjection(context, factories);
-        doPropertyInjection(context, factories);
-        doInitialize(context, factories);
-        ApplicationContext.instance = context;
-        return context;
+        createBeans();
+        doConfigParamInjection();
+        doDependencyInjection();
+        invokeInitializers();
+        return new ApplicationContextImpl(loadedBeans);
+    }
+
+    public <T> void replaceBean(Class<T> clazz, T bean) {
+        // TODO
+    }
+
+    void addBeanClasses(Class<?>[] c) {
+        beanClasses.addAll(Arrays.asList(c));
+    }
+
+    void addBeanClass(Class<?> c) {
+        beanClasses.add(c);
+    }
+
+    void addSingleValueDependency(Class<?> declaringClass, String fieldName, Class<?> fieldType) {
+        singleValueInjectors.add(new SingleValueInjector(declaringClass, fieldName, fieldType));
+    }
+
+    void addMultiValueDependency(Class<?> declaringClass, String fieldName, Class<?> fieldType, Class<?> elementType) {
+        multiValueInjectors.add(new MultiValueInjector(declaringClass, fieldName, fieldType, elementType));
+    }
+
+    void addInitMethod(Class<?> declaringClass, String methodName) {
+        initInvokers.add(new InitInvoker(declaringClass, methodName));
+    }
+
+    private void createBeans() {
+        loadedBeans.addAll(beanClasses.stream().map(this::createInstance).collect(Collectors.toSet()));
+    }
+
+    private void doDependencyInjection() {
+        multiValueInjectors.forEach(injector -> injector.doInject(this));
+    }
+
+    private void doConfigParamInjection() {
+    }
+
+    private void invokeInitializers() {
+        initInvokers.forEach(invoker -> invoker.doInvoke(this));
     }
 
 
-    private Stream<ApplicationContextFactory> loadFactories() {
-        ServiceLoader<ApplicationContextFactory> loader = ServiceLoader.load(ApplicationContextFactory.class);
-        return loader.stream().map(ServiceLoader.Provider::get);
-    }
-
-    private void addSingletons(ApplicationContextImpl context, List<ApplicationContextFactory> factories) {
-        // TODO annotation to replace beans, then take care for injectors etc !
-        // idea: save th replacement and execute existing injectors
-        Map<String, SingletonLoaderBase> loaders = new HashMap<>();
-        factories.stream()
-                .map(ApplicationContextFactory::getSingletonLoaders)
-                .flatMap(Collection::stream)
-                .forEach(loader -> loaders.put(loader.getClass().getAnnotation(SingletonLoader.class).value(), loader));
-        factories.stream()
-                .map(ApplicationContextFactory::getImplementationLoaders)
-                .flatMap(Collection::stream)
-                .forEach(loader -> loaders.put(loader.getClass().getAnnotation(ImplementationLoader.class).value(), loader));
-        loaders.values().stream().map(SingletonLoaderBase::load).forEach(context::addBean);
-    }
-
-    private void addImplementations(ApplicationContextImpl context, List<ApplicationContextFactory> factories) {
-
+    <T> T getBean(Class<T> c) {
+        List<Object> result = new ArrayList<>(getBeans(c));
+        switch (result.size()) {
+            case 0:
+                throw new IllegalArgumentException("no bean of type " + c.getName());
+            case 1:
+                return (T) result.get(0);
+            default:
+                throw new IllegalStateException("ambigious : " + c.getName() + ", matching beans : " + result.stream().map(Object::toString).collect(Collectors.joining(", ")));
+        }
     }
 
 
-    private void doInjection(ApplicationContextImpl context, List<ApplicationContextFactory> factories) {
-        factories.stream()
-                .map(ApplicationContextFactory::getInjectors)
-                .flatMap(Collection::stream)
-                .forEach(injector -> injector.doInject(context));
+    <T> Set<T> getBeans(Class<T> c) {
+        return (Set<T>) cache.computeIfAbsent(c, this::findMatchingBeans);
     }
 
-    private void doMultiInjection(ApplicationContextImpl context, List<ApplicationContextFactory> factories) {
-        factories.stream()
-                .map(ApplicationContextFactory::getMultiInjectors)
-                .flatMap(Collection::stream)
-                .forEach(injector -> injector.doInject(context));
+    private Set<Object> findMatchingBeans(Class<?> c) {
+        return loadedBeans.stream()
+                .filter(c::isInstance)
+                .collect(Collectors.toSet());
     }
 
-    private void doPropertyInjection(ApplicationContextImpl context, List<ApplicationContextFactory> factories) {
-        factories.stream()
-                .map(ApplicationContextFactory::getPropertyInjectors)
-                .flatMap(Collection::stream)
-                .forEach(injector -> injector.doInject(context));
+
+    private <T> T createInstance(Class<T> c) {
+        return (T) InstanceUtils.createInstance(c);
     }
 
-    private void doInitialize(ApplicationContextImpl context, List<ApplicationContextFactory> factories) {
-        factories.stream()
-                .map(ApplicationContextFactory::getInitializers)
-                .flatMap(Collection::stream)
-                .forEach(initializer -> initializer.invokeInit(context));
+}
+
+@RequiredArgsConstructor
+abstract class InjectorBase {
+    private final Class<?> declaringClass;
+    private final String fieldName;
+    private final Class<?> fieldType;
+
+    void doInject(ApplicationContextFactoryBase factory) {
+        factory.getBeans(declaringClass).forEach(bean -> doInject(bean, factory));
     }
+
+    private void doInject(Object bean, ApplicationContextFactoryBase factory) {
+        try {
+            doInjectFieldValue(bean, bean.getClass().getDeclaredField(fieldName), factory);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void doInjectFieldValue(Object bean, Field field, ApplicationContextFactoryBase factory) {
+        try {
+            field.setAccessible(true);
+            field.set(bean, getFieldValue(fieldType, factory));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    abstract Object getFieldValue(Class<?> fieldType, ApplicationContextFactoryBase factory);
+
+}
+
+
+class SingleValueInjector extends InjectorBase {
+
+    public SingleValueInjector(Class<?> declaringClass, String fieldName, Class<?> fieldType) {
+        super(declaringClass, fieldName, fieldType);
+    }
+
+    @Override
+    Object getFieldValue(Class<?> fieldType, ApplicationContextFactoryBase factory) {
+        return factory.getBean(fieldType);
+    }
+}
+
+class MultiValueInjector extends InjectorBase {
+
+    private final Class<?> fieldValueType;
+
+    public MultiValueInjector(Class<?> declaringClass, String fieldName, Class<?> fieldType, Class<?> fieldValueType) {
+        super(declaringClass, fieldName, fieldType);
+        this.fieldValueType = fieldValueType;
+    }
+
+    @Override
+    Object getFieldValue(Class<?> fieldType, ApplicationContextFactoryBase factory) {
+        Set<Object> set = factory.getBeans((Class<Object>) fieldValueType);
+        if (fieldType.isAssignableFrom(Set.class)) {
+            return set;
+        }
+        if (fieldType.isArray()) {
+            return set.toArray(new Object[set.size()]);
+        }
+        if (fieldType.isAssignableFrom(List.class)) {
+            return Collections.unmodifiableList(new ArrayList<>(set));
+        }
+        if (fieldType.isAssignableFrom(LinkedList.class)) {
+            return new LinkedList<>(set);
+        }
+        throw new IllegalStateException("unsupported collection type: " + fieldType);
+
+    }
+}
+
+@RequiredArgsConstructor
+class InitInvoker {
+    private final Class<?> declaringClass;
+    private final String methodName;
+
+    void doInvoke(ApplicationContextFactoryBase factory) {
+        factory.getBeans(declaringClass).forEach(bean -> doInvokeMethod(bean));
+    }
+
+    private void doInvokeMethod(Object bean) {
+        try {
+            Method method = bean.getClass().getDeclaredMethod(methodName);
+            method.setAccessible(true);
+            method.invoke(bean);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
 }

@@ -15,6 +15,12 @@ public class ApplicationContextImpl extends ApplicationContext {
         beans.add(this);
     }
 
+    public ApplicationContextImpl(Set<Object> beans) {
+        this();
+        beans.addAll(beans);
+    }
+
+
     void addBean(Object bean) {
         beans.add(bean);
     }

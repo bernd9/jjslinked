@@ -1,7 +1,6 @@
 package com.ejc.processor;
 
-import com.ejc.Application;
-import com.ejc.ApplicationContextFactory;
+import com.ejc.*;
 import com.ejc.util.IOUtils;
 import com.ejc.util.ReflectionUtils;
 import com.google.auto.service.AutoService;
@@ -10,9 +9,6 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.tools.Diagnostic;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -26,40 +22,36 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     private static final String PACKAGE = "com.ejc.generated";
     private static final String CONTEXT_FACTORY_SIMPLE_NAME = "ApplicationContextFactory";
 
-    private final Set<TypeElement> loaders = new HashSet<>();
-    private final Set<TypeElement> implLoaders = new HashSet<>();
-    private final Set<TypeElement> injectors = new HashSet<>();
-    private final Set<TypeElement> multiInjectors = new HashSet<>();
-    private final Set<VariableElement> collectionFields = new HashSet<>();
-    private final Set<TypeElement> initializers = new HashSet<>();
-    private final Set<TypeElement> propertyInjectors = new HashSet<>();
-    private final List<Class<?>> includeApps = new ArrayList<>();
+    private Set<ExecutableElement> initMethods = new HashSet<>();
+    private Set<VariableElement> singleValueDependencies = new HashSet<>();
+    private Set<VariableElement> multiValueDependencies = new HashSet<>();
+    private Set<TypeElement> singletons = new HashSet<>();
 
     private String packageName = PACKAGE;
 
     @Override
+    public Set<String> getSupportedAnnotationTypes() {
+        return Stream.of(Singleton.class, Inject.class, InjectAll.class, Init.class).map(Class::getName).collect(Collectors.toSet());
+    }
+
+    @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
-        loaders.clear();
-        implLoaders.clear();
-        injectors.clear();
-        multiInjectors.clear();
-        collectionFields.clear();
-        initializers.clear();
-        includeApps.clear();
+        initMethods.clear();
+        singleValueDependencies.clear();
+        multiValueDependencies.clear();
+        singletons.clear();
         super.init(processingEnv);
     }
+
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         try {
             if (!roundEnv.processingOver()) {
-                processSingletonLoaders(roundEnv);
-                processImplLoaders(roundEnv);
-                processPropertyInjectors(roundEnv);
-                processInjectors(roundEnv);
-                processMultiInjectors(roundEnv);
-                processInitializers(roundEnv);
-                processApplication(roundEnv);
+                processInitMethods(roundEnv);
+                processSingleValueDependencies(roundEnv);
+                processMultiValueDependencies(roundEnv);
+                processSingletons(roundEnv);
             } else {
                 writeApplicationContextFactory();
                 writeContextFile();
@@ -70,67 +62,35 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
         return true;
     }
 
-
-    private void processPropertyInjectors(RoundEnvironment roundEnvironment) {
-        getGeneratedClassPackage(SystemPropertyInjector.class, roundEnvironment)
-                .map(PackageElement::getEnclosedElements)
-                .orElse(Collections.emptyList()).stream()
-                .filter(TypeElement.class::isInstance)
-                .map(TypeElement.class::cast)
-                .filter(t -> t.getAnnotation(SystemPropertyInjector.class) != null)
-                .forEach(propertyInjectors::add);
+    private void processInitMethods(RoundEnvironment roundEnv) {
+        initMethods.addAll(roundEnv.getElementsAnnotatedWith(Init.class).stream()
+                .map(ExecutableElement.class::cast)
+                .peek(this::validateNoParameters)
+                .collect(Collectors.toSet()));
     }
 
-    private void processSingletonLoaders(RoundEnvironment roundEnvironment) {
-        getGeneratedClassPackage(SingletonLoader.class, roundEnvironment)
-                .map(PackageElement::getEnclosedElements)
-                .orElse(Collections.emptyList()).stream()
-                .filter(TypeElement.class::isInstance)
-                .map(TypeElement.class::cast)
-                .filter(t -> t.getAnnotation(SingletonLoader.class) != null)
-                .forEach(loaders::add);
+    private void processSingleValueDependencies(RoundEnvironment roundEnv) {
+        singleValueDependencies.addAll(roundEnv.getElementsAnnotatedWith(Inject.class).stream()
+                .map(VariableElement.class::cast)
+                .collect(Collectors.toSet()));
     }
 
-    private void processImplLoaders(RoundEnvironment roundEnvironment) {
-        getGeneratedClassPackage(ImplementationLoader.class, roundEnvironment)
-                .map(PackageElement::getEnclosedElements)
-                .orElse(Collections.emptyList()).stream()
-                .filter(TypeElement.class::isInstance)
-                .map(TypeElement.class::cast)
-                .filter(t -> t.getAnnotation(ImplementationLoader.class) != null)
-                .forEach(implLoaders::add);
+    private void processMultiValueDependencies(RoundEnvironment roundEnv) {
+        multiValueDependencies.addAll(roundEnv.getElementsAnnotatedWith(InjectAll.class).stream()
+                .map(VariableElement.class::cast)
+                .collect(Collectors.toSet()));
     }
 
-    private void processInjectors(RoundEnvironment roundEnvironment) {
-        getGeneratedClassPackage(Injector.class, roundEnvironment)
-                .map(PackageElement::getEnclosedElements)
-                .orElse(Collections.emptyList()).stream()
-                .filter(TypeElement.class::isInstance)
+    private void processSingletons(RoundEnvironment roundEnv) {
+        singletons.addAll(roundEnv.getElementsAnnotatedWith(Singleton.class).stream()
                 .map(TypeElement.class::cast)
-                .filter(t -> t.getAnnotation(Injector.class) != null)
-                .forEach(injectors::add);
+                .collect(Collectors.toSet()));
     }
 
-
-    private void processMultiInjectors(RoundEnvironment roundEnvironment) {
-        getGeneratedClassPackage(MultiInjector.class, roundEnvironment)
-                .map(PackageElement::getEnclosedElements)
-                .orElse(Collections.emptyList()).stream()
-                .filter(TypeElement.class::isInstance)
-                .map(TypeElement.class::cast)
-                .filter(t -> t.getAnnotation(MultiInjector.class) != null)
-                .forEach(multiInjectors::add);
-    }
-
-
-    private void processInitializers(RoundEnvironment roundEnvironment) {
-        getGeneratedClassPackage(Initializer.class, roundEnvironment)
-                .map(PackageElement::getEnclosedElements)
-                .orElse(Collections.emptyList()).stream()
-                .filter(TypeElement.class::isInstance)
-                .map(TypeElement.class::cast)
-                .filter(t -> t.getAnnotation(Initializer.class) != null)
-                .forEach(initializers::add);
+    private void validateNoParameters(ExecutableElement element) {
+        if (!element.getParameters().isEmpty()) {
+            throw new IllegalStateException(element + " must have no parameters");
+        }
     }
 
 
@@ -165,6 +125,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     }
 
     private void writeApplicationContextFactory() {
+        /*
         Stream<String> injectorNames = injectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);
         Stream<String> multiInjectorNames = multiInjectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);
         Stream<String> loaderNames = loaders.stream().map(TypeElement::getQualifiedName).map(Name::toString);
@@ -198,6 +159,8 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 IOException e) {
             throw new RuntimeException(e);
         }
+
+         */
 
     }
 
