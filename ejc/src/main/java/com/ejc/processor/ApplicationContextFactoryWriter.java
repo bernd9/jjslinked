@@ -9,6 +9,7 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,6 +22,7 @@ public class ApplicationContextFactoryWriter {
     private Set<VariableElement> singleValueDependencies;
     private Set<VariableElement> multiValueDependencies;
     private Set<TypeElement> singletons;
+    private Map<TypeElement, TypeElement> implementations;
     private String packageName;
     private ProcessingEnvironment processingEnvironment;
 
@@ -54,36 +56,44 @@ public class ApplicationContextFactoryWriter {
         originatingElements.forEach(builder::addOriginatingElement);
     }
 
-    void addSingletons(MethodSpec.Builder contructorBuilder) {
-        singletons.forEach(type -> addSingleton(type, contructorBuilder));
+    void addSingletons(MethodSpec.Builder constructorBuilder) {
+        singletons.forEach(type -> addSingleton(type, constructorBuilder));
     }
 
-    void addSingleton(TypeElement type, MethodSpec.Builder contructorBuilder) {
-        contructorBuilder.addStatement("addBeanClass($T.class)", type);
+    void addSingleton(TypeElement type, MethodSpec.Builder constructorBuilder) {
+        constructorBuilder.addStatement("addBeanClass($T.class)", type);
     }
 
-    void addSingleValueDependencies(MethodSpec.Builder contructorBuilder) {
-        singleValueDependencies.forEach(field -> addSingleValueDependency(field, contructorBuilder));
+    void addImplementations(MethodSpec.Builder constructorBuilder) {
+        implementations.forEach((base, impl) -> addImplementation(base, implementations.get(impl), constructorBuilder));
     }
 
-    void addSingleValueDependency(VariableElement field, MethodSpec.Builder contructorBuilder) {
-        contructorBuilder.addStatement("addSingleValueDependency($T.class, \"$L\", $T.class)", field.getEnclosingElement(), field.getSimpleName(), field.asType());
+    void addImplementation(TypeElement base, TypeElement impl, MethodSpec.Builder constructorBuilder) {
+        constructorBuilder.addStatement("addImplementation($T.class, $T.class)", base, impl);
     }
 
-    void addMultiValueDependencies(MethodSpec.Builder contructorBuilder) {
-        multiValueDependencies.forEach(field -> addMultiValueDependency(field, contructorBuilder));
+    void addSingleValueDependencies(MethodSpec.Builder constructorBuilder) {
+        singleValueDependencies.forEach(field -> addSingleValueDependency(field, constructorBuilder));
     }
 
-    void addMultiValueDependency(VariableElement field, MethodSpec.Builder contructorBuilder) {
-        contructorBuilder.addStatement("addMultiValueDependency($T.class, \"$L\", $T.class)", field.getEnclosingElement(), field.getSimpleName(), field.asType(), getGenericType(field));
+    void addSingleValueDependency(VariableElement field, MethodSpec.Builder constructorBuilder) {
+        constructorBuilder.addStatement("addSingleValueDependency($T.class, \"$L\", $T.class)", field.getEnclosingElement(), field.getSimpleName(), field.asType());
     }
 
-    void addInitMethods(MethodSpec.Builder contructorBuilder) {
-        initMethods.forEach(method -> addInitMethod(method, contructorBuilder));
+    void addMultiValueDependencies(MethodSpec.Builder constructorBuilder) {
+        multiValueDependencies.forEach(field -> addMultiValueDependency(field, constructorBuilder));
     }
 
-    void addInitMethod(ExecutableElement method, MethodSpec.Builder contructorBuilder) {
-        contructorBuilder.addStatement("addInitMethod($T.class, \"$L\")", method.getEnclosingElement(), method.getSimpleName());
+    void addMultiValueDependency(VariableElement field, MethodSpec.Builder constructorBuilder) {
+        constructorBuilder.addStatement("addMultiValueDependency($T.class, \"$L\", $T.class)", field.getEnclosingElement(), field.getSimpleName(), field.asType(), getGenericType(field));
+    }
+
+    void addInitMethods(MethodSpec.Builder constructorBuilder) {
+        initMethods.forEach(method -> addInitMethod(method, constructorBuilder));
+    }
+
+    void addInitMethod(ExecutableElement method, MethodSpec.Builder constructorBuilder) {
+        constructorBuilder.addStatement("addInitMethod($T.class, \"$L\")", method.getEnclosingElement(), method.getSimpleName());
 
     }
 }

@@ -15,6 +15,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.ejc.util.ReflectionUtils.getAnnotationMirrorOptional;
+import static com.ejc.util.ReflectionUtils.getAnnotationValue;
+
 @AutoService(Processor.class)
 @SupportedAnnotationTypes({"com.ejc.processor.SingletonLoader", "com.ejc.processor.Injector", "com.ejc.processor.Initializer", "com.ejc.processor.SystemPropertyInjector", "com.ejc.Application"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
@@ -26,12 +29,12 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     private Set<VariableElement> singleValueDependencies = new HashSet<>();
     private Set<VariableElement> multiValueDependencies = new HashSet<>();
     private Set<TypeElement> singletons = new HashSet<>();
-
+    private Map<TypeElement, TypeElement> implementations = new HashMap<>();
     private String packageName = PACKAGE;
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        return Stream.of(Singleton.class, Inject.class, InjectAll.class, Init.class).map(Class::getName).collect(Collectors.toSet());
+        return Stream.of(Singleton.class, Inject.class, InjectAll.class, Init.class, Implementation.class).map(Class::getName).collect(Collectors.toSet());
     }
 
     @Override
@@ -52,6 +55,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 processSingleValueDependencies(roundEnv);
                 processMultiValueDependencies(roundEnv);
                 processSingletons(roundEnv);
+                processImplementations(roundEnv);
                 processApplication(roundEnv);
             } else {
                 writeApplicationContextFactory();
@@ -88,12 +92,28 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 .collect(Collectors.toSet()));
     }
 
+
+    private void processImplementations(RoundEnvironment roundEnv) {
+        roundEnv.getElementsAnnotatedWith(Implementation.class).stream()
+                .map(TypeElement.class::cast)
+                .forEach(impl -> implementations.put(getSuperClassToOverride(impl), impl));
+    }
+
+    private TypeElement getSuperClassToOverride(TypeElement e) {
+        return getAnnotationMirrorOptional(e, Implementation.class)
+                .map(mirror -> getAnnotationValue(mirror, "forClass"))
+                .map(AnnotationValue::getValue)
+                .map(Object::toString)
+                .map(processingEnv.getElementUtils()::getTypeElement)
+                .orElseThrow();
+    }
+
+
     private void validateNoParameters(ExecutableElement element) {
         if (!element.getParameters().isEmpty()) {
             throw new IllegalStateException(element + " must have no parameters");
         }
     }
-
 
     private Optional<PackageElement> getGeneratedClassPackage(Class<? extends Annotation> a, RoundEnvironment roundEnvironment) {
         Set<? extends Element> e = roundEnvironment.getElementsAnnotatedWith(a);
@@ -131,47 +151,11 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 .multiValueDependencies(multiValueDependencies)
                 .singleValueDependencies(singleValueDependencies)
                 .singletons(singletons)
+                .implementations(implementations)
                 .packageName(packageName)
                 .processingEnvironment(processingEnv)
                 .build();
         writer.write();
-        /*
-        Stream<String> injectorNames = injectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);
-        Stream<String> multiInjectorNames = multiInjectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);
-        Stream<String> loaderNames = loaders.stream().map(TypeElement::getQualifiedName).map(Name::toString);
-        Stream<String> implLoaderNames = implLoaders.stream().map(TypeElement::getQualifiedName).map(Name::toString);
-        Stream<String> initializerNames = initializers.stream().map(TypeElement::getQualifiedName).map(Name::toString);
-        Stream<String> propertyInjectorNames = propertyInjectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);
-        try (PrintWriter out = new PrintWriter(new OutputStreamWriter(processingEnv.getFiler().createSourceFile(factoryQualifiedName()).openOutputStream()))) {
-            out.print("package ");
-            out.print(packageName);
-            out.println(";");
-            out.println("import java.util.*;");
-            out.println("import java.lang.reflect.*;");
-            out.print("public class ");
-            out.print(CONTEXT_FACTORY_SIMPLE_NAME);
-            out.print(" extends ");
-            out.print(ApplicationContextFactoryBase.class.getName());
-            out.println(" {");
-            out.print("   public ");
-            out.print(CONTEXT_FACTORY_SIMPLE_NAME);
-            out.println("() {");
-            out.println("    super();");
-            injectorNames.map(name -> String.format("    addInjector(%s.class);", name)).forEach(out::println);
-            multiInjectorNames.map(name -> String.format("    addMultiInjector(%s.class);", name)).forEach(out::println);
-            loaderNames.map(name -> String.format("    addSingletonLoader(%s.class);", name)).forEach(out::println);
-            implLoaderNames.map(name -> String.format("    addImplementationLoader(%s.class);", name)).forEach(out::println);
-            initializerNames.map(name -> String.format("    addInitializer(%s.class);", name)).forEach(out::println);
-            propertyInjectorNames.map(name -> String.format("    addPropertyInjector(%s.class);", name)).forEach(out::println);
-            out.println(" }");
-            out.println("}");
-        } catch (
-                IOException e) {
-            throw new RuntimeException(e);
-        }
-
-         */
-
     }
 
     private void writeContextFile() {
