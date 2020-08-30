@@ -37,6 +37,11 @@ public class ReflectionUtils {
         return collectionVariable.asType().accept(visitor, null).orElseThrow(() -> new IllegalStateException(collectionVariable + " must have generic type"));
     }
 
+    public static TypeMirror getIterableType(VariableElement collectionVariable) {
+        GenericTypeVisitor visitor = new GenericTypeVisitor();
+        return collectionVariable.asType().accept(visitor, null).orElseThrow(() -> new IllegalStateException(collectionVariable + " must have generic type"));
+    }
+
 
     private static class GenericTypeVisitor extends SimpleTypeVisitor9<Optional<TypeMirror>, Void> {
 

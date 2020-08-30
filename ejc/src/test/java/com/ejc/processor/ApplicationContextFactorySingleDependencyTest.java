@@ -35,6 +35,7 @@ class ApplicationContextFactorySingleDependencyTest {
         ProcessorTestUtil.assertSuccess(compilation);
 
         FileObjectClassLoader classLoader = new FileObjectClassLoader(Thread.currentThread().getContextClassLoader(), compilation.generatedFiles());
+        //Thread.currentThread().setContextClassLoader(classLoader);
         Class<? extends ApplicationContextFactory> factoryClass = (Class<? extends ApplicationContextFactory>) classLoader.findClass(ProcessorTestUtil.getContextFactoryDefaultName());
         ApplicationContextFactory factory = factoryClass.getConstructor().newInstance();
         ApplicationContext context = factory.createContext();

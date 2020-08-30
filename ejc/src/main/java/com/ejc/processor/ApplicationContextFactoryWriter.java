@@ -7,7 +7,10 @@ import lombok.Builder;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -34,6 +37,7 @@ public class ApplicationContextFactoryWriter {
         addOriginatingElements(builder);
         TypeSpec typeSpec = builder.build();
         JavaFile javaFile = JavaFile.builder(packageName, typeSpec).build();
+        javaFile.writeTo(Path.of("xyz/factory.java"));
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
@@ -86,7 +90,7 @@ public class ApplicationContextFactoryWriter {
     }
 
     void addMultiValueDependency(VariableElement field, MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("addMultiValueDependency($T.class, \"$L\", $T.class)", field.getEnclosingElement(), field.getSimpleName(), field.asType(), getGenericType(field));
+        constructorBuilder.addStatement("addMultiValueDependency($T.class, \"$L\", $L.class, $T.class)", field.getEnclosingElement(), field.getSimpleName(), ((DeclaredType) field.asType()).asElement().toString(), getGenericType(field));
     }
 
     void addInitMethods(MethodSpec.Builder constructorBuilder) {
@@ -95,6 +99,12 @@ public class ApplicationContextFactoryWriter {
 
     void addInitMethod(ExecutableElement method, MethodSpec.Builder constructorBuilder) {
         constructorBuilder.addStatement("addInitMethod($T.class, \"$L\")", method.getEnclosingElement(), method.getSimpleName());
+
+    }
+
+    private String stripGenericType(TypeMirror typeMirror) {
+
+        return typeMirror.toString();
 
     }
 }

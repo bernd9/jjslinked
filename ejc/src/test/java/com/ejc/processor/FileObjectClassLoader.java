@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 public class FileObjectClassLoader extends ClassLoader {
     private Collection<JavaFileObject> javaFileObjects;
     private Map<String, Class<?>> classes = new HashMap<>();
+    private Map<String, byte[]> bytesByName = new HashMap<>();
 
     public FileObjectClassLoader(ClassLoader classLoader, Collection<JavaFileObject> javaFileObjects) {
         super(classLoader);
@@ -21,8 +22,8 @@ public class FileObjectClassLoader extends ClassLoader {
 
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
-        if (classes.containsKey(name)) {
-            return classes.get(name);
+        if (bytesByName.containsKey(name)) {
+            return defineClass(name, bytesByName.get(name), 0, bytesByName.get(name).length);
         }
         return super.findClass(name);
     }
@@ -36,7 +37,7 @@ public class FileObjectClassLoader extends ClassLoader {
 
     private void addClass(JavaFileObject fileObject) {
         byte[] bytes = getBytes(fileObject);
-        className(fileObject).ifPresent(name -> classes.put(name, defineClass(name, bytes, 0, bytes.length)));
+        className(fileObject).ifPresent(name -> bytesByName.put(name, bytes));
 
     }
 
