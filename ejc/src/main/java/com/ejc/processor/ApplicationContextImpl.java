@@ -15,9 +15,9 @@ public class ApplicationContextImpl extends ApplicationContext {
         beans.add(this);
     }
 
-    public ApplicationContextImpl(Set<Object> beans) {
+    public ApplicationContextImpl(Set<Object> beansToAdd) {
         this();
-        beans.addAll(beans);
+        beans.addAll(beansToAdd);
     }
 
 
@@ -54,10 +54,14 @@ public class ApplicationContextImpl extends ApplicationContext {
 
     @Override
     public <T> T getBean(String c) {
-        try {
-            return (T) getBean(InstanceUtils.classForName(c));
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+        List<Object> result = new ArrayList<>(getBeans(c));
+        switch (result.size()) {
+            case 0:
+                throw new IllegalArgumentException("no bean of type " + c);
+            case 1:
+                return (T) result.get(0);
+            default:
+                throw new IllegalStateException("not unique: " + c);
         }
     }
 
@@ -66,6 +70,14 @@ public class ApplicationContextImpl extends ApplicationContext {
         return beans.stream()
                 .filter(e -> c.isAssignableFrom(e.getClass()))
                 .map(c::cast)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public <T> Set<T> getBeans(String c) {
+        return beans.stream()
+                .filter(e -> e.getClass().getName().equals(c))
+                .map(e -> (T) e)
                 .collect(Collectors.toSet());
     }
 

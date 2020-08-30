@@ -41,6 +41,7 @@ public class ApplicationContextFactoryWriter {
         MethodSpec.Builder constructorBuilder = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC);
         addSingletons(constructorBuilder);
+        addImplementations(constructorBuilder);
         addSingleValueDependencies(constructorBuilder);
         addMultiValueDependencies(constructorBuilder);
         addInitMethods(constructorBuilder);

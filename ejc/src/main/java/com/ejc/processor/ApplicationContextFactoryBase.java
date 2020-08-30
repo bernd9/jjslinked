@@ -48,6 +48,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     }
 
     private void doDependencyInjection() {
+        singleValueInjectors.forEach(injector -> injector.doInject(this));
         multiValueInjectors.forEach(injector -> injector.doInject(this));
     }
 

@@ -19,11 +19,10 @@ import static com.ejc.util.ReflectionUtils.getAnnotationMirrorOptional;
 import static com.ejc.util.ReflectionUtils.getAnnotationValue;
 
 @AutoService(Processor.class)
-@SupportedAnnotationTypes({"com.ejc.processor.SingletonLoader", "com.ejc.processor.Injector", "com.ejc.processor.Initializer", "com.ejc.processor.SystemPropertyInjector", "com.ejc.Application"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class ApplicationContextFactoryProcessor extends AbstractProcessor {
 
-    private static final String PACKAGE = "com.ejc.generated";
+    static final String PACKAGE = "com.ejc.generated";
 
     private Set<ExecutableElement> initMethods = new HashSet<>();
     private Set<VariableElement> singleValueDependencies = new HashSet<>();
@@ -34,7 +33,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        return Stream.of(Singleton.class, Inject.class, InjectAll.class, Init.class, Implementation.class).map(Class::getName).collect(Collectors.toSet());
+        return Stream.of(Singleton.class, Inject.class, InjectAll.class, Init.class, Implementation.class, Application.class).map(Class::getName).collect(Collectors.toSet());
     }
 
     @Override

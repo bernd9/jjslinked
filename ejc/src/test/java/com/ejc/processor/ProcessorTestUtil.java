@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -66,5 +67,23 @@ public class ProcessorTestUtil {
         }
         String src = writer.toString();
         return src;
+    }
+
+    public static String getContextFactoryDefaultName() {
+        return new StringBuilder()
+                .append(ApplicationContextFactoryProcessor.PACKAGE)
+                .append(".")
+                .append(ApplicationContextFactory.IMPLEMENTATION_SIMPLE_NAME).toString();
+
+    }
+
+    public static Object getDeclaredFieldValue(Object bean, String name) {
+        try {
+            Field field = bean.getClass().getDeclaredField(name);
+            field.setAccessible(true);
+            return field.get(bean);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

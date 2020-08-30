@@ -17,4 +17,5 @@ public abstract class ApplicationContext {
 
     public abstract Set<Object> getBeans();
 
+    public abstract <T> Set<T> getBeans(String c);
 }
