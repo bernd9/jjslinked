@@ -100,12 +100,27 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     }
 
     private TypeElement getSuperClassToOverride(TypeElement e) {
-        return getAnnotationMirrorOptional(e, Implementation.class)
-                .map(mirror -> getAnnotationValue(mirror, "forClass"))
+        AnnotationMirror annotationMirror = getAnnotationMirrorOptional(e, Implementation.class).orElseThrow();
+        return forClassByName(annotationMirror).orElseGet(() -> forClassByClass(annotationMirror).orElseThrow(() -> new IllegalStateException("Implementation requires \"forClass\" or \"forClassName\"")));
+    }
+
+    private Optional<TypeElement> forClassByClass(AnnotationMirror annotationMirror) {
+        return Optional.ofNullable(getAnnotationValue(annotationMirror, "forClass"))
+                .filter(Objects::nonNull)
+                .map(AnnotationValue::getValue)
+                .map(Class.class::cast) // TODO Test
+                .filter(c -> !c.equals(Undefined.class))
+                .map(Class::getName)
+                .map(processingEnv.getElementUtils()::getTypeElement);
+    }
+
+    private Optional<TypeElement> forClassByName(AnnotationMirror annotationMirror) {
+        return Optional.ofNullable(getAnnotationValue(annotationMirror, "forClassName"))
+                .filter(Objects::nonNull)
                 .map(AnnotationValue::getValue)
                 .map(Object::toString)
-                .map(processingEnv.getElementUtils()::getTypeElement)
-                .orElseThrow();
+                .filter(s -> !s.isBlank())
+                .map(processingEnv.getElementUtils()::getTypeElement);
     }
 
 

@@ -8,5 +8,7 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
 public @interface Implementation {
-    String forClass();
+    String forClassName() default "";
+
+    Class<?> forClass() default Undefined.class;
 }

@@ -47,7 +47,7 @@ class ImplementationWriter {
 
     private AnnotationSpec createImplAnnotation() {
         return AnnotationSpec.builder(Implementation.class)
-                .addMember("forClass", String.format("\"%s\"", superClassQualifiedName))
+                .addMember("forClassName", String.format("\"%s\"", superClassQualifiedName))
                 .build();
     }
 
