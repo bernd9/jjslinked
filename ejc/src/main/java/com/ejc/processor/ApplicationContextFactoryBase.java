@@ -77,28 +77,28 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     }
 
 
-    void addBeanClasses(Class<?>[] c) {
+    protected void addBeanClasses(Class<?>[] c) {
         beanClasses.addAll(Arrays.asList(c));
     }
 
-    void addBeanClass(Class<?> c) {
+    protected void addBeanClass(Class<?> c) {
         beanClasses.add(c);
     }
 
-    void addBeanClassForReplacement(Class<?> beanClass, Class<?> classToReplace) {
+    protected void addBeanClassForReplacement(Class<?> beanClass, Class<?> classToReplace) {
         addBeanClass(beanClass);
         classesToReplace.add(classToReplace);
     }
 
-    void addSingleValueDependency(Class<?> declaringClass, String fieldName, Class<?> fieldType) {
+    protected void addSingleValueDependency(Class<?> declaringClass, String fieldName, Class<?> fieldType) {
         singleValueInjectors.add(new SingleValueInjector(declaringClass, fieldName, fieldType));
     }
 
-    void addMultiValueDependency(Class<?> declaringClass, String fieldName, Class<?> fieldType, Class<?> elementType) {
+    protected void addMultiValueDependency(Class<?> declaringClass, String fieldName, Class<?> fieldType, Class<?> elementType) {
         multiValueInjectors.add(new MultiValueInjector(declaringClass, fieldName, fieldType, elementType));
     }
 
-    void addInitMethod(Class<?> declaringClass, String methodName) {
+    protected void addInitMethod(Class<?> declaringClass, String methodName) {
         initInvokers.add(new InitInvoker(declaringClass, methodName));
     }
 

@@ -21,8 +21,8 @@ class AdviceAnnotationProcessorTest {
     @BeforeEach
     void init() {
         compiler = javac().withProcessors(new AdviceAnnotationProcessor());
-        advice = JavaFileObjects.forResource("com/ejc/processor/Test123Advice.java");
-        bean = JavaFileObjects.forResource("com/ejc/processor/AdviceTestBean.java");
+        advice = JavaFileObjects.forResource("com/ejc/processor/advice/Test123Advice.java");
+        bean = JavaFileObjects.forResource("com/ejc/processor/advice/AdviceTestBean.java");
     }
 
     @Test

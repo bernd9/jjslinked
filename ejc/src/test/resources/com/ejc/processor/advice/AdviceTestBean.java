@@ -1,4 +1,4 @@
-package com.ejc.processor;
+package com.ejc.processor.advice;
 
 import com.ejc.Singleton;
 

@@ -35,7 +35,7 @@ class ImplementationWriter {
     void write() throws IOException {
         String implName = superClassQualifiedName + "Impl";
         TypeSpec.Builder builder = TypeSpec.classBuilder(getSimpleName(implName))
-                .addAnnotation(createSingeltonAnnotation())
+                .addAnnotation(createSingletonAnnotation())
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(asTypeMirror(superClassQualifiedName))
                 .addMethods(createImplMethods());
@@ -46,7 +46,7 @@ class ImplementationWriter {
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
-    private AnnotationSpec createSingeltonAnnotation() {
+    private AnnotationSpec createSingletonAnnotation() {
         return AnnotationSpec.builder(Singleton.class)
                 .build();
     }

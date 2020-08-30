@@ -5,7 +5,10 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import javax.lang.model.element.*;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleAnnotationValueVisitor9;
+import javax.lang.model.util.SimpleTypeVisitor9;
 import java.lang.annotation.Annotation;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +31,25 @@ public class ReflectionUtils {
                 .append(")")
                 .toString();
     }
+
+    public static TypeMirror getGenericType(VariableElement collectionVariable) {
+        GenericTypeVisitor visitor = new GenericTypeVisitor();
+        return collectionVariable.asType().accept(visitor, null).orElseThrow(() -> new IllegalStateException(collectionVariable + " must have generic type"));
+    }
+
+
+    private static class GenericTypeVisitor extends SimpleTypeVisitor9<Optional<TypeMirror>, Void> {
+
+        @Override
+        public Optional<TypeMirror> visitDeclared(DeclaredType t, Void aVoid) {
+            if (t.getTypeArguments() != null) {
+                return (Optional<TypeMirror>) t.getTypeArguments().stream().findFirst();
+            }
+            return null;
+        }
+
+    }
+
 
     /**
      * For :
@@ -83,6 +105,7 @@ public class ReflectionUtils {
 
             return super.visitArray(vals, aClass);
         }
+
     }
 
 
