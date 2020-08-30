@@ -13,8 +13,7 @@ public class ApplicationRunner {
         }
         try {
             ApplicationContextFactory factory = actualFactory(applicationClass);
-            ModuleLoader moduleLoader = new ModuleLoader(factory);
-            moduleLoader.addModules();
+            loadModules(factory);
             factory.createContext();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -28,5 +27,11 @@ public class ApplicationRunner {
     private static ApplicationContextFactory actualFactory(Class<?> applicationClass) throws Exception {
         Class<ApplicationContextFactory> factoryClass = (Class<ApplicationContextFactory>) Class.forName(contextFactory(applicationClass));
         return factoryClass.getConstructor().newInstance();
+    }
+
+
+    private static void loadModules(ApplicationContextFactory factory) {
+        ModuleLoader moduleLoader = new ModuleLoader(factory);
+        moduleLoader.addModules();
     }
 }
