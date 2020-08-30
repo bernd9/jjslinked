@@ -21,6 +21,16 @@ public class ApplicationContextImpl extends ApplicationContext {
     }
 
 
+    public <T> void replaceBean(Class<T> t, T bean) {
+        try {
+            T old = getBean(t);
+            beans.remove(old);
+            beans.add(bean);
+        } catch (IllegalArgumentException e) {
+            // We accept bean is not found
+        }
+    }
+
     void addBean(Object bean) {
         beans.add(bean);
     }

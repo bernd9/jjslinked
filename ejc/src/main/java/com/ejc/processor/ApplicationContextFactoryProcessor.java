@@ -9,6 +9,7 @@ import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.tools.Diagnostic;
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -20,7 +21,6 @@ import java.util.stream.Stream;
 public class ApplicationContextFactoryProcessor extends AbstractProcessor {
 
     private static final String PACKAGE = "com.ejc.generated";
-    private static final String CONTEXT_FACTORY_SIMPLE_NAME = "ApplicationContextFactory";
 
     private Set<ExecutableElement> initMethods = new HashSet<>();
     private Set<VariableElement> singleValueDependencies = new HashSet<>();
@@ -52,6 +52,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 processSingleValueDependencies(roundEnv);
                 processMultiValueDependencies(roundEnv);
                 processSingletons(roundEnv);
+                processApplication(roundEnv);
             } else {
                 writeApplicationContextFactory();
                 writeContextFile();
@@ -121,10 +122,19 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     }
 
     private String factoryQualifiedName() {
-        return packageName + "." + CONTEXT_FACTORY_SIMPLE_NAME;
+        return packageName + "." + ApplicationContextFactory.IMPLEMENTATION_SIMPLE_NAME;
     }
 
-    private void writeApplicationContextFactory() {
+    private void writeApplicationContextFactory() throws IOException {
+        ApplicationContextFactoryWriter writer = ApplicationContextFactoryWriter.builder()
+                .initMethods(initMethods)
+                .multiValueDependencies(multiValueDependencies)
+                .singleValueDependencies(singleValueDependencies)
+                .singletons(singletons)
+                .packageName(packageName)
+                .processingEnvironment(processingEnv)
+                .build();
+        writer.write();
         /*
         Stream<String> injectorNames = injectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);
         Stream<String> multiInjectorNames = multiInjectors.stream().map(TypeElement::getQualifiedName).map(Name::toString);

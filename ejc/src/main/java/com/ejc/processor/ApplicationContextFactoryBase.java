@@ -1,7 +1,6 @@
 package com.ejc.processor;
 
 import com.ejc.ApplicationContext;
-import com.ejc.ApplicationContextFactory;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -13,6 +12,7 @@ import java.util.stream.Collectors;
 @Getter
 public class ApplicationContextFactoryBase implements ApplicationContextFactory {
     private final Set<Class<?>> beanClasses = new HashSet<>();
+    private final Set<Class<?>> classesToReplace = new HashSet<>();
     private final Set<Object> loadedBeans = new HashSet<>();
     private final Map<Class<?>, Set<Object>> cache = new HashMap<>();
 
@@ -29,28 +29,18 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
         return new ApplicationContextImpl(loadedBeans);
     }
 
-    public <T> void replaceBean(Class<T> clazz, T bean) {
-        // TODO
+    public void removeBeanClasses(Collection<Class<?>> classes) {
+        beanClasses.removeAll(classes);
     }
 
-    void addBeanClasses(Class<?>[] c) {
-        beanClasses.addAll(Arrays.asList(c));
-    }
-
-    void addBeanClass(Class<?> c) {
-        beanClasses.add(c);
-    }
-
-    void addSingleValueDependency(Class<?> declaringClass, String fieldName, Class<?> fieldType) {
-        singleValueInjectors.add(new SingleValueInjector(declaringClass, fieldName, fieldType));
-    }
-
-    void addMultiValueDependency(Class<?> declaringClass, String fieldName, Class<?> fieldType, Class<?> elementType) {
-        multiValueInjectors.add(new MultiValueInjector(declaringClass, fieldName, fieldType, elementType));
-    }
-
-    void addInitMethod(Class<?> declaringClass, String methodName) {
-        initInvokers.add(new InitInvoker(declaringClass, methodName));
+    public void append(ApplicationContextFactory factory) {
+        ApplicationContextFactoryBase factoryBase = (ApplicationContextFactoryBase) factory;
+        beanClasses.addAll(factoryBase.getBeanClasses());
+        classesToReplace.addAll(factoryBase.getClassesToReplace());
+        loadedBeans.addAll(factoryBase.getLoadedBeans());
+        singleValueInjectors.addAll(factoryBase.getSingleValueInjectors());
+        multiValueInjectors.addAll(factoryBase.getMultiValueInjectors());
+        initInvokers.addAll(factoryBase.getInitInvokers());
     }
 
     private void createBeans() {
@@ -85,6 +75,33 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     <T> Set<T> getBeans(Class<T> c) {
         return (Set<T>) cache.computeIfAbsent(c, this::findMatchingBeans);
     }
+
+
+    void addBeanClasses(Class<?>[] c) {
+        beanClasses.addAll(Arrays.asList(c));
+    }
+
+    void addBeanClass(Class<?> c) {
+        beanClasses.add(c);
+    }
+
+    void addBeanClassForReplacement(Class<?> beanClass, Class<?> classToReplace) {
+        addBeanClass(beanClass);
+        classesToReplace.add(classToReplace);
+    }
+
+    void addSingleValueDependency(Class<?> declaringClass, String fieldName, Class<?> fieldType) {
+        singleValueInjectors.add(new SingleValueInjector(declaringClass, fieldName, fieldType));
+    }
+
+    void addMultiValueDependency(Class<?> declaringClass, String fieldName, Class<?> fieldType, Class<?> elementType) {
+        multiValueInjectors.add(new MultiValueInjector(declaringClass, fieldName, fieldType, elementType));
+    }
+
+    void addInitMethod(Class<?> declaringClass, String methodName) {
+        initInvokers.add(new InitInvoker(declaringClass, methodName));
+    }
+
 
     private Set<Object> findMatchingBeans(Class<?> c) {
         return loadedBeans.stream()
@@ -190,5 +207,4 @@ class InitInvoker {
             throw new RuntimeException(e);
         }
     }
-
 }
