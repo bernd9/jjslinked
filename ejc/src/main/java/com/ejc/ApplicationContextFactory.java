@@ -1,6 +1,4 @@
-package com.ejc.processor;
-
-import com.ejc.ApplicationContext;
+package com.ejc;
 
 import java.util.Collection;
 import java.util.Set;

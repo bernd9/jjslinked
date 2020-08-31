@@ -1,6 +1,7 @@
 package com.ejc.processor;
 
 import com.ejc.ApplicationContext;
+import com.ejc.ApplicationContextFactory;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.Compiler;
 import org.junit.jupiter.api.BeforeEach;

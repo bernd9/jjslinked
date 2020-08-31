@@ -1,5 +1,6 @@
 package com.ejc.processor;
 
+import com.ejc.ApplicationContextFactory;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.JavaFileObjects;
 import lombok.AccessLevel;

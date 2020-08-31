@@ -1,6 +1,5 @@
 package com.ejc;
 
-import com.ejc.processor.ApplicationContextFactory;
 import com.ejc.processor.ModuleLoader;
 import lombok.NoArgsConstructor;
 

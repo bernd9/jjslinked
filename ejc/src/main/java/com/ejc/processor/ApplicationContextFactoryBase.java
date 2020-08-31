@@ -1,6 +1,7 @@
 package com.ejc.processor;
 
 import com.ejc.ApplicationContext;
+import com.ejc.ApplicationContextFactory;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

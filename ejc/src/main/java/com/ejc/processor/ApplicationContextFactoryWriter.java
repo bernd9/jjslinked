@@ -1,5 +1,6 @@
 package com.ejc.processor;
 
+import com.ejc.ApplicationContextFactory;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
