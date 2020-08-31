@@ -21,3 +21,7 @@ dependencies {
     //compile files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
     //compile files('../jjslinked-api/build/libs/jjslinked-api-1.0-SNAPSHOT.jar')
 }
+
+compileJava {
+    options.verbose(true)
+}
