@@ -11,7 +11,6 @@ import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +37,6 @@ public class ApplicationContextFactoryWriter {
         addOriginatingElements(builder);
         TypeSpec typeSpec = builder.build();
         JavaFile javaFile = JavaFile.builder(packageName, typeSpec).build();
-        javaFile.writeTo(Path.of("xyz/factory.java"));
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
