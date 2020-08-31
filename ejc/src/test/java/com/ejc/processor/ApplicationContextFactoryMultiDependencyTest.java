@@ -39,19 +39,19 @@ class ApplicationContextFactoryMultiDependencyTest {
         Object testBean1 = context.getBean("com.ejc.processor.context.multi.TestBean1");
         assertThat(testBean1).isNotNull();
 
-        Object fieldValue = ProcessorTestUtil.getDeclaredFieldValue(testBean1, "test1");
+        Object fieldValue = ProcessorTestUtil.getFieldValue(testBean1, "test1");
         assertThat(fieldValue).isNotNull();
         assertThat(fieldValue).isInstanceOf(Collection.class);
 
-        fieldValue = ProcessorTestUtil.getDeclaredFieldValue(testBean1, "test2");
+        fieldValue = ProcessorTestUtil.getFieldValue(testBean1, "test2");
         assertThat(fieldValue).isNotNull();
         assertThat(fieldValue).isInstanceOf(Set.class);
 
-        fieldValue = ProcessorTestUtil.getDeclaredFieldValue(testBean1, "test3");
+        fieldValue = ProcessorTestUtil.getFieldValue(testBean1, "test3");
         assertThat(fieldValue).isNotNull();
         assertThat(fieldValue).isInstanceOf(List.class);
 
-        fieldValue = ProcessorTestUtil.getDeclaredFieldValue(testBean1, "test4");
+        fieldValue = ProcessorTestUtil.getFieldValue(testBean1, "test4");
         assertThat(fieldValue).isNotNull();
         assertThat(fieldValue).isInstanceOf(LinkedList.class);
 

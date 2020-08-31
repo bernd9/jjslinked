@@ -20,7 +20,7 @@ class ApplicationContextFactorySingleDependencyTest {
     @BeforeEach
     void init() {
         compiler = javac().withProcessors(new ApplicationContextFactoryProcessor());
-        files = ProcessorTestUtil.javaFileObjects("com/ejc/processor/context/single", "TestBean1.java", "TestBean2.java", "TestBean3.java", "TestBean3Impl.java");
+        files = ProcessorTestUtil.javaFileObjects("com/ejc/processor/context/single", "TestBean1.java", "TestBean1a.java", "TestBean2.java", "TestBean3.java", "TestBean3Impl.java");
     }
 
     @Test
@@ -35,11 +35,22 @@ class ApplicationContextFactorySingleDependencyTest {
         Object testBean1 = context.getBean("com.ejc.processor.context.single.TestBean1");
         assertThat(testBean1).isNotNull();
 
-        Object testBean2 = ProcessorTestUtil.getDeclaredFieldValue(testBean1, "testBean2");
+        Object testBean2 = ProcessorTestUtil.getFieldValue(testBean1, "testBean2");
         assertThat(testBean2).isNotNull();
         assertThat(testBean2.getClass().getSimpleName()).isEqualTo("TestBean2");
 
-        Object testBean3 = ProcessorTestUtil.getDeclaredFieldValue(testBean1, "testBean3");
+        Object testBean3 = ProcessorTestUtil.getFieldValue(testBean1, "testBean3");
+        assertThat(testBean3).isNotNull();
+        assertThat(testBean3.getClass().getSimpleName()).isEqualTo("TestBean3Impl");
+
+        Object testBean1a = context.getBean("com.ejc.processor.context.single.TestBean1a");
+        assertThat(testBean1).isNotNull();
+
+        testBean2 = ProcessorTestUtil.getFieldValue(testBean1a, "testBean2");
+        assertThat(testBean2).isNotNull();
+        assertThat(testBean2.getClass().getSimpleName()).isEqualTo("TestBean2");
+
+        testBean3 = ProcessorTestUtil.getFieldValue(testBean1a, "testBean3");
         assertThat(testBean3).isNotNull();
         assertThat(testBean3.getClass().getSimpleName()).isEqualTo("TestBean3Impl");
 

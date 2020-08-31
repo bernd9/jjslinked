@@ -87,13 +87,16 @@ public class ProcessorTestUtil {
 
     }
 
-    public static Object getDeclaredFieldValue(Object bean, String name) {
-        try {
-            Field field = bean.getClass().getDeclaredField(name);
-            field.setAccessible(true);
-            return field.get(bean);
-        } catch (Exception e) {
-            return null;
+    public static Object getFieldValue(Object bean, String name) {
+        for (Class<?> c = bean.getClass(); c != null && !c.equals(Object.class); c = c.getSuperclass()) {
+            try {
+                Field field = c.getDeclaredField(name);
+                field.setAccessible(true);
+                return field.get(bean);
+            } catch (Exception e) {
+
+            }
         }
+        return null;
     }
 }
