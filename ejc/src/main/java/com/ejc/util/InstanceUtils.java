@@ -1,4 +1,4 @@
-package com.ejc.processor;
+package com.ejc.util;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

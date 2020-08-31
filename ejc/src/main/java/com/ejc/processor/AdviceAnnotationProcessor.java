@@ -1,6 +1,7 @@
 package com.ejc.processor;
 
 import com.ejc.Advice;
+import com.ejc.util.ProcessorUtils;
 import com.google.auto.service.AutoService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -107,5 +109,13 @@ public class AdviceAnnotationProcessor extends AbstractProcessor {
         private final String declaringClass;
         private final String signature;
         private final TypeElement advice;
+    }
+
+    protected void reportError(Exception e) {
+        ProcessorUtils.reportError(this, processingEnv, e);
+    }
+
+    protected void log(String message, Object... args) {
+        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, getClass().getSimpleName() + ": " + String.format(message, args));
     }
 }

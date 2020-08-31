@@ -2,6 +2,7 @@ package com.ejc.processor;
 
 import com.ejc.ApplicationContext;
 import com.ejc.ApplicationContextFactory;
+import com.ejc.util.InstanceUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -136,7 +137,7 @@ abstract class InjectorBase {
 
     private void doInject(Object bean, ApplicationContextFactoryBase factory) {
         try {
-            doInjectFieldValue(bean, bean.getClass().getDeclaredField(fieldName), factory);
+            doInjectFieldValue(bean, getField(bean), factory);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -152,6 +153,18 @@ abstract class InjectorBase {
     }
 
     abstract Object getFieldValue(Class<?> fieldType, ApplicationContextFactoryBase factory);
+
+    // TODO test for field in superclass
+    private Field getField(Object bean) throws NoSuchFieldException {
+        for (Class<?> c = bean.getClass(); c != null && !c.equals(Object.class); c = c.getSuperclass()) {
+            try {
+                return c.getDeclaredField(fieldName);
+            } catch (NoSuchFieldException e) {
+
+            }
+        }
+        throw new NoSuchFieldException(fieldName);
+    }
 
 }
 

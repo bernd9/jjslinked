@@ -2,6 +2,7 @@ package com.ejc.processor;
 
 import com.ejc.*;
 import com.ejc.util.IOUtils;
+import com.ejc.util.ProcessorUtils;
 import com.ejc.util.ReflectionUtils;
 import com.google.auto.service.AutoService;
 
@@ -176,12 +177,13 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
         IOUtils.write(Collections.singletonList(factoryQualifiedName()), processingEnv.getFiler(), "META-INF/services/" + ApplicationContextFactory.class.getName());
     }
 
-    private void reportError(Exception e) {
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.toString());
+
+    protected void reportError(Exception e) {
+        ProcessorUtils.reportError(this, processingEnv, e);
     }
 
-    private void log(String message, Object... args) {
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, String.format(message, args));
+    protected void log(String message, Object... args) {
+        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, getClass().getSimpleName() + ": " + String.format(message, args));
     }
 
 }

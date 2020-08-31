@@ -1,6 +1,7 @@
 package com.ejc.processor;
 
 import com.ejc.AdviceClass;
+import com.ejc.util.ProcessorUtils;
 import com.ejc.util.ReflectionUtils;
 import com.google.auto.service.AutoService;
 
@@ -55,12 +56,13 @@ public class AdviceClassAnnotationProcessor extends AbstractProcessor {
         annotationProcessorWriter.write();
     }
 
+
     protected void reportError(Exception e) {
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.toString());
+        ProcessorUtils.reportError(this, processingEnv, e);
     }
 
     protected void log(String message, Object... args) {
-        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, String.format(message, args));
+        processingEnv.getMessager().printMessage(Diagnostic.Kind.NOTE, getClass().getSimpleName() + ": " + String.format(message, args));
     }
 
 }
