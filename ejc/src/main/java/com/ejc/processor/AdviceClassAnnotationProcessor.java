@@ -3,24 +3,22 @@ package com.ejc.processor;
 import com.ejc.AdviceClass;
 import com.ejc.util.ReflectionUtils;
 import com.google.auto.service.AutoService;
-import com.squareup.javapoet.AnnotationSpec;
-import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.TypeSpec;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
-import java.io.IOException;
 import java.util.Set;
 
-import static com.ejc.util.ReflectionUtils.getPackageName;
-import static com.ejc.util.ReflectionUtils.getSimpleName;
-import static com.squareup.javapoet.TypeSpec.classBuilder;
-
+/**
+ * Writes an annotation-processor for each custom-aop-annotation.
+ * These annotations are annotated with @{@link AdviceClass} and in this way,
+ * the associated {@link java.lang.reflect.InvocationHandler} is given.
+ * The new processor extends {@link AdviceAnnotationProcessorBase} and is
+ * writing classes based on the handler without any extensions, but annotated
+ * with @{@link com.ejc.Advice}
+ */
 @SupportedAnnotationTypes({"com.ejc.AdviceClass"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 @AutoService(Processor.class)
@@ -45,48 +43,17 @@ public class AdviceClassAnnotationProcessor extends AbstractProcessor {
                 .forEach(this::writeProcessor);
     }
 
-
     private void writeProcessor(TypeElement annotation) {
         AnnotationMirror mirror = ReflectionUtils.getAnnotationMirror(annotation, AdviceClass.class);
         String adviceClass = ReflectionUtils.getAnnotationValue(mirror, "value").getValue().toString().replace(".class", "");
-        writeProcessor(annotation, adviceClass);
-    }
-
-    // TODO move to Writerclass
-    private void writeProcessor(TypeElement annotation, String adviceClass) {
-        String processorName = annotation.getQualifiedName() + "Processor";
-        TypeSpec typeSpec = classBuilder(getSimpleName(processorName))
-                .addAnnotation(autoService())
-                .addMethod(constructor(annotation, adviceClass))
-                .addOriginatingElement(annotation)
-                .addModifiers(Modifier.PUBLIC)
-                .superclass(AdviceAnnotationProcessorBase.class)
+        AdviceAnnotationProcessorWriter annotationProcessorWriter = AdviceAnnotationProcessorWriter.builder()
+                .adviceClass(adviceClass)
+                .annotation(annotation)
+                .processingEnvironment(processingEnv)
                 .build();
 
-        JavaFile javaFile = JavaFile.builder(getPackageName(processorName), typeSpec).build();
-        try {
-            javaFile.writeTo(processingEnv.getFiler());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
+        annotationProcessorWriter.write();
     }
-
-    // TODO move to Writerclass
-    private MethodSpec constructor(TypeElement annotation, String adviceClass) {
-        return MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PUBLIC)
-                .addStatement("super($T.class, $L.class)", annotation.asType(), adviceClass)
-                .build();
-    }
-
-    // TODO move to Writerclass
-    private AnnotationSpec autoService() {
-        return AnnotationSpec.builder(AutoService.class)
-                .addMember("value", "$T.class", Processor.class)
-                .build();
-    }
-
 
     protected void reportError(Exception e) {
         processingEnv.getMessager().printMessage(Diagnostic.Kind.ERROR, e.toString());

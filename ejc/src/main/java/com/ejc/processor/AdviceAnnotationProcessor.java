@@ -16,6 +16,12 @@ import java.util.stream.Collectors;
 
 import static com.ejc.util.ReflectionUtils.*;
 
+/**
+ * Creates an implementation as a subclass or implementation of classes annotated by an annotation
+ * demanding an advice (annotated with @{@link com.ejc.AdviceClass}). The result is a singleton,
+ * but getting annotated with @{@link Implementation}.This marks this class to have to replace an
+ * singleton (if exists) an will get a singleton itself.
+ */
 @AutoService(Processor.class)
 @SupportedAnnotationTypes({"com.ejc.Advice"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)

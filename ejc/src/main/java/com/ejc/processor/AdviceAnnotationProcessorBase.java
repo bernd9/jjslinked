@@ -17,6 +17,12 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Baseclass for generated annotation-processors, that will write subclasses of a handler
+ * without any extension, but annotated with @{@link com.ejc.Advice}
+ *
+ * @param <A>
+ */
 @RequiredArgsConstructor
 public class AdviceAnnotationProcessorBase<A extends Annotation> extends AbstractProcessor {
 

@@ -1,4 +1,4 @@
-package com.ejc.processor.context.colldependency;
+package com.ejc.processor.context.single;
 
 import com.ejc.Singleton;
 

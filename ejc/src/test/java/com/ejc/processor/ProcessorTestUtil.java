@@ -26,6 +26,15 @@ public class ProcessorTestUtil {
         return fileObjects.toArray(new JavaFileObject[fileObjects.size()]);
     }
 
+    public static <T> Class<T> getCompiledClass(Compilation compilation, String name) {
+        FileObjectClassLoader classLoader = new FileObjectClassLoader(Thread.currentThread().getContextClassLoader(), compilation.generatedFiles());
+        try {
+            return (Class<T>) classLoader.findClass(name);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static List<JavaFileObject> javaFileObjectList(String directory, String... javaFileNames) {
         return Arrays.stream(javaFileNames)
                 .map(name -> directory + "/" + name)

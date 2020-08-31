@@ -9,6 +9,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@AdviceClass(TestMethodHandler.class)
+@AdviceClass(TestHandler.class)
 public @interface TestAnnotation {
 }

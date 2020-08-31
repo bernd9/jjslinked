@@ -1,4 +1,4 @@
-package com.ejc.processor.context.colldependency;
+package com.ejc.processor.context.multi;
 
 import com.ejc.InjectAll;
 import com.ejc.Singleton;

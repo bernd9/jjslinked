@@ -1,4 +1,4 @@
-package com.ejc.processor.context.singledependency;
+package com.ejc.processor.context.multi;
 
 import com.ejc.Singleton;
 
