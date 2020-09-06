@@ -14,7 +14,6 @@ public class ModuleLoader {
 
     public void addModules() {
         Set<ApplicationContextFactory> factories = loadContext();
-        factories.remove(actualContextFactory);
         doClassReplacement(factories);
         appendFactories(factories);
     }

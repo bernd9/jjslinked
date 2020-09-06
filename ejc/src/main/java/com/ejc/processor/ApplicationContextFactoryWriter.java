@@ -1,6 +1,7 @@
 package com.ejc.processor;
 
 import com.ejc.ApplicationContextFactory;
+import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
@@ -8,7 +9,6 @@ import lombok.Builder;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
-import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
 import java.util.HashSet;
@@ -65,7 +65,7 @@ public class ApplicationContextFactoryWriter {
     }
 
     void addSingleton(TypeElement type, MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("addBeanClass($T.class)", type);
+        constructorBuilder.addStatement("addBeanClass($L)", ref(type));
     }
 
     void addImplementations(MethodSpec.Builder constructorBuilder) {
@@ -73,7 +73,7 @@ public class ApplicationContextFactoryWriter {
     }
 
     void addImplementation(TypeElement base, TypeElement impl, MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("addImplementation($T.class, $T.class)", base, impl);
+        constructorBuilder.addStatement("addImplementation($L, $L)", ref(base), ref(impl));
     }
 
     void addSingleValueDependencies(MethodSpec.Builder constructorBuilder) {
@@ -81,7 +81,7 @@ public class ApplicationContextFactoryWriter {
     }
 
     void addSingleValueDependency(VariableElement field, MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("addSingleValueDependency($T.class, \"$L\", $T.class)", field.getEnclosingElement(), field.getSimpleName(), field.asType());
+        constructorBuilder.addStatement("addSingleValueDependency($L, \"$L\", $L)", ref((TypeElement) field.getEnclosingElement()), field.getSimpleName(), ref(field.asType()));
     }
 
     void addMultiValueDependencies(MethodSpec.Builder constructorBuilder) {
@@ -89,7 +89,7 @@ public class ApplicationContextFactoryWriter {
     }
 
     void addMultiValueDependency(VariableElement field, MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("addMultiValueDependency($T.class, \"$L\", $L.class, $T.class)", field.getEnclosingElement(), field.getSimpleName(), ((DeclaredType) field.asType()).asElement().toString(), getGenericType(field));
+        constructorBuilder.addStatement("addMultiValueDependency($L, \"$L\", $L, $L)", ref((TypeElement) field.getEnclosingElement()), field.getSimpleName(), ClassReference.class, ref(field.asType()), ref(getGenericType(field)));
     }
 
     void addInitMethods(MethodSpec.Builder constructorBuilder) {
@@ -97,8 +97,20 @@ public class ApplicationContextFactoryWriter {
     }
 
     void addInitMethod(ExecutableElement method, MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("addInitMethod($T.class, \"$L\")", method.getEnclosingElement(), method.getSimpleName());
+        constructorBuilder.addStatement("addInitMethod($L, \"$L\")", ref((TypeElement) method.getEnclosingElement()), method.getSimpleName());
 
+    }
+
+    private static String ref(TypeElement e) {
+        return CodeBlock.builder()
+                .addStatement("$T.getRef(\"\")", ClassReference.class, e)
+                .build().toString();
+    }
+
+    private static String ref(TypeMirror e) {
+        return CodeBlock.builder()
+                .addStatement("$T.getRef(\"\")", ClassReference.class, e)
+                .build().toString();
     }
 
     private String stripGenericType(TypeMirror typeMirror) {

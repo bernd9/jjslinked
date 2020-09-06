@@ -43,6 +43,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
         singleValueDependencies.clear();
         multiValueDependencies.clear();
         singletons.clear();
+        implementations.clear();
         super.init(processingEnv);
     }
 

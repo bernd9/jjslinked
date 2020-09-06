@@ -13,8 +13,8 @@ import java.util.stream.Collectors;
 
 @Getter
 public class ApplicationContextFactoryBase implements ApplicationContextFactory {
-    private final Set<Class<?>> beanClasses = new HashSet<>();
-    private final Set<Class<?>> classesToReplace = new HashSet<>();
+    private final Set<ClassReference> beanClasses = new HashSet<>();
+    private final Set<ClassReference> classesToReplace = new HashSet<>();
     private final Set<Object> loadedBeans = new HashSet<>();
     private final Map<Class<?>, Set<Object>> cache = new HashMap<>();
 
@@ -80,29 +80,29 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     }
 
 
-    protected void addBeanClass(Class<?> c) {
+    protected void addBeanClass(ClassReference c) {
         beanClasses.add(c);
     }
 
     @SuppressWarnings("unused")
-    protected <B> void addImplementation(Class<B> base, Class<? extends B> impl) {
+    protected <B> void addImplementation(ClassReference base, ClassReference impl) {
         beanClasses.remove(base); // No matter if not exists
         beanClasses.add(impl);
     }
 
     @SuppressWarnings("unused")
-    protected void addBeanClassForReplacement(Class<?> beanClass, Class<?> classToReplace) {
+    protected void addBeanClassForReplacement(ClassReference beanClass, ClassReference classToReplace) {
         addBeanClass(beanClass);
         classesToReplace.add(classToReplace);
     }
 
     @SuppressWarnings("unused")
-    protected void addSingleValueDependency(Class<?> declaringClass, String fieldName, Class<?> fieldType) {
+    protected void addSingleValueDependency(ClassReference declaringClass, String fieldName, ClassReference fieldType) {
         singleValueInjectors.add(new SingleValueInjector(declaringClass, fieldName, fieldType));
     }
 
     @SuppressWarnings("unused")
-    protected void addMultiValueDependency(Class<?> declaringClass, String fieldName, Class<?> fieldType, Class<?> elementType) {
+    protected void addMultiValueDependency(ClassReference declaringClass, String fieldName, ClassReference fieldType, ClassReference elementType) {
         multiValueInjectors.add(new MultiValueInjector(declaringClass, fieldName, fieldType, elementType));
     }
 
@@ -119,20 +119,20 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     }
 
 
-    private <T> T createInstance(Class<T> c) {
-        return (T) InstanceUtils.createInstance(c);
+    private <T> T createInstance(ClassReference c) {
+        return (T) InstanceUtils.createInstance(c.getClazz());
     }
 
 }
 
 @RequiredArgsConstructor
 abstract class InjectorBase {
-    private final Class<?> declaringClass;
+    private final ClassReference declaringClass;
     private final String fieldName;
-    private final Class<?> fieldType;
+    private final ClassReference fieldType;
 
     void doInject(ApplicationContextFactoryBase factory) {
-        factory.getBeans(declaringClass).forEach(bean -> doInject(bean, factory));
+        factory.getBeans(declaringClass.getClazz()).forEach(bean -> doInject(bean, factory));
     }
 
     private void doInject(Object bean, ApplicationContextFactoryBase factory) {
@@ -146,7 +146,7 @@ abstract class InjectorBase {
     private void doInjectFieldValue(Object bean, Field field, ApplicationContextFactoryBase factory) {
         try {
             field.setAccessible(true);
-            field.set(bean, getFieldValue(fieldType, factory));
+            field.set(bean, getFieldValue(fieldType.getClazz(), factory));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -171,7 +171,7 @@ abstract class InjectorBase {
 
 class SingleValueInjector extends InjectorBase {
 
-    public SingleValueInjector(Class<?> declaringClass, String fieldName, Class<?> fieldType) {
+    public SingleValueInjector(ClassReference declaringClass, String fieldName, ClassReference fieldType) {
         super(declaringClass, fieldName, fieldType);
     }
 
@@ -183,16 +183,16 @@ class SingleValueInjector extends InjectorBase {
 
 class MultiValueInjector extends InjectorBase {
 
-    private final Class<?> fieldValueType;
+    private final ClassReference fieldValueType;
 
-    public MultiValueInjector(Class<?> declaringClass, String fieldName, Class<?> fieldType, Class<?> fieldValueType) {
+    public MultiValueInjector(ClassReference declaringClass, String fieldName, ClassReference fieldType, ClassReference fieldValueType) {
         super(declaringClass, fieldName, fieldType);
         this.fieldValueType = fieldValueType;
     }
 
     @Override
     Object getFieldValue(Class<?> fieldType, ApplicationContextFactoryBase factory) {
-        Set<Object> set = factory.getBeans((Class<Object>) fieldValueType);
+        Set<Object> set = factory.getBeans((Class<Object>) fieldValueType.getClazz());
         if (fieldType.isAssignableFrom(Set.class)) {
             return set;
         }

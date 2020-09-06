@@ -9,11 +9,7 @@ import java.lang.reflect.Constructor;
 public class InstanceUtils {
 
     public static Object createInstance(String c) {
-        try {
-            return createInstance(classForName(c));
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        return createInstance(classForName(c));
     }
 
     public static Object createInstance(Class<?> c) {
@@ -26,9 +22,13 @@ public class InstanceUtils {
         }
     }
 
-    public static Class<?> classForName(String className) throws ClassNotFoundException {
-        //return Class.forName(className);
-        return ClassLoader.getSystemClassLoader().loadClass(className);
+    public static Class<?> classForName(String className) {
+        //
+        try {
+            return Thread.currentThread().getContextClassLoader().loadClass(className);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 }
