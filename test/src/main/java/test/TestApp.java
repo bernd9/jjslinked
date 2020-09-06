@@ -8,7 +8,7 @@ import com.ejc.Singleton;
 @Application
 public class TestApp {
 
-    public static void main(String[] args) throws Exception{
+    public static void main(String[] args) {
         long t0 = System.currentTimeMillis();
         ApplicationRunner.run(TestApp.class);
         System.out.println(System.currentTimeMillis()- t0);
