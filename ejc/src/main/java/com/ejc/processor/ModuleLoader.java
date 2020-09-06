@@ -1,16 +1,18 @@
 package com.ejc.processor;
 
 import com.ejc.ApplicationContextFactory;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
 public class ModuleLoader {
-    private final ApplicationContextFactory actualContextFactory;
+    private final ApplicationContextFactoryBase actualContextFactory;
+
+    public ModuleLoader(ApplicationContextFactory actualContextFactory) {
+        this.actualContextFactory = (ApplicationContextFactoryBase) actualContextFactory;
+    }
 
     public void addModules() {
         Set<ApplicationContextFactory> factories = loadContext();
@@ -24,7 +26,9 @@ public class ModuleLoader {
     }
 
     private void doClassReplacement(Collection<ApplicationContextFactory> factories) {
-        factories.stream().forEach(factoryInJar -> factoryInJar.removeBeanClasses(actualContextFactory.getClassesToReplace()));
+        factories.stream()
+                .map(ApplicationContextFactoryBase.class::cast)
+                .forEach(factoryInJar -> factoryInJar.removeBeanClasses(actualContextFactory.getClassesToReplace()));
     }
 
     private void appendFactories(Collection<ApplicationContextFactory> factories) {

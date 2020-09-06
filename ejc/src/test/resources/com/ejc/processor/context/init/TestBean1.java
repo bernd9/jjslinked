@@ -5,7 +5,7 @@ import com.ejc.Inject;
 import com.ejc.Singleton;
 
 @Singleton
-class TestBean1 {
+public class TestBean1 {
 
     @Inject
     private TestBean2 bean2;

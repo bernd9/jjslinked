@@ -25,6 +25,7 @@ public class InstanceUtils {
     public static Class<?> classForName(String className) {
         //
         try {
+            //return Class.forName(className);
             return Thread.currentThread().getContextClassLoader().loadClass(className);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);

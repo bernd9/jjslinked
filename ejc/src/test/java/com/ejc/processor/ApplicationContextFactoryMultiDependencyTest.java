@@ -13,6 +13,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import static com.ejc.processor.ProcessorTestUtil.bindClassLoader;
 import static com.google.testing.compile.Compiler.javac;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,8 +33,10 @@ class ApplicationContextFactoryMultiDependencyTest {
         Compilation compilation = compiler.compile(files);
         ProcessorTestUtil.assertSuccess(compilation);
 
-        Class<? extends ApplicationContextFactory> factoryClass = ProcessorTestUtil.getCompiledClass(compilation, ProcessorTestUtil.getContextFactoryDefaultName());
+        FileObjectClassLoader classLoader = bindClassLoader(Thread.currentThread(), compilation);
+        Class<? extends ApplicationContextFactory> factoryClass = (Class<? extends ApplicationContextFactory>) classLoader.findClass(ProcessorTestUtil.getContextFactoryDefaultName());
         ApplicationContextFactory factory = factoryClass.getConstructor().newInstance();
+
         ApplicationContext context = factory.createContext();
 
         Object testBean1 = context.getBean("com.ejc.processor.context.multi.TestBean1");

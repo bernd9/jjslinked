@@ -7,20 +7,25 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RequiredArgsConstructor
-class ClassReference {
+public class ClassReference {
     private static Map<String, ClassReference> references = new HashMap<>();
 
     private Class<?> clazz;
     private final String className;
 
-    Class<?> getClazz() {
+    ClassReference(Class<?> c) {
+        this.clazz = c;
+        this.className = c.getName();
+    }
+
+    public Class<?> getClazz() {
         if (clazz == null) {
             clazz = InstanceUtils.classForName(className);
         }
         return clazz;
     }
 
-    static ClassReference getRef(String className) {
+    public static ClassReference getRef(String className) {
         return references.computeIfAbsent(className, ClassReference::new);
     }
 

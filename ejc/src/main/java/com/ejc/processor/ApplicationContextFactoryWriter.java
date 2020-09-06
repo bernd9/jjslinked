@@ -89,7 +89,7 @@ public class ApplicationContextFactoryWriter {
     }
 
     void addMultiValueDependency(VariableElement field, MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("addMultiValueDependency($L, \"$L\", $L, $L)", ref((TypeElement) field.getEnclosingElement()), field.getSimpleName(), ClassReference.class, ref(field.asType()), ref(getGenericType(field)));
+        constructorBuilder.addStatement("addMultiValueDependency($L, \"$L\", $L.class, $L)", ref((TypeElement) field.getEnclosingElement()), field.getSimpleName(), stripGenericType(field.asType()), ref(getGenericType(field)));
     }
 
     void addInitMethods(MethodSpec.Builder constructorBuilder) {
@@ -103,19 +103,17 @@ public class ApplicationContextFactoryWriter {
 
     private static String ref(TypeElement e) {
         return CodeBlock.builder()
-                .addStatement("$T.getRef(\"\")", ClassReference.class, e)
+                .add("$T.getRef(\"$L\")", ClassReference.class, e)
                 .build().toString();
     }
 
     private static String ref(TypeMirror e) {
         return CodeBlock.builder()
-                .addStatement("$T.getRef(\"\")", ClassReference.class, e)
+                .add("$T.getRef(\"$L\")", ClassReference.class, e)
                 .build().toString();
     }
 
     private String stripGenericType(TypeMirror typeMirror) {
-
-        return typeMirror.toString();
-
+        return typeMirror.toString().replaceAll("<[^]]+>", "");
     }
 }

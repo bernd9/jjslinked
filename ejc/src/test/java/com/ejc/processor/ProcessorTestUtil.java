@@ -27,6 +27,12 @@ public class ProcessorTestUtil {
         return fileObjects.toArray(new JavaFileObject[fileObjects.size()]);
     }
 
+    public static FileObjectClassLoader bindClassLoader(Thread thread, Compilation compilation) {
+        FileObjectClassLoader classLoader = new FileObjectClassLoader(Thread.currentThread().getContextClassLoader(), compilation.generatedFiles());
+        thread.setContextClassLoader(classLoader);
+        return classLoader;
+    }
+
     public static <T> Class<T> getCompiledClass(Compilation compilation, String name) {
         FileObjectClassLoader classLoader = new FileObjectClassLoader(Thread.currentThread().getContextClassLoader(), compilation.generatedFiles());
         try {

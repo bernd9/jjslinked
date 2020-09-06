@@ -31,7 +31,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
         return new ApplicationContextImpl(loadedBeans);
     }
 
-    public void removeBeanClasses(Collection<Class<?>> classes) {
+    public void removeBeanClasses(Collection<ClassReference> classes) {
         beanClasses.removeAll(classes);
     }
 
@@ -46,7 +46,8 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     }
 
     private void createBeans() {
-        loadedBeans.addAll(beanClasses.stream().map(this::createInstance).collect(Collectors.toSet()));
+        loadedBeans.addAll(beanClasses.stream()
+                .map(this::createInstance).collect(Collectors.toSet()));
     }
 
     private void doDependencyInjection() {
@@ -102,12 +103,12 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     }
 
     @SuppressWarnings("unused")
-    protected void addMultiValueDependency(ClassReference declaringClass, String fieldName, ClassReference fieldType, ClassReference elementType) {
+    protected void addMultiValueDependency(ClassReference declaringClass, String fieldName, Class<?> fieldType, ClassReference elementType) {
         multiValueInjectors.add(new MultiValueInjector(declaringClass, fieldName, fieldType, elementType));
     }
 
     @SuppressWarnings("unused")
-    protected void addInitMethod(Class<?> declaringClass, String methodName) {
+    protected void addInitMethod(ClassReference declaringClass, String methodName) {
         initInvokers.add(new InitInvoker(declaringClass, methodName));
     }
 
@@ -119,8 +120,8 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     }
 
 
-    private <T> T createInstance(ClassReference c) {
-        return (T) InstanceUtils.createInstance(c.getClazz());
+    private <T> T createInstance(ClassReference ref) {
+        return (T) InstanceUtils.createInstance(ref.getClazz());
     }
 
 }
@@ -185,8 +186,8 @@ class MultiValueInjector extends InjectorBase {
 
     private final ClassReference fieldValueType;
 
-    public MultiValueInjector(ClassReference declaringClass, String fieldName, ClassReference fieldType, ClassReference fieldValueType) {
-        super(declaringClass, fieldName, fieldType);
+    public MultiValueInjector(ClassReference declaringClass, String fieldName, Class<?> fieldType, ClassReference fieldValueType) {
+        super(declaringClass, fieldName, new ClassReference(fieldType));
         this.fieldValueType = fieldValueType;
     }
 
@@ -212,11 +213,11 @@ class MultiValueInjector extends InjectorBase {
 
 @RequiredArgsConstructor
 class InitInvoker {
-    private final Class<?> declaringClass;
+    private final ClassReference declaringClass;
     private final String methodName;
 
     void doInvoke(ApplicationContextFactoryBase factory) {
-        factory.getBeans(declaringClass).forEach(bean -> doInvokeMethod(bean));
+        factory.getBeans(declaringClass.getClazz()).forEach(bean -> doInvokeMethod(bean));
     }
 
     private void doInvokeMethod(Object bean) {
