@@ -1,8 +1,11 @@
-package com.ejc.processor;
+package com.ejc.api.context;
 
 import com.ejc.ApplicationContext;
 import com.ejc.ApplicationContextFactory;
+import com.ejc.api.config.Config;
+import com.ejc.processor.ApplicationContextImpl;
 import com.ejc.util.InstanceUtils;
+import com.ejc.util.ReflectionUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -21,6 +24,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     private final Set<SingleValueInjector> singleValueInjectors = new HashSet<>();
     private final Set<MultiValueInjector> multiValueInjectors = new HashSet<>();
     private final Set<InitInvoker> initInvokers = new HashSet<>();
+    private Set<ConfigValueInjector> configValueInjectors = new HashSet<>();
 
     @Override
     public ApplicationContext createContext() {
@@ -43,6 +47,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
         singleValueInjectors.addAll(factoryBase.getSingleValueInjectors());
         multiValueInjectors.addAll(factoryBase.getMultiValueInjectors());
         initInvokers.addAll(factoryBase.getInitInvokers());
+        configValueInjectors.addAll(factoryBase.getConfigValueInjectors());
     }
 
     private void createBeans() {
@@ -56,6 +61,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     }
 
     private void doConfigParamInjection() {
+        configValueInjectors.forEach((injector -> injector.doInject(this)));
     }
 
     private void invokeInitializers() {
@@ -112,6 +118,11 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
         initInvokers.add(new InitInvoker(declaringClass, methodName));
     }
 
+    @SuppressWarnings("unused")
+    protected void addConfigValueField(ClassReference declaringClass, String fieldName, Class<?> fieldType, String key) {
+        configValueInjectors.add(new ConfigValueInjector(declaringClass, fieldName, fieldType, key));
+    }
+
 
     private Set<Object> findMatchingBeans(Class<?> c) {
         return loadedBeans.stream()
@@ -138,7 +149,7 @@ abstract class InjectorBase {
 
     private void doInject(Object bean, ApplicationContextFactoryBase factory) {
         try {
-            doInjectFieldValue(bean, getField(bean), factory);
+            doInjectFieldValue(bean, ReflectionUtils.getField(bean, fieldName), factory);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -155,17 +166,6 @@ abstract class InjectorBase {
 
     abstract Object getFieldValue(Class<?> fieldType, ApplicationContextFactoryBase factory);
 
-    // TODO test for field in superclass
-    private Field getField(Object bean) throws NoSuchFieldException {
-        for (Class<?> c = bean.getClass(); c != null && !c.equals(Object.class); c = c.getSuperclass()) {
-            try {
-                return c.getDeclaredField(fieldName);
-            } catch (NoSuchFieldException e) {
-
-            }
-        }
-        throw new NoSuchFieldException(fieldName);
-    }
 
 }
 
@@ -212,6 +212,28 @@ class MultiValueInjector extends InjectorBase {
 }
 
 @RequiredArgsConstructor
+class ConfigValueInjector {
+
+    private final ClassReference declaringClass;
+    private final String fieldName;
+    private final Class<?> fieldType;
+    private final String key;
+
+    void doInject(ApplicationContextFactoryBase factory) {
+        factory.getBeans(declaringClass.getClazz()).forEach(bean -> doInject(bean));
+    }
+
+    private void doInject(Object bean) {
+        try {
+            Field field = ReflectionUtils.getField(bean, fieldName);
+            field.set(bean, Config.getProperty(key, fieldType));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+
+@RequiredArgsConstructor
 class InitInvoker {
     private final ClassReference declaringClass;
     private final String methodName;
@@ -230,3 +252,4 @@ class InitInvoker {
         }
     }
 }
+

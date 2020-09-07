@@ -1,6 +1,7 @@
 package com.ejc.processor;
 
 import com.ejc.*;
+import com.ejc.api.context.Undefined;
 import com.ejc.util.IOUtils;
 import com.ejc.util.ProcessorUtils;
 import com.ejc.util.ReflectionUtils;
@@ -28,13 +29,14 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     private Set<ExecutableElement> initMethods = new HashSet<>();
     private Set<VariableElement> singleValueDependencies = new HashSet<>();
     private Set<VariableElement> multiValueDependencies = new HashSet<>();
+    private Set<VariableElement> configValues = new HashSet<>();
     private Set<TypeElement> singletons = new HashSet<>();
     private Map<TypeElement, TypeElement> implementations = new HashMap<>();
     private String packageName = PACKAGE;
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        return Stream.of(Singleton.class, Inject.class, InjectAll.class, Init.class, Implementation.class, Application.class).map(Class::getName).collect(Collectors.toSet());
+        return Stream.of(Singleton.class, Inject.class, InjectAll.class, Init.class, Implementation.class, Value.class, Application.class).map(Class::getName).collect(Collectors.toSet());
     }
 
     @Override
@@ -55,6 +57,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 processInitMethods(roundEnv);
                 processSingleValueDependencies(roundEnv);
                 processMultiValueDependencies(roundEnv);
+                processConfigValues(roundEnv);
                 processSingletons(roundEnv);
                 processImplementations(roundEnv);
                 processApplication(roundEnv);
@@ -83,6 +86,12 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
 
     private void processMultiValueDependencies(RoundEnvironment roundEnv) {
         multiValueDependencies.addAll(roundEnv.getElementsAnnotatedWith(InjectAll.class).stream()
+                .map(VariableElement.class::cast)
+                .collect(Collectors.toSet()));
+    }
+
+    private void processConfigValues(RoundEnvironment roundEnv) {
+        configValues.addAll(roundEnv.getElementsAnnotatedWith(Value.class).stream()
                 .map(VariableElement.class::cast)
                 .collect(Collectors.toSet()));
     }
@@ -166,6 +175,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 .initMethods(initMethods)
                 .multiValueDependencies(multiValueDependencies)
                 .singleValueDependencies(singleValueDependencies)
+                .configValues(configValues)
                 .singletons(singletons)
                 .implementations(implementations)
                 .packageName(packageName)

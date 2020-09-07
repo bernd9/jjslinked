@@ -1,6 +1,9 @@
 package com.ejc.processor;
 
 import com.ejc.ApplicationContextFactory;
+import com.ejc.Value;
+import com.ejc.api.context.ApplicationContextFactoryBase;
+import com.ejc.api.context.ClassReference;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
@@ -24,6 +27,7 @@ public class ApplicationContextFactoryWriter {
     private Set<ExecutableElement> initMethods;
     private Set<VariableElement> singleValueDependencies;
     private Set<VariableElement> multiValueDependencies;
+    private Set<VariableElement> configValues;
     private Set<TypeElement> singletons;
     private Map<TypeElement, TypeElement> implementations;
     private String packageName;
@@ -48,6 +52,7 @@ public class ApplicationContextFactoryWriter {
         addSingleValueDependencies(constructorBuilder);
         addMultiValueDependencies(constructorBuilder);
         addInitMethods(constructorBuilder);
+        addConfigValues(constructorBuilder);
         return constructorBuilder.build();
     }
 
@@ -66,6 +71,18 @@ public class ApplicationContextFactoryWriter {
 
     void addSingleton(TypeElement type, MethodSpec.Builder constructorBuilder) {
         constructorBuilder.addStatement("addBeanClass($L)", ref(type));
+    }
+
+    void addConfigValues(MethodSpec.Builder constructorBuilder) {
+        configValues.forEach(type -> addConfigValue(type, constructorBuilder));
+    }
+
+    private void addConfigValue(VariableElement field, MethodSpec.Builder constructorBuilder) {
+        constructorBuilder.addStatement("addConfigValueField($L, \"$L\", $T.class\"$L\")", ref((TypeElement) field.getEnclosingElement()), field.getSimpleName(), field.asType(), getValueKey(field));
+    }
+
+    private String getValueKey(VariableElement field) {
+        return field.getAnnotation(Value.class).value();
     }
 
     void addImplementations(MethodSpec.Builder constructorBuilder) {

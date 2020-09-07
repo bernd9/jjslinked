@@ -47,7 +47,7 @@ public class TypeUtils {
             }
             return (T) Character.valueOf(property.charAt(0));
         }
-        throw new IllegalStateException("illegal type for " + fieldType);
+        throw new IllegalArgumentException("illegal type " + fieldType);
 
     }
 }

@@ -1,4 +1,4 @@
-package com.ejc.processor;
+package com.ejc.api.context;
 
 import com.ejc.ApplicationContextFactory;
 
