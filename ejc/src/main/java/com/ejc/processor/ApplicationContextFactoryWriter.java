@@ -78,7 +78,7 @@ public class ApplicationContextFactoryWriter {
     }
 
     private void addConfigValue(VariableElement field, MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("addConfigValueField($L, \"$L\", $T.class\"$L\")", ref((TypeElement) field.getEnclosingElement()), field.getSimpleName(), field.asType(), getValueKey(field));
+        constructorBuilder.addStatement("addConfigValueField($L, \"$L\", $T.class, \"$L\")", ref((TypeElement) field.getEnclosingElement()), field.getSimpleName(), field.asType(), getValueKey(field));
     }
 
     private String getValueKey(VariableElement field) {
