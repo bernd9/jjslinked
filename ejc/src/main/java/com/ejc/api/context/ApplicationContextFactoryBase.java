@@ -226,6 +226,7 @@ class ConfigValueInjector {
     private void doInject(Object bean) {
         try {
             Field field = ReflectionUtils.getField(bean, fieldName);
+            field.setAccessible(true);
             field.set(bean, Config.getProperty(key, fieldType));
         } catch (Exception e) {
             throw new RuntimeException(e);

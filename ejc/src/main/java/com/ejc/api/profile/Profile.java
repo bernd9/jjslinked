@@ -1,29 +1,30 @@
 package com.ejc.api.profile;
 
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.NonNull;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Profile {
 
-    private static final String KEY = "profile";
+    static final String KEY = "profile";
     public static final String DEFAULT_PROFILE = "default";
+    private static String currentProfile;
 
-    static {
-        init();
-    }
-
-    private static void init() {
-        if (System.getProperty(KEY) != null) {
+    public static synchronized String getCurrentProfile() {
+        if (currentProfile == null) {
             currentProfile = System.getProperty(KEY);
         }
+        if (currentProfile == null) {
+            currentProfile = System.getenv(KEY);
+        }
+        if (currentProfile == null) {
+            currentProfile = DEFAULT_PROFILE;
+        }
+        return currentProfile;
     }
 
-    @Getter
-    @NonNull
-    private static String currentProfile = DEFAULT_PROFILE;
 
-
+    public static void main(String[] args) {
+        System.out.println(getCurrentProfile());
+    }
 }
