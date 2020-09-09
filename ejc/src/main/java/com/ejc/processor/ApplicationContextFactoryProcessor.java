@@ -10,6 +10,7 @@ import com.google.auto.service.AutoService;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
+import javax.lang.model.type.TypeKind;
 import javax.tools.Diagnostic;
 import java.io.IOException;
 import java.lang.annotation.Annotation;
@@ -27,24 +28,29 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     static final String PACKAGE = "com.ejc.generated";
 
     private Set<ExecutableElement> initMethods = new HashSet<>();
+    private Set<ExecutableElement> beanMethods = new HashSet<>();
     private Set<VariableElement> singleValueDependencies = new HashSet<>();
     private Set<VariableElement> multiValueDependencies = new HashSet<>();
     private Set<VariableElement> configValues = new HashSet<>();
     private Set<TypeElement> singletons = new HashSet<>();
+    private Set<TypeElement> configurations = new HashSet<>();
     private Map<TypeElement, TypeElement> implementations = new HashMap<>();
     private String packageName = PACKAGE;
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        return Stream.of(Singleton.class, Inject.class, InjectAll.class, Init.class, Implementation.class, Value.class, Application.class).map(Class::getName).collect(Collectors.toSet());
+        return Stream.of(Singleton.class, Inject.class, InjectAll.class, Init.class, Implementation.class,
+                Value.class, Application.class, Configuration.class, Bean.class).map(Class::getName).collect(Collectors.toSet());
     }
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         initMethods.clear();
+        beanMethods.clear();
         singleValueDependencies.clear();
         multiValueDependencies.clear();
         singletons.clear();
+        configurations.clear();
         implementations.clear();
         super.init(processingEnv);
     }
@@ -55,10 +61,12 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
         try {
             if (!roundEnv.processingOver()) {
                 processInitMethods(roundEnv);
+                processBeanMethods(roundEnv);
                 processSingleValueDependencies(roundEnv);
                 processMultiValueDependencies(roundEnv);
                 processConfigValues(roundEnv);
                 processSingletons(roundEnv);
+                processConfigurations(roundEnv);
                 processImplementations(roundEnv);
                 processApplication(roundEnv);
             } else {
@@ -75,18 +83,30 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
         initMethods.addAll(roundEnv.getElementsAnnotatedWith(Init.class).stream()
                 .map(ExecutableElement.class::cast)
                 .peek(this::validateNoParameters)
+                .peek(e -> validateEnclosedBySingletonOrConfiguration(e, Init.class))
+                .collect(Collectors.toSet()));
+    }
+
+    private void processBeanMethods(RoundEnvironment roundEnv) {
+        beanMethods.addAll(roundEnv.getElementsAnnotatedWith(Bean.class).stream()
+                .map(ExecutableElement.class::cast)
+                .peek(this::validateNoParameters)
+                .peek(e -> validateEnclosedByConfiguration(e, Bean.class))
+                .peek(this::validateBeanMethodHasReturnType)
                 .collect(Collectors.toSet()));
     }
 
     private void processSingleValueDependencies(RoundEnvironment roundEnv) {
         singleValueDependencies.addAll(roundEnv.getElementsAnnotatedWith(Inject.class).stream()
                 .map(VariableElement.class::cast)
+                .peek(e -> validateEnclosedBySingleton(e, Inject.class))
                 .collect(Collectors.toSet()));
     }
 
     private void processMultiValueDependencies(RoundEnvironment roundEnv) {
         multiValueDependencies.addAll(roundEnv.getElementsAnnotatedWith(InjectAll.class).stream()
                 .map(VariableElement.class::cast)
+                .peek(e -> validateEnclosedBySingleton(e, InjectAll.class))
                 .collect(Collectors.toSet()));
     }
 
@@ -102,6 +122,12 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 .collect(Collectors.toSet()));
     }
 
+
+    private void processConfigurations(RoundEnvironment roundEnv) {
+        configurations.addAll(roundEnv.getElementsAnnotatedWith(Configuration.class).stream()
+                .map(TypeElement.class::cast)
+                .collect(Collectors.toSet()));
+    }
 
     private void processImplementations(RoundEnvironment roundEnv) {
         roundEnv.getElementsAnnotatedWith(Implementation.class).stream()
@@ -137,6 +163,49 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     private void validateNoParameters(ExecutableElement element) {
         if (!element.getParameters().isEmpty()) {
             throw new IllegalStateException(element + " must have no parameters");
+        }
+    }
+
+    private void validateEnclosedBySingleton(Element variableElement, Class<? extends Annotation> reason) {
+        if (variableElement.getEnclosingElement().getKind() == ElementKind.CLASS) {
+            throw new IllegalStateException("expected parent element to ba a class: " + variableElement);
+        }
+        TypeElement typeElement = (TypeElement) variableElement.getEnclosingElement();
+        if (typeElement.getAnnotation(Singleton.class) == null) {
+            throw new IllegalStateException(variableElement.getEnclosingElement() + " must be annotated with @Singleton, because it uses " + reason.getSimpleName());
+        }
+        if (typeElement.getAnnotation(Configuration.class) != null) {
+            throw new IllegalStateException(variableElement.getEnclosingElement() + " must be not be annotated with @Configuration, because it uses " + reason.getSimpleName());
+        }
+    }
+
+    private void validateEnclosedBySingletonOrConfiguration(Element variableElement, Class<? extends Annotation> reason) {
+        if (variableElement.getEnclosingElement().getKind() == ElementKind.CLASS) {
+            throw new IllegalStateException("expected parent element to ba a class: " + variableElement);
+        }
+        TypeElement typeElement = (TypeElement) variableElement.getEnclosingElement();
+        if (typeElement.getAnnotation(Singleton.class) != null) {
+            return;
+        }
+        if (typeElement.getAnnotation(Configuration.class) != null) {
+            return;
+        }
+        throw new IllegalStateException(variableElement.getEnclosingElement() + " must be annotated with @Singleton or Configuration, because it uses " + reason.getSimpleName());
+    }
+
+    private void validateEnclosedByConfiguration(Element variableElement, Class<? extends Annotation> reason) {
+        if (variableElement.getEnclosingElement().getKind() == ElementKind.CLASS) {
+            throw new IllegalStateException("expected parent element to ba a class: " + variableElement);
+        }
+        TypeElement typeElement = (TypeElement) variableElement.getEnclosingElement();
+        if (typeElement.getAnnotation(Singleton.class) != null) {
+            throw new IllegalStateException(variableElement.getEnclosingElement() + " must not be annotated with @Singleton, because it uses " + reason.getSimpleName());
+        }
+    }
+
+    private void validateBeanMethodHasReturnType(ExecutableElement element) {
+        if (element.getReturnType().getKind() == TypeKind.VOID) {
+            throw new IllegalStateException(element + " must not return void. It should return a bean.");
         }
     }
 
@@ -180,6 +249,8 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 .implementations(implementations)
                 .packageName(packageName)
                 .processingEnvironment(processingEnv)
+                .beanMethods(beanMethods)
+                .configurations(configurations)
                 .build();
         writer.write();
     }

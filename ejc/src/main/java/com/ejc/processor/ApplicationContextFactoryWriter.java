@@ -25,10 +25,12 @@ import static com.ejc.util.ReflectionUtils.getGenericType;
 public class ApplicationContextFactoryWriter {
 
     private Set<ExecutableElement> initMethods;
+    private Set<ExecutableElement> beanMethods;
     private Set<VariableElement> singleValueDependencies;
     private Set<VariableElement> multiValueDependencies;
     private Set<VariableElement> configValues;
     private Set<TypeElement> singletons;
+    private Set<TypeElement> configurations;
     private Map<TypeElement, TypeElement> implementations;
     private String packageName;
     private ProcessingEnvironment processingEnvironment;
