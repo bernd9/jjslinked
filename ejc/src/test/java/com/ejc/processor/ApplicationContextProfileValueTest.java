@@ -22,7 +22,7 @@ class ApplicationContextProfileValueTest {
     void init() {
         System.setProperty("profile", "test");
         compiler = javac().withProcessors(new ApplicationContextFactoryProcessor());
-        files = ProcessorTestUtil.javaFileObjects("com/ejc/processor/context/config", "Test.java");
+        files = ProcessorTestUtil.javaFileObjects("com/ejc/processor/context/value", "Test.java");
     }
 
     @Test

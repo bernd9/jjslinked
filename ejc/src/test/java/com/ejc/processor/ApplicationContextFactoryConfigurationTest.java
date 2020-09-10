@@ -21,7 +21,7 @@ class ApplicationContextFactoryConfigurationTest {
     @BeforeEach
     void init() {
         compiler = javac().withProcessors(new ApplicationContextFactoryProcessor());
-        files = ProcessorTestUtil.javaFileObjects("com/ejc/processor/context/config", "TestBean1.java", "TestBean2.java");
+        files = ProcessorTestUtil.javaFileObjects("com/ejc/processor/context/config", "TestBean.java", "TestConfig.java");
     }
 
     @Test
@@ -33,11 +33,11 @@ class ApplicationContextFactoryConfigurationTest {
         Class<? extends ApplicationContextFactory> factoryClass = (Class<? extends ApplicationContextFactory>) classLoader.findClass(ProcessorTestUtil.getContextFactoryDefaultName());
         ApplicationContextFactory factory = factoryClass.getConstructor().newInstance();
         ApplicationContext context = factory.createContext();
-        Object testBean1 = context.getBean("com.ejc.processor.context.init.TestBean1");
+        Object testBean1 = context.getBean("com.ejc.processor.context.config.TestBean");
         assertThat(testBean1).isNotNull();
 
-        Integer test = (Integer) ProcessorTestUtil.getFieldValue(testBean1, "test");
-        assertThat(test).isEqualTo(101);
+        Integer test = (Integer) ProcessorTestUtil.getFieldValue(testBean1, "value");
+        assertThat(test).isEqualTo(2);
     }
 
 }

@@ -157,7 +157,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     }
 
     private void validateEnclosedBySingleton(Element variableElement, Class<? extends Annotation> reason) {
-        if (variableElement.getEnclosingElement().getKind() == ElementKind.CLASS) {
+        if (!variableElement.getEnclosingElement().getKind().equals(ElementKind.CLASS)) {
             throw new IllegalStateException("expected parent element to ba a class: " + variableElement);
         }
         TypeElement typeElement = (TypeElement) variableElement.getEnclosingElement();
@@ -170,7 +170,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     }
 
     private void validateEnclosedBySingletonOrConfiguration(Element variableElement, Class<? extends Annotation> reason) {
-        if (variableElement.getEnclosingElement().getKind() == ElementKind.CLASS) {
+        if (!variableElement.getEnclosingElement().getKind().equals(ElementKind.CLASS)) {
             throw new IllegalStateException("expected parent element to ba a class: " + variableElement);
         }
         TypeElement typeElement = (TypeElement) variableElement.getEnclosingElement();
@@ -184,7 +184,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     }
 
     private void validateEnclosedByConfiguration(Element variableElement, Class<? extends Annotation> reason) {
-        if (variableElement.getEnclosingElement().getKind() == ElementKind.CLASS) {
+        if (!variableElement.getEnclosingElement().getKind().equals(ElementKind.CLASS)) {
             throw new IllegalStateException("expected parent element to ba a class: " + variableElement);
         }
         TypeElement typeElement = (TypeElement) variableElement.getEnclosingElement();
@@ -241,7 +241,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 .implementations(implementations)
                 .packageName(packageName)
                 .processingEnvironment(processingEnv)
-                .beanMethods(beanMethods)
+                .loadBeanMethods(beanMethods)
                 .configurations(configurations)
                 .build();
         writer.write();

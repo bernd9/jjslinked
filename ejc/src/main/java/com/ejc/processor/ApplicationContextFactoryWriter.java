@@ -25,7 +25,7 @@ public class ApplicationContextFactoryWriter {
 
     private Set<ExecutableElement> initMethodsSingleton;
     private Set<ExecutableElement> initMethodsConfiguration;
-    private Set<ExecutableElement> beanMethods;
+    private Set<ExecutableElement> loadBeanMethods;
     private Set<VariableElement> singleValueDependencies;
     private Set<VariableElement> multiValueDependencies;
     private Set<VariableElement> configFieldsSingleton;
@@ -59,6 +59,7 @@ public class ApplicationContextFactoryWriter {
         addInitMethodsSingleton(constructorBuilder);
         addConfigFieldsSingleton(constructorBuilder);
         addConfigFieldsConfiguration(constructorBuilder);
+        addLoadBeandMethods(constructorBuilder);
         return constructorBuilder.build();
     }
 
@@ -143,6 +144,14 @@ public class ApplicationContextFactoryWriter {
 
     private void addInitMethodConfiguration(ExecutableElement method, MethodSpec.Builder constructorBuilder) {
         constructorBuilder.addStatement("addInitMethodForConfiguration($L, \"$L\")", ref((TypeElement) method.getEnclosingElement()), method.getSimpleName());
+    }
+
+    private void addLoadBeandMethods(MethodSpec.Builder constructorBuilder) {
+        loadBeanMethods.forEach(method -> addLoadBeanMethod(method, constructorBuilder));
+    }
+
+    private void addLoadBeanMethod(ExecutableElement method, MethodSpec.Builder constructorBuilder) {
+        constructorBuilder.addStatement("addLoadBeanMethod($L, \"$L\")", ref((TypeElement) method.getEnclosingElement()), method.getSimpleName());
     }
 
     private static String ref(TypeElement e) {

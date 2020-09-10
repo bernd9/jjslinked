@@ -30,7 +30,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     private final Set<InitInvoker> initInvokersForConfiguration = new HashSet<>();
     private final Set<ConfigValueInjector> configValueInjectorsForSingleton = new HashSet<>();
     private final Set<ConfigValueInjector> configValueInjectorsForConfiguration = new HashSet<>();
-    private final Set<LoadBeanMethodInvoker> loadBeanMethodInvoker = new HashSet<>();
+    private final Set<LoadBeanMethodInvoker> loadBeanMethodInvokers = new HashSet<>();
 
     @Override
     public ApplicationContext createContext() {
@@ -65,7 +65,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     }
 
     private void createBeans() {
-        loadedBeans.addAll(loadBeanMethodInvoker.stream()
+        loadedBeans.addAll(loadBeanMethodInvokers.stream()
                 .map(LoadBeanMethodInvoker::doInvoke)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet()));
@@ -159,8 +159,8 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     }
 
     @SuppressWarnings("unused")
-    protected void addBeanMethod(ClassReference declaringClass, String methodName) {
-        initInvokersForSingleton.add(new InitInvoker(declaringClass, methodName, this::getBeans));
+    protected void addLoadBeanMethod(ClassReference declaringClass, String methodName) {
+        loadBeanMethodInvokers.add(new LoadBeanMethodInvoker(declaringClass, methodName, this));
     }
 
     @SuppressWarnings("unused")

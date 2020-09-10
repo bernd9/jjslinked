@@ -6,7 +6,6 @@ import com.ejc.Init;
 
 @Configuration
 public class TestConfig {
-
     private int i = 1;
 
     @Init
@@ -15,8 +14,8 @@ public class TestConfig {
     }
 
     @Bean
-    TestBean2 getTest2() {
-        return new TestBean2(i);
+    TestBean getTest() {
+        return new TestBean(i);
     }
 
 }
