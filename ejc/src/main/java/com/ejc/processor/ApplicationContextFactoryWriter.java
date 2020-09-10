@@ -17,18 +17,19 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static com.ejc.util.ReflectionUtils.getGenericType;
 
 @Builder
 public class ApplicationContextFactoryWriter {
 
-    private Set<ExecutableElement> initMethods;
+    private Set<ExecutableElement> initMethodsSingleton;
+    private Set<ExecutableElement> initMethodsConfiguration;
     private Set<ExecutableElement> beanMethods;
     private Set<VariableElement> singleValueDependencies;
     private Set<VariableElement> multiValueDependencies;
-    private Set<VariableElement> configValues;
+    private Set<VariableElement> configFieldsSingleton;
+    private Set<VariableElement> configFieldsConfiguration;
     private Set<TypeElement> singletons;
     private Set<TypeElement> configurations;
     private Map<TypeElement, TypeElement> implementations;
@@ -49,38 +50,55 @@ public class ApplicationContextFactoryWriter {
     private MethodSpec constructor() {
         MethodSpec.Builder constructorBuilder = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC);
+        addConfigurations(constructorBuilder);
         addSingletons(constructorBuilder);
         addImplementations(constructorBuilder);
         addSingleValueDependencies(constructorBuilder);
         addMultiValueDependencies(constructorBuilder);
-        addInitMethods(constructorBuilder);
-        addConfigValues(constructorBuilder);
+        addInitMethodsConfigurations(constructorBuilder);
+        addInitMethodsSingleton(constructorBuilder);
+        addConfigFieldsSingleton(constructorBuilder);
+        addConfigFieldsConfiguration(constructorBuilder);
         return constructorBuilder.build();
     }
 
     private void addOriginatingElements(TypeSpec.Builder builder) {
         Set<Element> originatingElements = new HashSet<>();
         originatingElements.addAll(singletons);
-        originatingElements.addAll(singleValueDependencies.stream().map(VariableElement::getEnclosingElement).collect(Collectors.toSet()));
-        originatingElements.addAll(multiValueDependencies.stream().map(VariableElement::getEnclosingElement).collect(Collectors.toSet()));
-        originatingElements.addAll(initMethods.stream().map(ExecutableElement::getEnclosingElement).collect(Collectors.toSet()));
+        originatingElements.addAll(configurations);
         originatingElements.forEach(builder::addOriginatingElement);
     }
 
-    void addSingletons(MethodSpec.Builder constructorBuilder) {
+    private void addSingletons(MethodSpec.Builder constructorBuilder) {
         singletons.forEach(type -> addSingleton(type, constructorBuilder));
     }
 
-    void addSingleton(TypeElement type, MethodSpec.Builder constructorBuilder) {
+    private void addConfigurations(MethodSpec.Builder constructorBuilder) {
+        configurations.forEach(type -> addConfiguration(type, constructorBuilder));
+    }
+
+    private void addSingleton(TypeElement type, MethodSpec.Builder constructorBuilder) {
         constructorBuilder.addStatement("addBeanClass($L)", ref(type));
     }
 
-    void addConfigValues(MethodSpec.Builder constructorBuilder) {
-        configValues.forEach(type -> addConfigValue(type, constructorBuilder));
+    private void addConfiguration(TypeElement type, MethodSpec.Builder constructorBuilder) {
+        constructorBuilder.addStatement("addConfigurationClass($L)", ref(type));
     }
 
-    private void addConfigValue(VariableElement field, MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("addConfigValueField($L, \"$L\", $T.class, \"$L\")", ref((TypeElement) field.getEnclosingElement()), field.getSimpleName(), field.asType(), getValueKey(field));
+    private void addConfigFieldsSingleton(MethodSpec.Builder constructorBuilder) {
+        configFieldsSingleton.forEach(type -> addConfigFieldSingleton(type, constructorBuilder));
+    }
+
+    private void addConfigFieldSingleton(VariableElement field, MethodSpec.Builder constructorBuilder) {
+        constructorBuilder.addStatement("addConfigValueFieldInSingleton($L, \"$L\", $T.class, \"$L\")", ref((TypeElement) field.getEnclosingElement()), field.getSimpleName(), field.asType(), getValueKey(field));
+    }
+
+    private void addConfigFieldsConfiguration(MethodSpec.Builder constructorBuilder) {
+        configFieldsConfiguration.forEach(type -> addConfigFieldConfiguration(type, constructorBuilder));
+    }
+
+    private void addConfigFieldConfiguration(VariableElement field, MethodSpec.Builder constructorBuilder) {
+        constructorBuilder.addStatement("addConfigValueFieldInConfiguration($L, \"$L\", $T.class, \"$L\")", ref((TypeElement) field.getEnclosingElement()), field.getSimpleName(), field.asType(), getValueKey(field));
     }
 
     private String getValueKey(VariableElement field) {
@@ -91,33 +109,40 @@ public class ApplicationContextFactoryWriter {
         implementations.forEach((base, impl) -> addImplementation(base, implementations.get(impl), constructorBuilder));
     }
 
-    void addImplementation(TypeElement base, TypeElement impl, MethodSpec.Builder constructorBuilder) {
+    private void addImplementation(TypeElement base, TypeElement impl, MethodSpec.Builder constructorBuilder) {
         constructorBuilder.addStatement("addImplementation($L, $L)", ref(base), ref(impl));
     }
 
-    void addSingleValueDependencies(MethodSpec.Builder constructorBuilder) {
+    private void addSingleValueDependencies(MethodSpec.Builder constructorBuilder) {
         singleValueDependencies.forEach(field -> addSingleValueDependency(field, constructorBuilder));
     }
 
-    void addSingleValueDependency(VariableElement field, MethodSpec.Builder constructorBuilder) {
+    private void addSingleValueDependency(VariableElement field, MethodSpec.Builder constructorBuilder) {
         constructorBuilder.addStatement("addSingleValueDependency($L, \"$L\", $L)", ref((TypeElement) field.getEnclosingElement()), field.getSimpleName(), ref(field.asType()));
     }
 
-    void addMultiValueDependencies(MethodSpec.Builder constructorBuilder) {
+    private void addMultiValueDependencies(MethodSpec.Builder constructorBuilder) {
         multiValueDependencies.forEach(field -> addMultiValueDependency(field, constructorBuilder));
     }
 
-    void addMultiValueDependency(VariableElement field, MethodSpec.Builder constructorBuilder) {
+    private void addMultiValueDependency(VariableElement field, MethodSpec.Builder constructorBuilder) {
         constructorBuilder.addStatement("addMultiValueDependency($L, \"$L\", $L.class, $L)", ref((TypeElement) field.getEnclosingElement()), field.getSimpleName(), stripGenericType(field.asType()), ref(getGenericType(field)));
     }
 
-    void addInitMethods(MethodSpec.Builder constructorBuilder) {
-        initMethods.forEach(method -> addInitMethod(method, constructorBuilder));
+    private void addInitMethodsSingleton(MethodSpec.Builder constructorBuilder) {
+        initMethodsSingleton.forEach(method -> addInitMethodSingleton(method, constructorBuilder));
     }
 
-    void addInitMethod(ExecutableElement method, MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("addInitMethod($L, \"$L\")", ref((TypeElement) method.getEnclosingElement()), method.getSimpleName());
+    private void addInitMethodsConfigurations(MethodSpec.Builder constructorBuilder) {
+        initMethodsConfiguration.forEach(method -> addInitMethodConfiguration(method, constructorBuilder));
+    }
 
+    private void addInitMethodSingleton(ExecutableElement method, MethodSpec.Builder constructorBuilder) {
+        constructorBuilder.addStatement("addInitMethodForSingleton($L, \"$L\")", ref((TypeElement) method.getEnclosingElement()), method.getSimpleName());
+    }
+
+    private void addInitMethodConfiguration(ExecutableElement method, MethodSpec.Builder constructorBuilder) {
+        constructorBuilder.addStatement("addInitMethodForConfiguration($L, \"$L\")", ref((TypeElement) method.getEnclosingElement()), method.getSimpleName());
     }
 
     private static String ref(TypeElement e) {

@@ -12,19 +12,24 @@ import lombok.RequiredArgsConstructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Getter
 public class ApplicationContextFactoryBase implements ApplicationContextFactory {
     private final Set<ClassReference> beanClasses = new HashSet<>();
+    private final Set<ClassReference> configurationClasses = new HashSet<>();
     private final Set<ClassReference> classesToReplace = new HashSet<>();
     private final Set<Object> loadedBeans = new HashSet<>();
-    private final Map<Class<?>, Set<Object>> cache = new HashMap<>();
-
+    private final Set<Object> loadedConfigurations = new HashSet<>();
+    private final Map<Class<?>, Set<Object>> singletonCache = new HashMap<>();
+    private final Map<Class<?>, Set<Object>> configurationCache = new HashMap<>();
     private final Set<SingleValueInjector> singleValueInjectors = new HashSet<>();
     private final Set<MultiValueInjector> multiValueInjectors = new HashSet<>();
-    private final Set<InitInvoker> initInvokers = new HashSet<>();
-    private Set<ConfigValueInjector> configValueInjectors = new HashSet<>();
+    private final Set<InitInvoker> initInvokersForSingleton = new HashSet<>();
+    private final Set<InitInvoker> initInvokersForConfiguration = new HashSet<>();
+    private final Set<ConfigValueInjector> configValueInjectorsForSingleton = new HashSet<>();
+    private final Set<ConfigValueInjector> configValueInjectorsForConfiguration = new HashSet<>();
 
     @Override
     public ApplicationContext createContext() {
@@ -42,12 +47,16 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     public void append(ApplicationContextFactory factory) {
         ApplicationContextFactoryBase factoryBase = (ApplicationContextFactoryBase) factory;
         beanClasses.addAll(factoryBase.getBeanClasses());
+        configurationClasses.addAll(factoryBase.getConfigurationClasses());
         classesToReplace.addAll(factoryBase.getClassesToReplace());
         loadedBeans.addAll(factoryBase.getLoadedBeans());
+        loadedConfigurations.addAll(factoryBase.getLoadedConfigurations());
         singleValueInjectors.addAll(factoryBase.getSingleValueInjectors());
         multiValueInjectors.addAll(factoryBase.getMultiValueInjectors());
-        initInvokers.addAll(factoryBase.getInitInvokers());
-        configValueInjectors.addAll(factoryBase.getConfigValueInjectors());
+        initInvokersForSingleton.addAll(factoryBase.getInitInvokersForSingleton());
+        initInvokersForConfiguration.addAll(factoryBase.getInitInvokersForConfiguration());
+        configValueInjectorsForSingleton.addAll(factoryBase.getConfigValueInjectorsForSingleton());
+        configValueInjectorsForConfiguration.addAll(factoryBase.getConfigValueInjectorsForConfiguration());
     }
 
     private void createBeans() {
@@ -61,11 +70,11 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     }
 
     private void doConfigParamInjection() {
-        configValueInjectors.forEach((injector -> injector.doInject(this)));
+        configValueInjectorsForSingleton.forEach(ConfigValueInjector::doInject);
     }
 
     private void invokeInitializers() {
-        initInvokers.forEach(invoker -> invoker.doInvoke(this));
+        initInvokersForSingleton.forEach(InitInvoker::doInvoke);
     }
 
 
@@ -83,12 +92,21 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
 
 
     <T> Set<T> getBeans(Class<T> c) {
-        return (Set<T>) cache.computeIfAbsent(c, this::findMatchingBeans);
+        return (Set<T>) singletonCache.computeIfAbsent(c, this::findMatchingBeans);
     }
 
+    <T> Set<T> getConfigurations(Class<T> c) {
+        return (Set<T>) configurationCache.computeIfAbsent(c, this::findMatchingConfiguration);
+    }
 
+    @SuppressWarnings("unused")
     protected void addBeanClass(ClassReference c) {
         beanClasses.add(c);
+    }
+
+    @SuppressWarnings("unused")
+    protected void addConfigurationClass(ClassReference c) {
+        configurationClasses.add(c);
     }
 
     @SuppressWarnings("unused")
@@ -114,18 +132,34 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     }
 
     @SuppressWarnings("unused")
-    protected void addInitMethod(ClassReference declaringClass, String methodName) {
-        initInvokers.add(new InitInvoker(declaringClass, methodName));
+    protected void addInitMethodForSingleton(ClassReference declaringClass, String methodName) {
+        initInvokersForSingleton.add(new InitInvoker(declaringClass, methodName, this::getBeans));
     }
 
     @SuppressWarnings("unused")
-    protected void addConfigValueField(ClassReference declaringClass, String fieldName, Class<?> fieldType, String key) {
-        configValueInjectors.add(new ConfigValueInjector(declaringClass, fieldName, fieldType, key));
+    protected void addInitMethodForConfiguration(ClassReference declaringClass, String methodName) {
+        initInvokersForConfiguration.add(new InitInvoker(declaringClass, methodName, this::getConfigurations));
+    }
+
+    @SuppressWarnings("unused")
+    protected void addConfigValueFieldInSingleton(ClassReference declaringClass, String fieldName, Class<?> fieldType, String key) {
+        configValueInjectorsForSingleton.add(new ConfigValueInjector(declaringClass, fieldName, fieldType, key, this::getBeans));
     }
 
 
+    @SuppressWarnings("unused")
+    protected void addConfigValueFieldInConfiguration(ClassReference declaringClass, String fieldName, Class<?> fieldType, String key) {
+        configValueInjectorsForConfiguration.add(new ConfigValueInjector(declaringClass, fieldName, fieldType, key, this::getConfigurations));
+    }
+
     private Set<Object> findMatchingBeans(Class<?> c) {
         return loadedBeans.stream()
+                .filter(c::isInstance)
+                .collect(Collectors.toSet());
+    }
+
+    private Set<Object> findMatchingConfiguration(Class<?> c) {
+        return loadedConfigurations.stream()
                 .filter(c::isInstance)
                 .collect(Collectors.toSet());
     }
@@ -218,9 +252,10 @@ class ConfigValueInjector {
     private final String fieldName;
     private final Class<?> fieldType;
     private final String key;
+    private final Function<Class<?>, Set<?>> selectFunction;
 
-    void doInject(ApplicationContextFactoryBase factory) {
-        factory.getBeans(declaringClass.getClazz()).forEach(bean -> doInject(bean));
+    void doInject() {
+        selectFunction.apply(declaringClass.getClazz()).forEach(bean -> doInject(bean));
     }
 
     private void doInject(Object bean) {
@@ -238,9 +273,10 @@ class ConfigValueInjector {
 class InitInvoker {
     private final ClassReference declaringClass;
     private final String methodName;
+    private final Function<Class<?>, Set<?>> selectFunction;
 
-    void doInvoke(ApplicationContextFactoryBase factory) {
-        factory.getBeans(declaringClass.getClazz()).forEach(bean -> doInvokeMethod(bean));
+    void doInvoke() {
+        selectFunction.apply(declaringClass.getClazz()).forEach(bean -> doInvokeMethod(bean));
     }
 
     private void doInvokeMethod(Object bean) {

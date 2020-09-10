@@ -7,7 +7,10 @@ import com.ejc.util.ProcessorUtils;
 import com.ejc.util.ReflectionUtils;
 import com.google.auto.service.AutoService;
 
-import javax.annotation.processing.*;
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Processor;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeKind;
@@ -31,7 +34,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     private Set<ExecutableElement> beanMethods = new HashSet<>();
     private Set<VariableElement> singleValueDependencies = new HashSet<>();
     private Set<VariableElement> multiValueDependencies = new HashSet<>();
-    private Set<VariableElement> configValues = new HashSet<>();
+    private Set<VariableElement> configFields = new HashSet<>();
     private Set<TypeElement> singletons = new HashSet<>();
     private Set<TypeElement> configurations = new HashSet<>();
     private Map<TypeElement, TypeElement> implementations = new HashMap<>();
@@ -44,19 +47,6 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     }
 
     @Override
-    public synchronized void init(ProcessingEnvironment processingEnv) {
-        initMethods.clear();
-        beanMethods.clear();
-        singleValueDependencies.clear();
-        multiValueDependencies.clear();
-        singletons.clear();
-        configurations.clear();
-        implementations.clear();
-        super.init(processingEnv);
-    }
-
-
-    @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         try {
             if (!roundEnv.processingOver()) {
@@ -64,7 +54,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 processBeanMethods(roundEnv);
                 processSingleValueDependencies(roundEnv);
                 processMultiValueDependencies(roundEnv);
-                processConfigValues(roundEnv);
+                processConfigFields(roundEnv);
                 processSingletons(roundEnv);
                 processConfigurations(roundEnv);
                 processImplementations(roundEnv);
@@ -110,8 +100,8 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 .collect(Collectors.toSet()));
     }
 
-    private void processConfigValues(RoundEnvironment roundEnv) {
-        configValues.addAll(roundEnv.getElementsAnnotatedWith(Value.class).stream()
+    private void processConfigFields(RoundEnvironment roundEnv) {
+        configFields.addAll(roundEnv.getElementsAnnotatedWith(Value.class).stream()
                 .map(VariableElement.class::cast)
                 .collect(Collectors.toSet()));
     }
@@ -241,10 +231,12 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
 
     private void writeApplicationContextFactory() throws IOException {
         ApplicationContextFactoryWriter writer = ApplicationContextFactoryWriter.builder()
-                .initMethods(initMethods)
+                .initMethodsSingleton(getInitMethodsSingleton())
+                .initMethodsConfiguration(getInitMethodsConfiguration())
                 .multiValueDependencies(multiValueDependencies)
                 .singleValueDependencies(singleValueDependencies)
-                .configValues(configValues)
+                .configFieldsSingleton(getConfigFieldsSingleton())
+                .configFieldsConfiguration(getConfigFieldsConfiguration())
                 .singletons(singletons)
                 .implementations(implementations)
                 .packageName(packageName)
@@ -253,6 +245,31 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 .configurations(configurations)
                 .build();
         writer.write();
+    }
+
+    private Set<ExecutableElement> getInitMethodsSingleton() {
+        return initMethods.stream()
+                .filter(e -> e.getEnclosingElement().getAnnotation(Singleton.class) != null)
+                .collect(Collectors.toSet());
+    }
+
+    private Set<ExecutableElement> getInitMethodsConfiguration() {
+        return initMethods.stream()
+                .filter(e -> e.getEnclosingElement().getAnnotation(Configuration.class) != null)
+                .collect(Collectors.toSet());
+    }
+
+    private Set<VariableElement> getConfigFieldsSingleton() {
+        return configFields.stream()
+                .filter(e -> e.getEnclosingElement().getAnnotation(Singleton.class) != null)
+                .collect(Collectors.toSet());
+    }
+
+
+    private Set<VariableElement> getConfigFieldsConfiguration() {
+        return configFields.stream()
+                .filter(e -> e.getEnclosingElement().getAnnotation(Configuration.class) != null)
+                .collect(Collectors.toSet());
     }
 
     private void writeContextFile() {
