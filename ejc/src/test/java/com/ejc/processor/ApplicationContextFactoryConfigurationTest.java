@@ -13,7 +13,7 @@ import static com.ejc.processor.ProcessorTestUtil.bindClassLoader;
 import static com.google.testing.compile.Compiler.javac;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ApplicationContextFactoryInitTest {
+class ApplicationContextFactoryConfigurationTest {
 
     private Compiler compiler;
     private JavaFileObject[] files;
@@ -21,7 +21,7 @@ class ApplicationContextFactoryInitTest {
     @BeforeEach
     void init() {
         compiler = javac().withProcessors(new ApplicationContextFactoryProcessor());
-        files = ProcessorTestUtil.javaFileObjects("com/ejc/processor/context/init", "TestBean1.java", "TestBean2.java");
+        files = ProcessorTestUtil.javaFileObjects("com/ejc/processor/context/config", "TestBean1.java", "TestBean2.java");
     }
 
     @Test

@@ -30,15 +30,20 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     private final Set<InitInvoker> initInvokersForConfiguration = new HashSet<>();
     private final Set<ConfigValueInjector> configValueInjectorsForSingleton = new HashSet<>();
     private final Set<ConfigValueInjector> configValueInjectorsForConfiguration = new HashSet<>();
+    private final Set<LoadBeanMethodInvoker> loadBeanMethodInvoker = new HashSet<>();
 
     @Override
     public ApplicationContext createContext() {
+        createConfigurations();
+        doConfigParamInjectionConfigurations();
+        invokeInitializersOnConfigurations();
         createBeans();
-        doConfigParamInjection();
+        doConfigParamInjectionBeans();
         doDependencyInjection();
-        invokeInitializers();
+        invokeInitializersOnBeans();
         return new ApplicationContextImpl(loadedBeans);
     }
+
 
     public void removeBeanClasses(Collection<ClassReference> classes) {
         beanClasses.removeAll(classes);
@@ -60,7 +65,16 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     }
 
     private void createBeans() {
+        loadedBeans.addAll(loadBeanMethodInvoker.stream()
+                .map(LoadBeanMethodInvoker::doInvoke)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet()));
         loadedBeans.addAll(beanClasses.stream()
+                .map(this::createInstance).collect(Collectors.toSet()));
+    }
+
+    private void createConfigurations() {
+        loadedConfigurations.addAll(configurationClasses.stream()
                 .map(this::createInstance).collect(Collectors.toSet()));
     }
 
@@ -69,12 +83,20 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
         multiValueInjectors.forEach(injector -> injector.doInject(this));
     }
 
-    private void doConfigParamInjection() {
+    private void doConfigParamInjectionBeans() {
         configValueInjectorsForSingleton.forEach(ConfigValueInjector::doInject);
     }
 
-    private void invokeInitializers() {
+    private void doConfigParamInjectionConfigurations() {
+        configValueInjectorsForConfiguration.forEach(ConfigValueInjector::doInject);
+    }
+
+    private void invokeInitializersOnBeans() {
         initInvokersForSingleton.forEach(InitInvoker::doInvoke);
+    }
+
+    private void invokeInitializersOnConfigurations() {
+        initInvokersForConfiguration.forEach(InitInvoker::doInvoke);
     }
 
 
@@ -133,6 +155,11 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
 
     @SuppressWarnings("unused")
     protected void addInitMethodForSingleton(ClassReference declaringClass, String methodName) {
+        initInvokersForSingleton.add(new InitInvoker(declaringClass, methodName, this::getBeans));
+    }
+
+    @SuppressWarnings("unused")
+    protected void addBeanMethod(ClassReference declaringClass, String methodName) {
         initInvokersForSingleton.add(new InitInvoker(declaringClass, methodName, this::getBeans));
     }
 
@@ -289,4 +316,28 @@ class InitInvoker {
         }
     }
 }
+
+@RequiredArgsConstructor
+class LoadBeanMethodInvoker {
+    private final ClassReference declaringClass;
+    private final String methodName;
+    private final ApplicationContextFactoryBase factoryBase;
+
+    Collection<Object> doInvoke() {
+        return factoryBase.getConfigurations(declaringClass.getClazz()).stream()
+                .map(this::doInvokeMethod)
+                .collect(Collectors.toSet());
+    }
+
+    private Object doInvokeMethod(Object bean) {
+        try {
+            Method method = bean.getClass().getDeclaredMethod(methodName);
+            method.setAccessible(true);
+            return method.invoke(bean);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+
 
