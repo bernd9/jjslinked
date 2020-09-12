@@ -1,16 +1,19 @@
 package com.ejc.http.api.controller;
 
+import com.ejc.api.context.ClassReference;
 import com.ejc.util.TypeUtils;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+@Getter
 @RequiredArgsConstructor
-public class ParameterProviderForUrlParam<T> implements ParameterProvider<T> {
+public class ParameterProviderForUrlParam implements ParameterProvider {
     private final String parameterKey;
-    private final Class<T> parameterType;
+    private final ClassReference parameterType;
 
     @Override
-    public T provide(ControllerMethodInvocationContext context) {
+    public Object provide(ControllerMethodInvocationContext context) {
         String param = context.getPathVariables().get(parameterKey);
-        return TypeUtils.convertSimple(param, parameterType);
+        return TypeUtils.convertSimple(param, parameterType.getClazz());
     }
 }

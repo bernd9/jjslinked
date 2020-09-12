@@ -8,7 +8,14 @@ import java.util.List;
 public class UrlPattern {
 
     @Getter
-    private final List<UrlFragment> urlFragments = new LinkedList<>();
+    private List<UrlFragment> urlFragments = new LinkedList<>();
+
+    public UrlPattern() {
+    }
+
+    public UrlPattern(List<UrlFragment> urlFragments) {
+        this.urlFragments = urlFragments;
+    }
 
     public void addPathFragment(String path) {
         urlFragments.add(new UrlPathFragment(path));

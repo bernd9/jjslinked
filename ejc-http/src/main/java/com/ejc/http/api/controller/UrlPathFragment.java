@@ -11,4 +11,9 @@ public class UrlPathFragment implements UrlFragment {
     public boolean matches(@NonNull String part) {
         return part.equals(value);
     }
+
+    @Override
+    public String toString() {
+        return value;
+    }
 }

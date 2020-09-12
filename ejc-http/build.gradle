@@ -5,7 +5,7 @@ plugins {
 group 'com.ejc'
 version '1.0-SNAPSHOT'
 
-sourceCompatibility = 1.8
+sourceCompatibility = 11
 
 repositories {
     mavenCentral()
@@ -14,6 +14,8 @@ repositories {
 dependencies {
     implementation files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
     //annotationProcessor files('../jjslinked-api/build/libs/jjslinked-api-1.0-SNAPSHOT.jar')
+    annotationProcessor(group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7')
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
     annotationProcessor files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
 
     // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server

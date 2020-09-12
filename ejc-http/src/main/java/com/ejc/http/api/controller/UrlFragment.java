@@ -2,7 +2,7 @@ package com.ejc.http.api.controller;
 
 import java.util.Map;
 
-interface UrlFragment {
+public interface UrlFragment {
 
     default boolean matches(String part) {
         return true;

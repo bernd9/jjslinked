@@ -37,7 +37,7 @@ class ControllerMethodInvoker {
     }
 
     private void doInvocation(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        List<ControllerMethod> methods = getMatchingMethods(request, response);
+        var methods = getMatchingMethods(request, response);
         switch (methods.size()) {
             case 0:
                 throw new ControllerMethodMappingException(request, "no mapping");
@@ -49,17 +49,18 @@ class ControllerMethodInvoker {
     }
 
     private void doInvocation(ControllerMethod controllerMethod, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        ControllerMethodInvocationContext context = createInvocationContext(controllerMethod, request, response);
-        Object controller = applicationContext.getBean(controllerMethod.getControllerClass());
-        Method method = getMethod(controller, controllerMethod);
-        Object[] parameters = getParameters(controllerMethod, context).toArray();
-        Object returnValue = method.invoke(controller, parameters);
+        var context = createInvocationContext(controllerMethod, request, response);
+        var controller = applicationContext.getBean(controllerMethod.getControllerClass());
+        var method = getMethod(controller, controllerMethod);
+        var parameters = getParameters(controllerMethod, context).toArray();
+        var returnValue = method.invoke(controller, parameters);
         responder.sendResponse(returnValue, request, response);
     }
 
 
     private Method getMethod(Object controller, ControllerMethod controllerMethod) throws Exception {
-        Method method = controller.getClass().getMethod(controllerMethod.getMethodName(), controllerMethod.getParameterTypes());
+        var types = controllerMethod.getParameterTypes().stream().toArray(size -> new Class[size]);
+        var method = controller.getClass().getMethod(controllerMethod.getMethodName(), types);
         method.setAccessible(true);
         return method;
     }
