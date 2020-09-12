@@ -91,7 +91,8 @@ public class ApplicationContextFactoryWriter {
     }
 
     private void addConfigFieldSingleton(VariableElement field, MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("addConfigValueFieldInSingleton($L, \"$L\", $T.class, \"$L\")", ref((TypeElement) field.getEnclosingElement()), field.getSimpleName(), field.asType(), getValueKey(field));
+        constructorBuilder.addStatement("addConfigValueFieldInSingleton($L, \"$L\", $T.class, \"$L\", \"$L\")", ref((TypeElement) field.getEnclosingElement()),
+                field.getSimpleName(), field.asType(), getValueKey(field), getValueDefaultValue(field));
     }
 
     private void addConfigFieldsConfiguration(MethodSpec.Builder constructorBuilder) {
@@ -99,11 +100,16 @@ public class ApplicationContextFactoryWriter {
     }
 
     private void addConfigFieldConfiguration(VariableElement field, MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("addConfigValueFieldInConfiguration($L, \"$L\", $T.class, \"$L\")", ref((TypeElement) field.getEnclosingElement()), field.getSimpleName(), field.asType(), getValueKey(field));
+        constructorBuilder.addStatement("addConfigValueFieldInConfiguration($L, \"$L\", $T.class, \"$L\", \"$L\")", ref((TypeElement) field.getEnclosingElement()),
+                field.getSimpleName(), field.asType(), getValueKey(field), getValueDefaultValue(field));
     }
 
     private String getValueKey(VariableElement field) {
-        return field.getAnnotation(Value.class).value();
+        return field.getAnnotation(Value.class).key();
+    }
+
+    private String getValueDefaultValue(VariableElement field) {
+        return field.getAnnotation(Value.class).defaultValue();
     }
 
     void addImplementations(MethodSpec.Builder constructorBuilder) {

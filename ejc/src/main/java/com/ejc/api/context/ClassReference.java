@@ -1,6 +1,7 @@
 package com.ejc.api.context;
 
 import com.ejc.util.InstanceUtils;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
@@ -11,6 +12,8 @@ public class ClassReference {
     private static Map<String, ClassReference> references = new HashMap<>();
 
     private Class<?> clazz;
+
+    @Getter
     private final String className;
 
     ClassReference(Class<?> c) {

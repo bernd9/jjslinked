@@ -56,4 +56,19 @@ public class Config {
             throw new IllegalPropertyTypeException(name, property, type);
         }
     }
+
+    public static <T> T getProperty(String name, Class<T> type, String defaultValue) throws PropertyNotFoundException {
+        String property = getProperties().getProperty(name);
+        if (property == null) {
+            if (defaultValue.isEmpty())
+                throw new PropertyNotFoundException(name);
+            else
+                property = defaultValue;
+        }
+        try {
+            return TypeUtils.convertSimple(property, type);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalPropertyTypeException(name, property, type);
+        }
+    }
 }

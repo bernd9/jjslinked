@@ -1,5 +1,7 @@
 package com.ejc;
 
 public @interface Value {
-    String value();
+    String key();
+
+    String defaultValue() default "";
 }

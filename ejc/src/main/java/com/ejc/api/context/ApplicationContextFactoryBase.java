@@ -169,14 +169,14 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     }
 
     @SuppressWarnings("unused")
-    protected void addConfigValueFieldInSingleton(ClassReference declaringClass, String fieldName, Class<?> fieldType, String key) {
-        configValueInjectorsForSingleton.add(new ConfigValueInjector(declaringClass, fieldName, fieldType, key, this::getBeans));
+    protected void addConfigValueFieldInSingleton(ClassReference declaringClass, String fieldName, Class<?> fieldType, String key, String defaultValue) {
+        configValueInjectorsForSingleton.add(new ConfigValueInjector(declaringClass, fieldName, fieldType, key, defaultValue, this::getBeans));
     }
 
 
     @SuppressWarnings("unused")
-    protected void addConfigValueFieldInConfiguration(ClassReference declaringClass, String fieldName, Class<?> fieldType, String key) {
-        configValueInjectorsForConfiguration.add(new ConfigValueInjector(declaringClass, fieldName, fieldType, key, this::getConfigurations));
+    protected void addConfigValueFieldInConfiguration(ClassReference declaringClass, String fieldName, Class<?> fieldType, String key, String defaultValue) {
+        configValueInjectorsForConfiguration.add(new ConfigValueInjector(declaringClass, fieldName, fieldType, key, defaultValue, this::getConfigurations));
     }
 
     private Set<Object> findMatchingBeans(Class<?> c) {
@@ -279,6 +279,7 @@ class ConfigValueInjector {
     private final String fieldName;
     private final Class<?> fieldType;
     private final String key;
+    private final String defaultValue;
     private final Function<Class<?>, Set<?>> selectFunction;
 
     void doInject() {
@@ -289,7 +290,7 @@ class ConfigValueInjector {
         try {
             Field field = ReflectionUtils.getField(bean, fieldName);
             field.setAccessible(true);
-            field.set(bean, Config.getProperty(key, fieldType));
+            field.set(bean, Config.getProperty(key, fieldType, defaultValue));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
