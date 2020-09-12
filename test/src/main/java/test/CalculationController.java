@@ -1,14 +1,19 @@
 package test;
 
 import com.ejc.http.Get;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 public class CalculationController {
 
-    @Getter
-    @RequiredArgsConstructor
+
     class Greeting {
+        public String getValue() {
+            return value;
+        }
+
+        public Greeting(String value) {
+            this.value = value;
+        }
+
         private final String value;
     }
 

@@ -42,7 +42,7 @@ class ControllerMethodWriter {
         MethodSpec.Builder builder = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement("setMethodName(\"$L\")", methodElement.getSimpleName())
-                .addStatement("setHttpMethod($T.\"$L\")", HttpMethod.class, httpMethod.name());
+                .addStatement("setHttpMethod($T.$L)", HttpMethod.class, httpMethod.name());
         addParameterTypes(builder);
         addUrlPattern(builder);
         addParameterProviders(builder);
@@ -73,7 +73,7 @@ class ControllerMethodWriter {
 
     private void addUrlPattern(MethodSpec.Builder builder) {
         UrlPattern urlPattern = UrlPatternParser.parse(url);
-        builder.addStatement("$T urlPattern = new T()", UrlPattern.class);
+        builder.addStatement("$T urlPattern = new $T()", UrlPattern.class, UrlPattern.class);
         builder.addStatement("setUrlPattern(urlPattern)", UrlPattern.class);
         urlPattern.getUrlFragments().stream().forEach(fragment -> addUrlFragment(builder, fragment));
     }

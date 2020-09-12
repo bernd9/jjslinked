@@ -99,7 +99,7 @@ public class ControllerMethodAnnotationProcessor extends AbstractProcessor {
     }
 
     private String randomClassName() {
-        return UUID.randomUUID().toString();
+        return "Invoker_" + UUID.randomUUID().toString().replace("-", "");
     }
 
     protected void log(String message, Object... args) {

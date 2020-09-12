@@ -34,6 +34,8 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
 
     @Override
     public ApplicationContext createContext() {
+        ApplicationContextImpl applicationContext = new ApplicationContextImpl();
+        loadedBeans.add(applicationContext);
         createConfigurations();
         doConfigParamInjectionConfigurations();
         invokeInitializersOnConfigurations();
@@ -41,7 +43,8 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
         doConfigParamInjectionBeans();
         doDependencyInjection();
         invokeInitializersOnBeans();
-        return new ApplicationContextImpl(loadedBeans);
+        applicationContext.addBeans(loadedBeans);
+        return applicationContext;
     }
 
 
@@ -53,6 +56,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
         ApplicationContextFactoryBase factoryBase = (ApplicationContextFactoryBase) factory;
         beanClasses.addAll(factoryBase.getBeanClasses());
         configurationClasses.addAll(factoryBase.getConfigurationClasses());
+        loadBeanMethodInvokers.addAll(factoryBase.getLoadBeanMethodInvokers());
         classesToReplace.addAll(factoryBase.getClassesToReplace());
         loadedBeans.addAll(factoryBase.getLoadedBeans());
         loadedConfigurations.addAll(factoryBase.getLoadedConfigurations());
@@ -66,7 +70,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
 
     private void createBeans() {
         loadedBeans.addAll(loadBeanMethodInvokers.stream()
-                .map(LoadBeanMethodInvoker::doInvoke)
+                .map(invoker -> invoker.doInvoke(this))
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet()));
         loadedBeans.addAll(beanClasses.stream()
@@ -160,7 +164,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
 
     @SuppressWarnings("unused")
     protected void addLoadBeanMethod(ClassReference declaringClass, String methodName) {
-        loadBeanMethodInvokers.add(new LoadBeanMethodInvoker(declaringClass, methodName, this));
+        loadBeanMethodInvokers.add(new LoadBeanMethodInvoker(declaringClass, methodName));
     }
 
     @SuppressWarnings("unused")
@@ -322,9 +326,8 @@ class InitInvoker {
 class LoadBeanMethodInvoker {
     private final ClassReference declaringClass;
     private final String methodName;
-    private final ApplicationContextFactoryBase factoryBase;
 
-    Collection<Object> doInvoke() {
+    Collection<Object> doInvoke(ApplicationContextFactoryBase factoryBase) {
         return factoryBase.getConfigurations(declaringClass.getClazz()).stream()
                 .map(this::doInvokeMethod)
                 .collect(Collectors.toSet());

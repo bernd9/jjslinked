@@ -14,6 +14,7 @@ public class UrlPatternParser {
 
     public static UrlPattern parse(String url) {
         return new UrlPattern(Arrays.stream(url.split("/"))
+                .filter(s -> !s.isEmpty())
                 .map(file -> toUrlFragment(file, url))
                 .collect(Collectors.toList()));
     }

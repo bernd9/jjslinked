@@ -2,7 +2,7 @@ package com.ejc.http.api.controller;
 
 import com.ejc.http.HttpMethod;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.servlet.http.HttpServletRequest;
@@ -12,14 +12,14 @@ import java.util.Map;
 
 @Getter
 @Setter
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class ControllerMethod {
-    private final Class<?> controllerClass;
-    private final String methodName;
+    private Class<?> controllerClass;
+    private String methodName;
     private final List<Class<?>> parameterTypes = new ArrayList<>();
     private final List<ParameterProvider<?>> parameterProviders = new ArrayList<>();
-    private final HttpMethod httpMethod;
-    private final UrlPattern urlPattern;
+    private HttpMethod httpMethod;
+    private UrlPattern urlPattern;
 
     public boolean httpMethodMatches(HttpServletRequest request) {
         return request.getMethod().equals(httpMethod.name());

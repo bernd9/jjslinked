@@ -12,14 +12,7 @@ public class ApplicationContextImpl extends ApplicationContext {
     private final Set<Object> beans = new HashSet<>();
 
     public ApplicationContextImpl() {
-        beans.add(this);
     }
-
-    public ApplicationContextImpl(Set<Object> beansToAdd) {
-        this();
-        beans.addAll(beansToAdd);
-    }
-
 
     public <T> void replaceBean(Class<T> t, T bean) {
         try {
@@ -35,8 +28,8 @@ public class ApplicationContextImpl extends ApplicationContext {
         beans.add(bean);
     }
 
-    void addBeans(Collection<Object> beans) {
-        beans.addAll(beans);
+    public void addBeans(Collection<Object> beanToAdd) {
+        this.beans.addAll(beanToAdd);
     }
 
     @Override

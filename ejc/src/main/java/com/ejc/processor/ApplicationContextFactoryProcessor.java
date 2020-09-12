@@ -114,9 +114,11 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
 
 
     private void processConfigurations(RoundEnvironment roundEnv) {
+        log("processing configurations");
         configurations.addAll(roundEnv.getElementsAnnotatedWith(Configuration.class).stream()
                 .map(TypeElement.class::cast)
                 .collect(Collectors.toSet()));
+        log("number of  configurations after processing: " + configurations.size());
     }
 
     private void processImplementations(RoundEnvironment roundEnv) {

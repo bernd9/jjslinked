@@ -6,6 +6,7 @@ group 'com.ejc'
 version '1.0-SNAPSHOT'
 
 sourceCompatibility = 11
+targetCompatibility = 11
 
 repositories {
     mavenCentral()
@@ -38,7 +39,7 @@ dependencies {
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.11.0'
 
-    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.11.2'
+    //compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.11.2'
 
     // https://mvnrepository.com/artifact/com.github.jknack/handlebars
     //compile group: 'com.github.jknack', name: 'handlebars', version: '4.2.0'
