@@ -4,10 +4,12 @@ import com.ejc.ApplicationContext;
 import com.ejc.Inject;
 import com.ejc.InjectAll;
 import com.ejc.Singleton;
+import com.ejc.http.api.HttpResponder;
 import com.ejc.http.exception.ExceptionHandler;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,7 +20,10 @@ class ControllerMethodInvoker {
     private ExceptionHandler exceptionHandler;
 
     @Inject
-    private ApplicationContext context;
+    private ApplicationContext applicationContext;
+
+    @Inject
+    private HttpResponder responder;
 
     @InjectAll
     private List<ControllerMethod> controllerMethods;
@@ -31,29 +36,53 @@ class ControllerMethodInvoker {
         }
     }
 
-    private void doInvocation(HttpServletRequest request, HttpServletResponse response) {
-        List<ControllerMethodInvocationContext> contexts = contextForMatchingMethods(request, response);
-        switch (contexts.size()) {
+    private void doInvocation(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        List<ControllerMethod> methods = getMatchingMethods(request, response);
+        switch (methods.size()) {
             case 0:
                 throw new ControllerMethodMappingException(request, "no mapping");
             case 1:
-                doInvocation(contexts.get(0));
+                doInvocation(methods.get(0), request, response);
             default:
                 throw new ControllerMethodMappingException(request, "ambiguous mapping");
         }
     }
 
-    private void doInvocation(ControllerMethodInvocationContext context) {
-
+    private void doInvocation(ControllerMethod controllerMethod, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        ControllerMethodInvocationContext context = createInvocationContext(controllerMethod, request, response);
+        Object controller = applicationContext.getBean(controllerMethod.getControllerClass());
+        Method method = getMethod(controller, controllerMethod);
+        Object[] parameters = getParameters(controllerMethod, context).toArray();
+        Object returnValue = method.invoke(controller, parameters);
+        responder.sendResponse(returnValue, request, response);
     }
 
 
-    private List<ControllerMethodInvocationContext> contextForMatchingMethods(HttpServletRequest request, HttpServletResponse response) {
-        return controllerMethods.stream()//
-                .filter(method -> method.httpMethodMatches(request))
-                .filter(method -> method.pathMatches(request))
-                .map(method -> new ControllerMethodInvocationContext(method, request, response, method.getPathVariables(request)))
+    private Method getMethod(Object controller, ControllerMethod controllerMethod) throws Exception {
+        Method method = controller.getClass().getMethod(controllerMethod.getMethodName(), controllerMethod.getParameterTypes());
+        method.setAccessible(true);
+        return method;
+    }
+
+    private List<Object> getParameters(ControllerMethod method, ControllerMethodInvocationContext context) {
+        return method.getParameterProviders().stream()
+                .map(provider -> provider.provide(context))
                 .collect(Collectors.toList());
     }
 
+    private ControllerMethodInvocationContext createInvocationContext(ControllerMethod method, HttpServletRequest request, HttpServletResponse response) {
+        return ControllerMethodInvocationContext.builder()
+                .applicationContext(applicationContext)
+                .pathVariables(method.getPathVariables(request))
+                .request(request)
+                .response(response)
+                .build();
+    }
+
+    private List<ControllerMethod> getMatchingMethods(HttpServletRequest request, HttpServletResponse response) {
+        return controllerMethods.stream()
+                .filter(method -> method.httpMethodMatches(request))
+                .filter(method -> method.pathMatches(request))
+                .collect(Collectors.toList());
+    }
 }

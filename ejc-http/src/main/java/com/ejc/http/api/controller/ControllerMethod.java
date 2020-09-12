@@ -1,24 +1,23 @@
 package com.ejc.http.api.controller;
 
-import com.ejc.util.InstanceUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Collection;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Getter
+@Value
 @RequiredArgsConstructor
 public class ControllerMethod {
     private final Class<?> controllerClass;
     private final String methodName;
-    private final Collection<String> parameterTypes;
+    private final Class<?> parameterTypes;
+    private final Collection<ParameterProvider<?>> parameterProviders;
     private final String httpMethod;
     private final UrlPattern urlPattern;
-    private List<Class<?>> parameterClasses;
 
     public boolean httpMethodMatches(HttpServletRequest request) {
         return request.getMethod().equals(httpMethod);
@@ -32,11 +31,5 @@ public class ControllerMethod {
         return urlPattern.matcher(request.getRequestURI()).getPathVariables();
     }
 
-    public List<Class<?>> getParameterClasses() {
-        if (parameterClasses == null) {
-            parameterClasses = parameterTypes.stream().map(InstanceUtils::classForName).collect(Collectors.toList());
-        }
-        return parameterClasses;
-    }
 
 }
