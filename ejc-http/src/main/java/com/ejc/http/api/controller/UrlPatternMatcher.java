@@ -3,8 +3,11 @@ package com.ejc.http.api.controller;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 class UrlPatternMatcher {
@@ -15,16 +18,16 @@ class UrlPatternMatcher {
     private Map<String, String> pathVariables = new HashMap<>();
 
     boolean matches() {
-        String[] parts = path.split("/");
-        if (parts.length != urlPattern.getUrlFragments().size()) {
+        List<String> parts = Arrays.stream(path.split("/")).filter(s -> !s.isEmpty()).collect(Collectors.toList());
+        if (parts.size() != urlPattern.getUrlFragments().size()) {
             return false;
         }
-        for (int i = 0; i < parts.length; i++) {
+        for (int i = 0; i < parts.size(); i++) {
             UrlFragment urlFragment = urlPattern.getUrlFragments().get(i);
-            if (!urlFragment.matches(parts[i])) {
+            if (!urlFragment.matches(parts.get(i))) {
                 return false;
             }
-            urlFragment.apply(parts[i], pathVariables);
+            urlFragment.apply(parts.get(i), pathVariables);
         }
         return true;
     }

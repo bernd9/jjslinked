@@ -1,5 +1,8 @@
 package com.ejc.http.api;
 
+import com.ejc.ApplicationContext;
+import com.ejc.http.api.controller.ControllerMethodInvoker;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -10,6 +13,7 @@ public class MainServlet extends HttpServlet {
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        super.service(req, resp);
+        ControllerMethodInvoker invoker = ApplicationContext.getInstance().getBean(ControllerMethodInvoker.class);
+        invoker.invoke(req, resp);
     }
 }

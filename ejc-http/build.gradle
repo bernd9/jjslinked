@@ -14,10 +14,11 @@ repositories {
 dependencies {
     implementation files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
     //annotationProcessor files('../jjslinked-api/build/libs/jjslinked-api-1.0-SNAPSHOT.jar')
-    annotationProcessor(group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7')
-    annotationProcessor 'org.projectlombok:lombok:1.18.12'
-    annotationProcessor files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
 
+    annotationProcessor(group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7')
+
+    annotationProcessor files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
     // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server
     compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.31.v20200723'
 

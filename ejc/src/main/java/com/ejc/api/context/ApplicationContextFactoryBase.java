@@ -44,6 +44,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
         doDependencyInjection();
         invokeInitializersOnBeans();
         applicationContext.addBeans(loadedBeans);
+        ApplicationContext.instance = applicationContext;
         return applicationContext;
     }
 
@@ -88,19 +89,19 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     }
 
     private void doConfigParamInjectionBeans() {
-        configValueInjectorsForSingleton.forEach(ConfigValueInjector::doInject);
+        configValueInjectorsForSingleton.forEach(configValueInjector -> configValueInjector.doInject(this::getBeans));
     }
 
     private void doConfigParamInjectionConfigurations() {
-        configValueInjectorsForConfiguration.forEach(ConfigValueInjector::doInject);
+        configValueInjectorsForConfiguration.forEach(configValueInjector -> configValueInjector.doInject(this::getConfigurations));
     }
 
     private void invokeInitializersOnBeans() {
-        initInvokersForSingleton.forEach(InitInvoker::doInvoke);
+        initInvokersForSingleton.forEach(invoker -> invoker.doInvoke(this::getBeans));
     }
 
     private void invokeInitializersOnConfigurations() {
-        initInvokersForConfiguration.forEach(InitInvoker::doInvoke);
+        initInvokersForConfiguration.forEach(invoker -> invoker.doInvoke(this::getConfigurations));
     }
 
 
@@ -159,7 +160,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
 
     @SuppressWarnings("unused")
     protected void addInitMethodForSingleton(ClassReference declaringClass, String methodName) {
-        initInvokersForSingleton.add(new InitInvoker(declaringClass, methodName, this::getBeans));
+        initInvokersForSingleton.add(new InitInvoker(declaringClass, methodName));
     }
 
     @SuppressWarnings("unused")
@@ -169,18 +170,18 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
 
     @SuppressWarnings("unused")
     protected void addInitMethodForConfiguration(ClassReference declaringClass, String methodName) {
-        initInvokersForConfiguration.add(new InitInvoker(declaringClass, methodName, this::getConfigurations));
+        initInvokersForConfiguration.add(new InitInvoker(declaringClass, methodName));
     }
 
     @SuppressWarnings("unused")
     protected void addConfigValueFieldInSingleton(ClassReference declaringClass, String fieldName, Class<?> fieldType, String key, String defaultValue) {
-        configValueInjectorsForSingleton.add(new ConfigValueInjector(declaringClass, fieldName, fieldType, key, defaultValue, this::getBeans));
+        configValueInjectorsForSingleton.add(new ConfigValueInjector(declaringClass, fieldName, fieldType, key, defaultValue));
     }
 
 
     @SuppressWarnings("unused")
     protected void addConfigValueFieldInConfiguration(ClassReference declaringClass, String fieldName, Class<?> fieldType, String key, String defaultValue) {
-        configValueInjectorsForConfiguration.add(new ConfigValueInjector(declaringClass, fieldName, fieldType, key, defaultValue, this::getConfigurations));
+        configValueInjectorsForConfiguration.add(new ConfigValueInjector(declaringClass, fieldName, fieldType, key, defaultValue));
     }
 
     private Set<Object> findMatchingBeans(Class<?> c) {
@@ -284,9 +285,8 @@ class ConfigValueInjector {
     private final Class<?> fieldType;
     private final String key;
     private final String defaultValue;
-    private final Function<Class<?>, Set<?>> selectFunction;
 
-    void doInject() {
+    void doInject(Function<Class<?>, Set<?>> selectFunction) {
         selectFunction.apply(declaringClass.getClazz()).forEach(bean -> doInject(bean));
     }
 
@@ -305,9 +305,8 @@ class ConfigValueInjector {
 class InitInvoker {
     private final ClassReference declaringClass;
     private final String methodName;
-    private final Function<Class<?>, Set<?>> selectFunction;
 
-    void doInvoke() {
+    void doInvoke(Function<Class<?>, Set<?>> selectFunction) {
         selectFunction.apply(declaringClass.getClazz()).forEach(bean -> doInvokeMethod(bean));
     }
 

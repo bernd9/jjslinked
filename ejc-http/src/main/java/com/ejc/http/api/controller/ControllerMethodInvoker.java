@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Singleton
-class ControllerMethodInvoker {
+public class ControllerMethodInvoker {
 
     @Inject
     private ExceptionHandler exceptionHandler;
@@ -28,7 +28,7 @@ class ControllerMethodInvoker {
     @InjectAll
     private List<ControllerMethod> controllerMethods;
 
-    void invoke(HttpServletRequest request, HttpServletResponse response) {
+    public void invoke(HttpServletRequest request, HttpServletResponse response) {
         try {
             doInvocation(request, response);
         } catch (Exception e) {
