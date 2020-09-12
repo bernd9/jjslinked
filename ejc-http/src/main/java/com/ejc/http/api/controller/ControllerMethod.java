@@ -1,5 +1,6 @@
 package com.ejc.http.api.controller;
 
+import com.ejc.api.context.ClassReference;
 import com.ejc.http.HttpMethod;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,7 +15,7 @@ import java.util.Map;
 @Setter
 @NoArgsConstructor
 public class ControllerMethod {
-    private Class<?> controllerClass;
+    private ClassReference controllerClass;
     private String methodName;
     private final List<Class<?>> parameterTypes = new ArrayList<>();
     private final List<ParameterProvider<?>> parameterProviders = new ArrayList<>();

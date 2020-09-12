@@ -41,6 +41,7 @@ class ControllerMethodWriter {
     private MethodSpec constructor() {
         MethodSpec.Builder builder = MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
+                .addStatement("setControllerClass($T.getRef(\"$L\"))", ClassReference.class, methodElement.getEnclosingElement())
                 .addStatement("setMethodName(\"$L\")", methodElement.getSimpleName())
                 .addStatement("setHttpMethod($T.$L)", HttpMethod.class, httpMethod.name());
         addParameterTypes(builder);

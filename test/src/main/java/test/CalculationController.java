@@ -1,7 +1,9 @@
 package test;
 
+import com.ejc.Singleton;
 import com.ejc.http.Get;
 
+@Singleton
 public class CalculationController {
 
 

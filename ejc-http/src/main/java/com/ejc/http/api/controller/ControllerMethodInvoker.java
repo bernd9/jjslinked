@@ -50,7 +50,7 @@ public class ControllerMethodInvoker {
 
     private void doInvocation(ControllerMethod controllerMethod, HttpServletRequest request, HttpServletResponse response) throws Exception {
         var context = createInvocationContext(controllerMethod, request, response);
-        var controller = applicationContext.getBean(controllerMethod.getControllerClass());
+        var controller = applicationContext.getBean(controllerMethod.getControllerClass().getClazz());
         var method = getMethod(controller, controllerMethod);
         var parameters = getParameters(controllerMethod, context).toArray();
         var returnValue = method.invoke(controller, parameters);
@@ -60,9 +60,17 @@ public class ControllerMethodInvoker {
 
     private Method getMethod(Object controller, ControllerMethod controllerMethod) throws Exception {
         var types = controllerMethod.getParameterTypes().stream().toArray(size -> new Class[size]);
-        var method = controller.getClass().getMethod(controllerMethod.getMethodName(), types);
-        method.setAccessible(true);
-        return method;
+        var cl = controller.getClass();
+        while (cl != null && !cl.equals(Object.class)) {
+            try { // TODO schöner machen
+                var method = controller.getClass().getDeclaredMethod(controllerMethod.getMethodName(), types);
+                method.setAccessible(true);
+                return method;
+            } catch (NoSuchMethodException e) {
+                cl = cl.getSuperclass();
+            }
+        }
+        throw new NoSuchMethodException(controllerMethod.getMethodName());
     }
 
     private List<Object> getParameters(ControllerMethod method, ControllerMethodInvocationContext context) {
