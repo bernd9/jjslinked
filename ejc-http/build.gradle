@@ -17,8 +17,11 @@ dependencies {
 
     annotationProcessor(group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7')
 
-    annotationProcessor files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
+
+    compile 'org.projectlombok:lombok:1.18.12'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
     // https://mvnrepository.com/artifact/org.eclipse.jetty/jetty-server
     compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.31.v20200723'
 
