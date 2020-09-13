@@ -25,7 +25,7 @@ public class FileObjectClassLoader extends ClassLoader {
         if (bytesByName.containsKey(name)) {
             return defineClass(name, bytesByName.get(name), 0, bytesByName.get(name).length);
         }
-        return super.findClass(name);
+        return Class.forName(name);
     }
 
 

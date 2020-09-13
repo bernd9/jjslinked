@@ -7,10 +7,7 @@ import com.ejc.util.ProcessorUtils;
 import com.ejc.util.ReflectionUtils;
 import com.google.auto.service.AutoService;
 
-import javax.annotation.processing.AbstractProcessor;
-import javax.annotation.processing.Processor;
-import javax.annotation.processing.RoundEnvironment;
-import javax.annotation.processing.SupportedSourceVersion;
+import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeKind;
@@ -44,6 +41,11 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     public Set<String> getSupportedAnnotationTypes() {
         return Stream.of(Singleton.class, Inject.class, InjectAll.class, Init.class, Implementation.class,
                 Value.class, Application.class, Configuration.class, Bean.class).map(Class::getName).collect(Collectors.toSet());
+    }
+
+    @Override
+    public synchronized void init(ProcessingEnvironment processingEnv) {
+        super.init(processingEnv);
     }
 
     @Override
@@ -108,8 +110,18 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
 
     private void processSingletons(RoundEnvironment roundEnv) {
         singletons.addAll(roundEnv.getElementsAnnotatedWith(Singleton.class).stream()
+                .filter(e -> e.getKind().equals(ElementKind.CLASS))
                 .map(TypeElement.class::cast)
                 .collect(Collectors.toSet()));
+        singletons.addAll(roundEnv.getElementsAnnotatedWith(Singleton.class).stream()
+                .filter(e -> e.getKind().equals(ElementKind.ANNOTATION_TYPE))
+                .map(TypeElement.class::cast)
+                .map(annotation -> roundEnv.getElementsAnnotatedWith(annotation))
+                .flatMap(Set::stream)
+                .filter(e -> e.getKind().equals(ElementKind.CLASS))
+                .map(TypeElement.class::cast)
+                .collect(Collectors.toSet()));
+
     }
 
 
