@@ -7,7 +7,10 @@ import com.ejc.util.ProcessorUtils;
 import com.ejc.util.ReflectionUtils;
 import com.google.auto.service.AutoService;
 
-import javax.annotation.processing.*;
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Processor;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
 import javax.lang.model.type.TypeKind;
@@ -37,15 +40,19 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     private Map<TypeElement, TypeElement> implementations = new HashMap<>();
     private String packageName = PACKAGE;
 
-    @Override
-    public Set<String> getSupportedAnnotationTypes() {
-        return Stream.of(Singleton.class, Inject.class, InjectAll.class, Init.class, Implementation.class,
-                Value.class, Application.class, Configuration.class, Bean.class).map(Class::getName).collect(Collectors.toSet());
-    }
+    private static final Set<String> NON_SINGLETON_ANNOTATIONS = Stream.of(Inject.class, InjectAll.class, Init.class, Implementation.class,
+            Value.class, Application.class, Configuration.class, Bean.class).map(Class::getName).collect(Collectors.toSet());
+    private Set<String> singletonAnnotations;
 
     @Override
-    public synchronized void init(ProcessingEnvironment processingEnv) {
-        super.init(processingEnv);
+    public Set<String> getSupportedAnnotationTypes() {
+        singletonAnnotations = new HashSet<>();
+        singletonAnnotations.add(Singleton.class.getName());
+        singletonAnnotations.addAll(CustomSingletonAnnotationLoader.load());
+        Set<String> types = new HashSet<>();
+        types.addAll(singletonAnnotations);
+        types.addAll(NON_SINGLETON_ANNOTATIONS);
+        return types;
     }
 
     @Override
@@ -68,7 +75,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
         } catch (Exception e) {
             reportError(e);
         }
-        return true;
+        return false;
     }
 
     private void processInitMethods(RoundEnvironment roundEnv) {
@@ -109,19 +116,13 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
     }
 
     private void processSingletons(RoundEnvironment roundEnv) {
-        singletons.addAll(roundEnv.getElementsAnnotatedWith(Singleton.class).stream()
-                .filter(e -> e.getKind().equals(ElementKind.CLASS))
-                .map(TypeElement.class::cast)
-                .collect(Collectors.toSet()));
-        singletons.addAll(roundEnv.getElementsAnnotatedWith(Singleton.class).stream()
-                .filter(e -> e.getKind().equals(ElementKind.ANNOTATION_TYPE))
-                .map(TypeElement.class::cast)
-                .map(annotation -> roundEnv.getElementsAnnotatedWith(annotation))
+        singletons.addAll(singletonAnnotations.stream()
+                .map(name -> processingEnv.getElementUtils().getTypeElement(name))
+                .map(roundEnv::getElementsAnnotatedWith)
                 .flatMap(Set::stream)
                 .filter(e -> e.getKind().equals(ElementKind.CLASS))
                 .map(TypeElement.class::cast)
                 .collect(Collectors.toSet()));
-
     }
 
 

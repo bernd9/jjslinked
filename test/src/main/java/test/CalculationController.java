@@ -1,9 +1,9 @@
 package test;
 
-import com.ejc.Singleton;
 import com.ejc.http.Get;
+import com.ejc.http.RestController;
 
-@Singleton
+@RestController
 public class CalculationController {
 
 
