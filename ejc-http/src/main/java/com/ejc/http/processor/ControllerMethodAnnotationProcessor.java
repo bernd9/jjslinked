@@ -32,7 +32,6 @@ import java.util.stream.Stream;
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class ControllerMethodAnnotationProcessor extends AbstractProcessor {
 
-
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         return Stream.of(Get.class, Delete.class, Options.class, Post.class, Put.class, Trace.class, Http.class).map(Class::getName).collect(Collectors.toSet());
@@ -49,7 +48,6 @@ public class ControllerMethodAnnotationProcessor extends AbstractProcessor {
             process(Trace.class, HttpMethod.TRACE, e -> e.getAnnotation(Trace.class).value(), roundEnv);
             process(Options.class, HttpMethod.OPTIONS, e -> e.getAnnotation(Options.class).value(), roundEnv);
             process(Http.class, null, e -> e.getAnnotation(Http.class).value(), roundEnv);
-            // TODO
         }
         return true;
     }
@@ -63,7 +61,7 @@ public class ControllerMethodAnnotationProcessor extends AbstractProcessor {
 
     private void process(ExecutableElement e, HttpMethod httpMethod, String url) {
         log("processing " + e);
-        ControllerMethodWriter writer = ControllerMethodWriter.builder()
+        var writer = ControllerMethodWriter.builder()
                 .httpMethod(httpMethod)
                 .methodUrl(url)
                 .classUrl(getClassUrl((TypeElement) e.getEnclosingElement()))
@@ -91,7 +89,7 @@ public class ControllerMethodAnnotationProcessor extends AbstractProcessor {
     }
 
     private ParameterProvider<?> getParameterProvider(VariableElement variableElement) {
-        String type = variableElement.asType().toString();
+        var type = variableElement.asType().toString();
         if (type.equals(ServletRequest.class.getName()) || type.equals(HttpServletRequest.class.getName())) {
             return new ParameterProviderForServletRequest();
         }
