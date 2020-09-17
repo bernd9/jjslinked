@@ -1,10 +1,7 @@
 package com.ejc.http.processor;
 
 import com.ejc.api.context.ClassReference;
-import com.ejc.http.BodyContent;
-import com.ejc.http.Get;
-import com.ejc.http.HttpMethod;
-import com.ejc.http.PathVariable;
+import com.ejc.http.*;
 import com.ejc.http.api.controller.*;
 import com.ejc.util.ProcessorUtils;
 import com.ejc.util.ReflectionUtils;
@@ -23,10 +20,11 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.tools.Diagnostic;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import java.util.function.Supplier;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,26 +35,38 @@ public class ControllerMethodAnnotationProcessor extends AbstractProcessor {
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
-        return Stream.of(Get.class).map(Class::getName).collect(Collectors.toSet());
+        return Stream.of(Get.class, Delete.class, Options.class, Post.class, Put.class, Trace.class, Http.class).map(Class::getName).collect(Collectors.toSet());
     }
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         log("controller-processing ");
         if (!roundEnv.processingOver()) {
-            roundEnv.getElementsAnnotatedWith(Get.class).stream()
-                    .map(ExecutableElement.class::cast)
-                    .forEach(e -> process(e, HttpMethod.GET, () -> e.getAnnotation(Get.class).value()));
+            process(Get.class, HttpMethod.GET, e -> e.getAnnotation(Get.class).value(), roundEnv);
+            process(Put.class, HttpMethod.PUT, e -> e.getAnnotation(Put.class).value(), roundEnv);
+            process(Post.class, HttpMethod.POST, e -> e.getAnnotation(Post.class).value(), roundEnv);
+            process(Delete.class, HttpMethod.DELETE, e -> e.getAnnotation(Delete.class).value(), roundEnv);
+            process(Trace.class, HttpMethod.TRACE, e -> e.getAnnotation(Trace.class).value(), roundEnv);
+            process(Options.class, HttpMethod.OPTIONS, e -> e.getAnnotation(Options.class).value(), roundEnv);
+            process(Http.class, null, e -> e.getAnnotation(Http.class).value(), roundEnv);
             // TODO
         }
         return true;
     }
 
-    private void process(ExecutableElement e, HttpMethod httpMethod, Supplier<String> url) {
+    private void process(Class<? extends Annotation> annotationClass, HttpMethod httpMethod, Function<ExecutableElement, String> urlFunction, RoundEnvironment roundEnv) {
+        roundEnv.getElementsAnnotatedWith(annotationClass).stream()
+                .map(ExecutableElement.class::cast)
+                .forEach(e -> process(e, httpMethod, urlFunction.apply(e)));
+    }
+
+
+    private void process(ExecutableElement e, HttpMethod httpMethod, String url) {
         log("processing " + e);
         ControllerMethodWriter writer = ControllerMethodWriter.builder()
                 .httpMethod(httpMethod)
-                .url(url.get())
+                .methodUrl(url)
+                .classUrl(getClassUrl((TypeElement) e.getEnclosingElement()))
                 .methodElement(e)
                 .packageName(((PackageElement) e.getEnclosingElement().getEnclosingElement()).getQualifiedName().toString()) // TODO Fails for inner classes
                 .parameterProviders(getParameterProvider(e))
@@ -68,6 +78,10 @@ public class ControllerMethodAnnotationProcessor extends AbstractProcessor {
         } catch (IOException ex) {
             ProcessorUtils.reportError(this, processingEnv, ex);
         }
+    }
+
+    private String getClassUrl(TypeElement controllerClass) {
+        return controllerClass.getAnnotation(RestController.class).value();
     }
 
     private List<ParameterProvider<?>> getParameterProvider(ExecutableElement e) {

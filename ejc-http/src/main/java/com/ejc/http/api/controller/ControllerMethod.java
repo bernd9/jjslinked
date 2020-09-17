@@ -23,7 +23,7 @@ public class ControllerMethod {
     private UrlPattern urlPattern;
 
     public boolean httpMethodMatches(HttpServletRequest request) {
-        return request.getMethod().equals(httpMethod.name());
+        return httpMethod == null || request.getMethod().equals(httpMethod.name());
     }
 
     public boolean pathMatches(HttpServletRequest request) {
