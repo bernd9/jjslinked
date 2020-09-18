@@ -10,7 +10,7 @@ import java.io.IOException;
 
 @Getter
 @RequiredArgsConstructor
-public class ParameterProviderForRequestBody implements ParameterProvider {
+public class ParameterProviderForRequestBody implements ParameterProvider<Object> {
     private final ClassReference parameterType;
 
     @Override

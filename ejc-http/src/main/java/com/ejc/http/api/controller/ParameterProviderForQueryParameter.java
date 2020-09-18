@@ -7,13 +7,13 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-public class ParameterProviderForUrlParam implements ParameterProvider<Object> {
-    private final String parameterKey;
+public class ParameterProviderForQueryParameter implements ParameterProvider<Object> {
+    private final String parameterName;
     private final ClassReference parameterType;
 
     @Override
     public Object provide(ControllerMethodInvocationContext context) {
-        String param = context.getPathVariables().get(parameterKey);
+        String param = context.getRequest().getParameter(parameterName);
         return TypeUtils.convertSimple(param, parameterType.getClazz());
     }
 }

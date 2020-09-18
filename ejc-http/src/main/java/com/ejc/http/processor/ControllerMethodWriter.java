@@ -71,6 +71,9 @@ class ControllerMethodWriter {
         } else if (provider instanceof ParameterProviderForUrlParam) {
             ParameterProviderForUrlParam providerForUrlParam = (ParameterProviderForUrlParam) provider;
             builder.addStatement("addParameterProvider(new $T(\"$L\", $T.getRef(\"$L\")))", ParameterProviderForUrlParam.class, ClassReference.class, providerForUrlParam.getParameterKey(), providerForUrlParam.getParameterType().getClassName());
+        } else if (provider instanceof ParameterProviderForQueryParameter) {
+            ParameterProviderForQueryParameter providerForUrlParam = (ParameterProviderForQueryParameter) provider;
+            builder.addStatement("addParameterProvider(new $T(\"$L\", $T.getRef(\"$L\")))", ParameterProviderForQueryParameter.class, ClassReference.class, providerForUrlParam.getParameterName(), providerForUrlParam.getParameterType().getClassName());
         } else {
             throw new IllegalStateException();
         }
