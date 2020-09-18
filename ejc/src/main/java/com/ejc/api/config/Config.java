@@ -51,7 +51,7 @@ public class Config {
             throw new PropertyNotFoundException(name);
         }
         try {
-            return TypeUtils.convertSimple(property, type);
+            return TypeUtils.convertStringToSimple(property, type);
         } catch (IllegalArgumentException e) {
             throw new IllegalPropertyTypeException(name, property, type);
         }
@@ -66,7 +66,7 @@ public class Config {
                 property = defaultValue;
         }
         try {
-            return TypeUtils.convertSimple(property, type);
+            return TypeUtils.convertStringToSimple(property, type);
         } catch (IllegalArgumentException e) {
             throw new IllegalPropertyTypeException(name, property, type);
         }
