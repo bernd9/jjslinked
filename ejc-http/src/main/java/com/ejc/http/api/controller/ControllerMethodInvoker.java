@@ -5,7 +5,7 @@ import com.ejc.Inject;
 import com.ejc.InjectAll;
 import com.ejc.Singleton;
 import com.ejc.http.api.HttpResponder;
-import com.ejc.http.exception.ExceptionHandler;
+import com.ejc.http.exception.ExceptionController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 public class ControllerMethodInvoker {
 
     @Inject
-    private ExceptionHandler exceptionHandler;
+    private ExceptionController exceptionController;
 
     @Inject
     private ApplicationContext applicationContext;
@@ -32,7 +32,7 @@ public class ControllerMethodInvoker {
         try {
             doInvocation(request, response);
         } catch (Exception e) {
-            exceptionHandler.handleException(e, response);
+            exceptionController.handleException(e, response);
         }
     }
 
@@ -54,7 +54,7 @@ public class ControllerMethodInvoker {
         var method = getMethod(controller, controllerMethod);
         var parameters = getParameters(controllerMethod, context).toArray();
         var returnValue = method.invoke(controller, parameters);
-        responder.sendResponse(returnValue, request, response);
+        responder.sendResponse(returnValue, response);
     }
 
 

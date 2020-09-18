@@ -1,7 +1,8 @@
 package com.ejc.http.api.controller;
 
 import com.ejc.api.context.ClassReference;
-import com.ejc.http.HttpStatusException;
+import com.ejc.http.ContentType;
+import com.ejc.http.exception.HttpStatusException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,7 @@ public class ParameterProviderForRequestBody implements ParameterProvider<Object
         try {
             return objectMapper.readValue(context.getRequest().getInputStream(), parameterType.getClazz());
         } catch (IOException e) {
-            throw new HttpStatusException(422, "unable to read body content");
+            throw new HttpStatusException(422, ContentType.JSON, "unable to read body content");
         }
     }
 }
