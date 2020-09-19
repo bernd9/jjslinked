@@ -10,8 +10,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class ProcessorUtils {
-
+public class ProcessorLogger {
+    
     public static void reportError(AbstractProcessor processor, ProcessingEnvironment environment, Exception e) {
         environment.getMessager().printMessage(Diagnostic.Kind.ERROR, processor.getClass().getSimpleName() + ": " + e.toString() + "\n" + stacktrace(e));
     }

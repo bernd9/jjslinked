@@ -64,6 +64,11 @@ jar {
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     }
+    /*
+    manifest {
+        attributes("Premain-Class": "com.ejc.util.InstrumentationHook")
+    }
+     */
 }
 
 sourceSets {

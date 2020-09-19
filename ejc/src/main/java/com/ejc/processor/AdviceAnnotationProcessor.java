@@ -1,7 +1,7 @@
 package com.ejc.processor;
 
 import com.ejc.Advice;
-import com.ejc.util.ProcessorUtils;
+import com.ejc.util.ProcessorLogger;
 import com.google.auto.service.AutoService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.ejc.util.ReflectionUtils.*;
+import static com.ejc.util.JavaModelUtils.*;
 
 /**
  * Creates an implementation as a subclass or implementation of classes annotated by an annotation
@@ -112,7 +112,7 @@ public class AdviceAnnotationProcessor extends AbstractProcessor {
     }
 
     protected void reportError(Exception e) {
-        ProcessorUtils.reportError(this, processingEnv, e);
+        ProcessorLogger.reportError(this, processingEnv, e);
     }
 
     protected void log(String message, Object... args) {

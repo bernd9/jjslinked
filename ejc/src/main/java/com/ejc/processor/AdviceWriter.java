@@ -18,7 +18,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.UUID;
 
-import static com.ejc.util.ReflectionUtils.signature;
+import static com.ejc.util.JavaModelUtils.signature;
 
 @RequiredArgsConstructor
 class AdviceWriter {

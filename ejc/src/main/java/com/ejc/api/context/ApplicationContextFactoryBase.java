@@ -4,8 +4,8 @@ import com.ejc.ApplicationContext;
 import com.ejc.ApplicationContextFactory;
 import com.ejc.api.config.Config;
 import com.ejc.processor.ApplicationContextImpl;
-import com.ejc.util.InstanceUtils;
-import com.ejc.util.ReflectionUtils;
+import com.ejc.util.ClassUtils;
+import com.ejc.util.FieldUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -198,7 +198,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
 
 
     private <T> T createInstance(ClassReference ref) {
-        return (T) InstanceUtils.createInstance(ref.getClazz());
+        return (T) ClassUtils.createInstance(ref.getReferencedClass());
     }
 
 }
@@ -210,12 +210,12 @@ abstract class InjectorBase {
     private final ClassReference fieldType;
 
     void doInject(ApplicationContextFactoryBase factory) {
-        factory.getBeans(declaringClass.getClazz()).forEach(bean -> doInject(bean, factory));
+        factory.getBeans(declaringClass.getReferencedClass()).forEach(bean -> doInject(bean, factory));
     }
 
     private void doInject(Object bean, ApplicationContextFactoryBase factory) {
         try {
-            doInjectFieldValue(bean, ReflectionUtils.getField(bean, fieldName), factory);
+            doInjectFieldValue(bean, FieldUtils.getField(bean, fieldName), factory);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -224,7 +224,7 @@ abstract class InjectorBase {
     private void doInjectFieldValue(Object bean, Field field, ApplicationContextFactoryBase factory) {
         try {
             field.setAccessible(true);
-            field.set(bean, getFieldValue(fieldType.getClazz(), factory));
+            field.set(bean, getFieldValue(fieldType.getReferencedClass(), factory));
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -259,7 +259,7 @@ class MultiValueInjector extends InjectorBase {
 
     @Override
     Object getFieldValue(Class<?> fieldType, ApplicationContextFactoryBase factory) {
-        Set<Object> set = factory.getBeans((Class<Object>) fieldValueType.getClazz());
+        Set<Object> set = factory.getBeans((Class<Object>) fieldValueType.getReferencedClass());
         if (fieldType.isAssignableFrom(Set.class)) {
             return set;
         }
@@ -287,12 +287,12 @@ class ConfigValueInjector {
     private final String defaultValue;
 
     void doInject(Function<Class<?>, Set<?>> selectFunction) {
-        selectFunction.apply(declaringClass.getClazz()).forEach(bean -> doInject(bean));
+        selectFunction.apply(declaringClass.getReferencedClass()).forEach(bean -> doInject(bean));
     }
 
     private void doInject(Object bean) {
         try {
-            Field field = ReflectionUtils.getField(bean, fieldName);
+            Field field = FieldUtils.getField(bean, fieldName);
             field.setAccessible(true);
             field.set(bean, Config.getProperty(key, fieldType, defaultValue));
         } catch (Exception e) {
@@ -307,7 +307,7 @@ class InitInvoker {
     private final String methodName;
 
     void doInvoke(Function<Class<?>, Set<?>> selectFunction) {
-        selectFunction.apply(declaringClass.getClazz()).forEach(bean -> doInvokeMethod(bean));
+        selectFunction.apply(declaringClass.getReferencedClass()).forEach(bean -> doInvokeMethod(bean));
     }
 
     private void doInvokeMethod(Object bean) {
@@ -327,7 +327,7 @@ class LoadBeanMethodInvoker {
     private final String methodName;
 
     Collection<Object> doInvoke(ApplicationContextFactoryBase factoryBase) {
-        return factoryBase.getConfigurations(declaringClass.getClazz()).stream()
+        return factoryBase.getConfigurations(declaringClass.getReferencedClass()).stream()
                 .map(this::doInvokeMethod)
                 .collect(Collectors.toSet());
     }

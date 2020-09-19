@@ -18,7 +18,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static com.ejc.util.ReflectionUtils.getGenericType;
+import static com.ejc.util.JavaModelUtils.getGenericType;
 
 @Builder
 public class ApplicationContextFactoryWriter {

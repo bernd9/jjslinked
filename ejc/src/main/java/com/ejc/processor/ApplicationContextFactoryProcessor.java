@@ -3,8 +3,8 @@ package com.ejc.processor;
 import com.ejc.*;
 import com.ejc.api.context.Undefined;
 import com.ejc.util.IOUtils;
-import com.ejc.util.ProcessorUtils;
-import com.ejc.util.ReflectionUtils;
+import com.ejc.util.JavaModelUtils;
+import com.ejc.util.ProcessorLogger;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -21,8 +21,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.ejc.util.ReflectionUtils.getAnnotationMirrorOptional;
-import static com.ejc.util.ReflectionUtils.getAnnotationValue;
+import static com.ejc.util.JavaModelUtils.getAnnotationMirrorOptional;
+import static com.ejc.util.JavaModelUtils.getAnnotationValue;
 
 @AutoService(Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
@@ -237,7 +237,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
                 throw new IllegalStateException("Multiple Application-annotations");
         }
 
-        packageName = ReflectionUtils.getPackageName(appClass.getQualifiedName());
+        packageName = JavaModelUtils.getPackageName(appClass.getQualifiedName());
     }
 
     private String factoryQualifiedName() {
@@ -293,7 +293,7 @@ public class ApplicationContextFactoryProcessor extends AbstractProcessor {
 
 
     protected void reportError(Exception e) {
-        ProcessorUtils.reportError(this, processingEnv, e);
+        ProcessorLogger.reportError(this, processingEnv, e);
     }
 
     protected void log(String message, Object... args) {

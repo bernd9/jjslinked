@@ -1,6 +1,6 @@
 package com.ejc.api.context;
 
-import com.ejc.util.InstanceUtils;
+import com.ejc.util.ClassUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -21,9 +21,9 @@ public class ClassReference {
         this.className = c.getName();
     }
 
-    public Class<?> getClazz() {
+    public Class<?> getReferencedClass() {
         if (clazz == null) {
-            clazz = InstanceUtils.classForName(className);
+            clazz = ClassUtils.classForName(className);
         }
         return clazz;
     }

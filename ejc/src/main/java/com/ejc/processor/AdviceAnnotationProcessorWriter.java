@@ -13,8 +13,8 @@ import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import java.io.IOException;
 
-import static com.ejc.util.ReflectionUtils.getPackageName;
-import static com.ejc.util.ReflectionUtils.getSimpleName;
+import static com.ejc.util.JavaModelUtils.getPackageName;
+import static com.ejc.util.JavaModelUtils.getSimpleName;
 import static com.squareup.javapoet.TypeSpec.classBuilder;
 
 @Builder

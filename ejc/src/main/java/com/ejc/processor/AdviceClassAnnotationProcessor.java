@@ -1,8 +1,8 @@
 package com.ejc.processor;
 
 import com.ejc.AdviceClass;
-import com.ejc.util.ProcessorUtils;
-import com.ejc.util.ReflectionUtils;
+import com.ejc.util.JavaModelUtils;
+import com.ejc.util.ProcessorLogger;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.*;
@@ -45,8 +45,8 @@ public class AdviceClassAnnotationProcessor extends AbstractProcessor {
     }
 
     private void writeProcessor(TypeElement annotation) {
-        AnnotationMirror mirror = ReflectionUtils.getAnnotationMirror(annotation, AdviceClass.class);
-        String adviceClass = ReflectionUtils.getAnnotationValue(mirror, "value").getValue().toString().replace(".class", "");
+        AnnotationMirror mirror = JavaModelUtils.getAnnotationMirror(annotation, AdviceClass.class);
+        String adviceClass = JavaModelUtils.getAnnotationValue(mirror, "value").getValue().toString().replace(".class", "");
         AdviceAnnotationProcessorWriter annotationProcessorWriter = AdviceAnnotationProcessorWriter.builder()
                 .adviceClass(adviceClass)
                 .annotation(annotation)
@@ -58,7 +58,7 @@ public class AdviceClassAnnotationProcessor extends AbstractProcessor {
 
 
     protected void reportError(Exception e) {
-        ProcessorUtils.reportError(this, processingEnv, e);
+        ProcessorLogger.reportError(this, processingEnv, e);
     }
 
     protected void log(String message, Object... args) {

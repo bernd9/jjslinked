@@ -1,7 +1,7 @@
 package com.ejc.processor;
 
 import com.ejc.ApplicationContext;
-import com.ejc.util.ReflectionUtils;
+import com.ejc.util.JavaModelUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 
@@ -22,8 +22,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.ejc.util.JavaModelUtils.*;
 import static com.ejc.util.JavaPoetUtils.parameterTypeListBlock;
-import static com.ejc.util.ReflectionUtils.*;
 
 @RequiredArgsConstructor
 class ImplementationWriter {
@@ -107,7 +107,7 @@ class ImplementationWriter {
 
     private CodeBlock createMethodParameterBlock(ExecutableElement orig) {
         return CodeBlock.builder()
-                .addStatement("Object[] args = new Object[]{$L}", ReflectionUtils.parameterNameList(orig))
+                .addStatement("Object[] args = new Object[]{$L}", JavaModelUtils.parameterNameList(orig))
                 .build();
     }
 
