@@ -1,13 +1,13 @@
 package com.ejc.sql;
 
-public interface CrudRepository<T,ID> {
+public interface CrudRepository<T> {
 
-    default void save(T entity) {
+    int insert(T entity);
 
-    }
+    int update(T entity);
 
-    void insert(T entity);
-    void update(T entity);
-    void getById(ID id);
-    void delete(T entity);
+    void getById(Object... id);
+
+    int delete(T entity);
+
 }

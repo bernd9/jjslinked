@@ -3,6 +3,7 @@ package com.ejc.sql.api;
 import com.ejc.ApplicationContext;
 import com.ejc.api.context.ClassReference;
 import com.ejc.sql.Connector;
+import com.ejc.sql.CrudRepository;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class DaoImpl<T> {
+public class DaoImpl<T> implements CrudRepository<T> {
     private final EntityMapper entityMapper;
     private final List<String> idFieldNames = new ArrayList<>();
     private final List<String> columnFieldNames = new ArrayList<>();
@@ -43,6 +44,7 @@ public class DaoImpl<T> {
     }
 
 
+    @Override
     public int insert(T entity) {
         try (Connection con = getConnection()) {
             return insert(entity, con);
@@ -60,12 +62,18 @@ public class DaoImpl<T> {
         }
     }
 
+    @Override
     public int update(T entity) {
         try (Connection con = getConnection()) {
             return update(entity, con);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void getById(Object... id) {
+        // TODO
     }
 
     private int update(T entity, Connection con) throws Exception {
@@ -76,7 +84,8 @@ public class DaoImpl<T> {
             return update.executeUpdate();
         }
     }
-    
+
+    @Override
     public int delete(T entity) {
         try (Connection con = getConnection()) {
             return delete(entity, con);
@@ -93,7 +102,11 @@ public class DaoImpl<T> {
     }
 
     private Connection getConnection() {
-        return ApplicationContext.getInstance().getBean(Connector.class).getConnection();
+        try {
+            return ApplicationContext.getInstance().getBean(Connector.class).getConnection();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private PreparedStatement createInsertStatement(Connection con) throws SQLException {

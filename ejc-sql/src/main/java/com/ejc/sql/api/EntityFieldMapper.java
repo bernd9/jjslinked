@@ -18,7 +18,7 @@ public class EntityFieldMapper {
     protected void updateFieldValue(Object o, ResultSet rs, int columnIndex) throws Exception {
         Class<?> c = o.getClass();
         while (!c.equals(Object.class)) {
-            if (c.equals(declaringClass.getClazz())) {
+            if (c.equals(declaringClass.getReferencedClass())) {
                 Field field = c.getDeclaredField(fieldName);
                 field.setAccessible(true);
                 field.set(o, fromRs(rs, columnIndex));
@@ -36,7 +36,7 @@ public class EntityFieldMapper {
     private Object getFieldValue(Object o) throws Exception {
         Class<?> c = o.getClass();
         while (!c.equals(Object.class)) {
-            if (c.equals(declaringClass.getClazz())) {
+            if (c.equals(declaringClass.getReferencedClass())) {
                 Field field = c.getDeclaredField(fieldName);
                 field.setAccessible(true);
                 return field.get(o);

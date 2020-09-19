@@ -1,7 +1,7 @@
 package com.ejc.sql.api;
 
 import com.ejc.api.context.ClassReference;
-import com.ejc.util.InstanceUtils;
+import com.ejc.util.ClassUtils;
 import lombok.Getter;
 
 import java.sql.PreparedStatement;
@@ -19,7 +19,7 @@ public class EntityMapper {
     public EntityMapper(ClassReference declaringClass) {
         this.declaringClass = declaringClass;
     }
-    
+
     public void addField(String fieldName, Class<?> fieldType) {
         if (entityFieldMapperMap.containsKey(fieldName))
             throw new IllegalStateException(fieldName + " : regardless any inheritance mapped fieldnames must be unique");
@@ -27,7 +27,7 @@ public class EntityMapper {
     }
 
     public Object mapFormResultSet(ResultSet rs, List<String> fieldNames) throws Exception {
-        Object entity = InstanceUtils.createInstance(declaringClass.getClass());
+        Object entity = ClassUtils.createInstance(declaringClass.getClass());
         int columnIndex = 0;
         for (String name : fieldNames) {
             columnIndex++;

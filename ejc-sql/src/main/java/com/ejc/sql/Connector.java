@@ -1,54 +1,105 @@
 package com.ejc.sql;
 
+import com.ejc.Inject;
 import com.ejc.Singleton;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.Delegate;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.Optional;
 
 @Singleton
-public class Connector {
+public class Connector extends ThreadLocal<Connector.RootConnection> {
 
-    private ThreadLocal<Connection> currentConnection = new ThreadLocal<>();
+    @Inject
+    private DataSource dataSource;
 
-    Connection getCurrentConnection() {
-        return currentConnection.get();
-    }
+    @Inject
+    private TransactionStatus transactionStatus;
 
-    public void release(Connection con) {
-        try {
-            con.close();
-        } catch (SQLException throwables) {
 
+    public Connection getConnection() throws SQLException {
+        RootConnection wrapper = get();
+        if (wrapper == null) {
+            RootConnection rootConnection = new RootConnection(openConnection());
+            if (transactionStatus.isTransaction()) {
+                rootConnection.startTransaction(transactionStatus.getIsolationLevel());
+            }
+            set(rootConnection);
+            return rootConnection;
         }
-        currentConnection.remove();
+        RootConnection rootConnection = wrapper;
+        return rootConnection.getChildConnection();
+    }
+
+    private Connection openConnection() {
+        return null;
     }
 
 
-    Connection openConnection() {
-        if (currentConnection.get() != null) throw new IllegalStateException();
-        Connection connection = null;
-        currentConnection.set(connection);
-        return connection;
-    }
+    @Getter
+    @Setter
+    static class RootConnection implements Connection {
 
-    @RequiredArgsConstructor
-    class ConnectionWrapper implements Connection {
-
-        @Delegate(excludes = Exclusion.class)
+        @Delegate(excludes = CloseExclusion.class)
         private final Connection connection;
-        private final Connector connector;
+        private boolean transaction;
+        private Optional<Integer> isolationLevel;
+        private ChildConnection childConnection;
+
+        RootConnection(Connection connection) {
+            this.connection = connection;
+        }
+
+        ChildConnection getChildConnection() {
+            if (childConnection == null) {
+                childConnection = new ChildConnection(connection);
+            }
+            return childConnection;
+        }
 
         @Override
         public void close() throws SQLException {
-            connector.release(connection);
+            if (transaction) {
+                connection.commit();
+            }
+            connection.close();
         }
 
-        class Exclusion {
-            public void close() throws Exception {
+        void startTransaction(Optional<Integer> isolationLevel) throws SQLException {
+            isolationLevel.ifPresent(this::setIsolationLevel);
+            connection.setAutoCommit(false);
+        }
+
+        private void setIsolationLevel(int isolationLevel) {
+            try {
+                connection.setTransactionIsolation(isolationLevel);
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
         }
 
+
+    }
+
+    @RequiredArgsConstructor
+    static class ChildConnection implements Connection {
+
+        @Delegate(excludes = CloseExclusion.class)
+        private final Connection connection;
+
+        @Override
+        public void close() throws SQLException {
+            // Do Nothing
+        }
+    }
+
+    class CloseExclusion {
+        public void close() throws Exception {
+        }
     }
 }
