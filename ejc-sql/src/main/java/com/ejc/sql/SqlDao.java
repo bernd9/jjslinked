@@ -10,6 +10,6 @@ import java.lang.annotation.Target;
 @Singleton
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
-public @interface Dao {
+public @interface SqlDao {
     String tableName();
 }
