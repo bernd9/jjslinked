@@ -18,6 +18,8 @@ public class DaoImpl<T> {
     private final List<String> columnFieldNames = new ArrayList<>();
     private final String tableName;
     private String insertSql;
+    private String updateSql;
+    private String deleteSql;
 
     public DaoImpl(ClassReference entity, String tableName) {
         this.entityMapper = new EntityMapper(entity);
@@ -36,6 +38,8 @@ public class DaoImpl<T> {
 
     public void init() {
         insertSql = createInsertSql();
+        updateSql = createUpdateSql();
+        deleteSql = createDeleteSql();
     }
 
 
@@ -56,15 +60,60 @@ public class DaoImpl<T> {
         }
     }
 
+    public int update(T entity) {
+        try (Connection con = getConnection()) {
+            return update(entity, con);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private int update(T entity, Connection con) throws Exception {
+        try (PreparedStatement update = createUpdateStatement(con)) {
+            List<String> fieldNames = new ArrayList<>(idFieldNames);
+            fieldNames.addAll(columnFieldNames);
+            entityMapper.mapIntoStatement(entity, update, fieldNames);
+            return update.executeUpdate();
+        }
+    }
+    
+    public int delete(T entity) {
+        try (Connection con = getConnection()) {
+            return delete(entity, con);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private int delete(T entity, Connection con) throws Exception {
+        try (PreparedStatement delete = createDeleteStatement(con)) {
+            entityMapper.mapIntoStatement(entity, delete, idFieldNames);
+            return delete.executeUpdate();
+        }
+    }
 
     private Connection getConnection() {
         return ApplicationContext.getInstance().getBean(Connector.class).getConnection();
     }
 
+    private PreparedStatement createInsertStatement(Connection con) throws SQLException {
+        return con.prepareStatement(insertSql);
+    }
+
+    private PreparedStatement createUpdateStatement(Connection con) throws SQLException {
+        return con.prepareStatement(updateSql);
+    }
+
+
+    private PreparedStatement createDeleteStatement(Connection con) throws SQLException {
+        return con.prepareStatement(deleteSql);
+    }
+
+
     private String createInsertSql() {
         StringBuilder sql = new StringBuilder().append("INSERT INTO `")
                 .append(tableName)
-                .append(" (");
+                .append("` (");
         sql.append(Stream.concat(idFieldNames.stream(), columnFieldNames.stream())
                 .map(column -> String.format("`%d`", column))
                 .collect(Collectors.joining(", ")));
@@ -76,8 +125,29 @@ public class DaoImpl<T> {
         return sql.toString();
     }
 
-    private PreparedStatement createInsertStatement(Connection con) throws SQLException {
-        return con.prepareStatement(insertSql);
+    private String createUpdateSql() {
+        StringBuilder sql = new StringBuilder().append("UPDATE `")
+                .append(tableName)
+                .append("` ");
+        sql.append(columnFieldNames.stream()
+                .map(column -> String.format("SET `%d`=?", column))
+                .collect(Collectors.joining(", ")));
+        sql.append(" WHERE ");
+        sql.append(idFieldNames.stream()
+                .map(column -> String.format("`%d`= ?"))
+                .collect(Collectors.joining(" AND ")));
+        return sql.toString();
     }
+
+    private String createDeleteSql() {
+        StringBuilder sql = new StringBuilder().append("DELETE FROM `")
+                .append(tableName)
+                .append("` WHERE ");
+        sql.append(idFieldNames.stream()
+                .map(column -> String.format("`%d`= ?"))
+                .collect(Collectors.joining(" AND ")));
+        return sql.toString();
+    }
+
 
 }
