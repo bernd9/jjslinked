@@ -14,6 +14,6 @@ public class ParameterProviderForUrlParam implements ParameterProvider<Object> {
     @Override
     public Object provide(ControllerMethodInvocationContext context) {
         String param = context.getPathVariables().get(parameterKey);
-        return TypeUtils.convertSimple(param, parameterType.getClazz());
+        return TypeUtils.convertStringToSimple(param, parameterType.getReferencedClass());
     }
 }

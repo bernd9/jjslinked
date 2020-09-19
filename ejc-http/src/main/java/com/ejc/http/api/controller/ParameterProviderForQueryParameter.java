@@ -14,6 +14,6 @@ public class ParameterProviderForQueryParameter implements ParameterProvider<Obj
     @Override
     public Object provide(ControllerMethodInvocationContext context) {
         String param = context.getRequest().getParameter(parameterName);
-        return TypeUtils.convertSimple(param, parameterType.getClazz());
+        return TypeUtils.convertStringToSimple(param, parameterType.getReferencedClass());
     }
 }

@@ -50,7 +50,7 @@ public class ControllerMethodInvoker {
 
     private void doInvocation(ControllerMethod controllerMethod, HttpServletRequest request, HttpServletResponse response) throws Exception {
         var context = createInvocationContext(controllerMethod, request, response);
-        var controller = applicationContext.getBean(controllerMethod.getControllerClass().getClazz());
+        var controller = applicationContext.getBean(controllerMethod.getControllerClass().getReferencedClass());
         var method = getMethod(controller, controllerMethod);
         var parameters = getParameters(controllerMethod, context).toArray();
         var returnValue = method.invoke(controller, parameters);

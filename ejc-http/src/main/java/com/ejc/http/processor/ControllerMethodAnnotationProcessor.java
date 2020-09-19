@@ -3,8 +3,6 @@ package com.ejc.http.processor;
 import com.ejc.api.context.ClassReference;
 import com.ejc.http.*;
 import com.ejc.http.api.controller.*;
-import com.ejc.util.ProcessorUtils;
-import com.ejc.util.ReflectionUtils;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.AbstractProcessor;
@@ -27,6 +25,10 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static com.ejc.util.JavaModelUtils.getAnnotationMirror;
+import static com.ejc.util.JavaModelUtils.getAnnotationValue;
+import static com.ejc.util.ProcessorLogger.reportError;
 
 @AutoService(Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
@@ -74,7 +76,7 @@ public class ControllerMethodAnnotationProcessor extends AbstractProcessor {
         try {
             writer.write();
         } catch (IOException ex) {
-            ProcessorUtils.reportError(this, processingEnv, ex);
+            reportError(this, processingEnv, ex);
         }
     }
 
@@ -103,8 +105,8 @@ public class ControllerMethodAnnotationProcessor extends AbstractProcessor {
             return new ParameterProviderForRequestBody(ClassReference.getRef(variableElement.asType().toString()));
         }
         if (variableElement.getAnnotation(PathVariable.class) != null) {
-            AnnotationMirror pathVariable = ReflectionUtils.getAnnotationMirror(variableElement, PathVariable.class);
-            AnnotationValue value = ReflectionUtils.getAnnotationValue(pathVariable, "value");
+            AnnotationMirror pathVariable = getAnnotationMirror(variableElement, PathVariable.class);
+            AnnotationValue value = getAnnotationValue(pathVariable, "value");
             return new ParameterProviderForUrlParam(value.getValue().toString(), ClassReference.getRef(variableElement.asType().toString()));
         }
         throw new IllegalStateException("no provider for " + variableElement + " in " + variableElement.getEnclosingElement());

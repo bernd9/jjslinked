@@ -18,7 +18,7 @@ public class ParameterProviderForRequestBody implements ParameterProvider<Object
     public Object provide(ControllerMethodInvocationContext context) {
         ObjectMapper objectMapper = context.getApplicationContext().getBean(ObjectMapper.class);
         try {
-            return objectMapper.readValue(context.getRequest().getInputStream(), parameterType.getClazz());
+            return objectMapper.readValue(context.getRequest().getInputStream(), parameterType.getReferencedClass());
         } catch (IOException e) {
             throw new HttpStatusException(422, ContentType.JSON, "unable to read body content");
         }
