@@ -3,6 +3,7 @@ package com.ejc.api.context;
 import com.ejc.ApplicationContext;
 import com.ejc.ApplicationContextFactory;
 import com.ejc.processor.ApplicationContextImpl;
+import com.ejc.processor.UsedInGeneratedCode;
 import com.ejc.util.ClassUtils;
 import lombok.Getter;
 
@@ -120,59 +121,69 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
         return (Set<T>) configurationCache.computeIfAbsent(c, this::findMatchingConfiguration);
     }
 
+    @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void addBeanClass(ClassReference c) {
         beanClasses.add(c);
     }
 
+    @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void addConfigurationClass(ClassReference c) {
         configurationClasses.add(c);
     }
 
+    @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected <B> void addImplementation(ClassReference base, ClassReference impl) {
         beanClasses.remove(base); // No matter if not exists
         beanClasses.add(impl);
     }
 
+    @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void addBeanClassForReplacement(ClassReference beanClass, ClassReference classToReplace) {
         addBeanClass(beanClass);
         classesToReplace.add(classToReplace);
     }
 
+    @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void addSingleValueDependency(ClassReference declaringClass, String fieldName, ClassReference fieldType) {
         singleValueInjectors.add(new SingleValueInjector(declaringClass, fieldName, fieldType));
     }
 
+    @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void addMultiValueDependency(ClassReference declaringClass, String fieldName, Class<?> fieldType, ClassReference elementType) {
         multiValueInjectors.add(new MultiValueInjector(declaringClass, fieldName, fieldType, elementType));
     }
 
+    @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void addInitMethodForSingleton(ClassReference declaringClass, String methodName) {
         initInvokersForSingleton.add(new InitInvoker(declaringClass, methodName));
     }
 
+    @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void addLoadBeanMethod(ClassReference declaringClass, String methodName) {
         loadBeanMethodInvokers.add(new BeanFactoryMethodInvoker(declaringClass, methodName));
     }
 
+    @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void addInitMethodForConfiguration(ClassReference declaringClass, String methodName) {
         initInvokersForConfiguration.add(new InitInvoker(declaringClass, methodName));
     }
 
+    @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void addConfigValueFieldInSingleton(ClassReference declaringClass, String fieldName, Class<?> fieldType, String key, String defaultValue) {
         configValueInjectorsForSingleton.add(new ConfigValueInjector(declaringClass, fieldName, fieldType, key, defaultValue));
     }
-
-
+    
+    @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void addConfigValueFieldInConfiguration(ClassReference declaringClass, String fieldName, Class<?> fieldType, String key, String defaultValue) {
         configValueInjectorsForConfiguration.add(new ConfigValueInjector(declaringClass, fieldName, fieldType, key, defaultValue));
