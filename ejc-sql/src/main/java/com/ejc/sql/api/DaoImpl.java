@@ -2,7 +2,6 @@ package com.ejc.sql.api;
 
 import com.ejc.ApplicationContext;
 import com.ejc.api.context.ClassReference;
-import com.ejc.sql.Connector;
 import com.ejc.sql.CrudRepository;
 
 import java.sql.Connection;
