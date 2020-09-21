@@ -2,17 +2,11 @@ package com.ejc.api.context;
 
 import com.ejc.ApplicationContext;
 import com.ejc.ApplicationContextFactory;
-import com.ejc.api.config.Config;
 import com.ejc.processor.ApplicationContextImpl;
 import com.ejc.util.ClassUtils;
-import com.ejc.util.FieldUtils;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Getter
@@ -30,7 +24,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     private final Set<InitInvoker> initInvokersForConfiguration = new HashSet<>();
     private final Set<ConfigValueInjector> configValueInjectorsForSingleton = new HashSet<>();
     private final Set<ConfigValueInjector> configValueInjectorsForConfiguration = new HashSet<>();
-    private final Set<LoadBeanMethodInvoker> loadBeanMethodInvokers = new HashSet<>();
+    private final Set<BeanFactoryMethodInvoker> loadBeanMethodInvokers = new HashSet<>();
 
     @Override
     public ApplicationContext createContext() {
@@ -165,7 +159,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
 
     @SuppressWarnings("unused")
     protected void addLoadBeanMethod(ClassReference declaringClass, String methodName) {
-        loadBeanMethodInvokers.add(new LoadBeanMethodInvoker(declaringClass, methodName));
+        loadBeanMethodInvokers.add(new BeanFactoryMethodInvoker(declaringClass, methodName));
     }
 
     @SuppressWarnings("unused")
@@ -201,146 +195,6 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
         return (T) ClassUtils.createInstance(ref.getReferencedClass());
     }
 
-}
-
-@RequiredArgsConstructor
-abstract class InjectorBase {
-    private final ClassReference declaringClass;
-    private final String fieldName;
-    private final ClassReference fieldType;
-
-    void doInject(ApplicationContextFactoryBase factory) {
-        factory.getBeans(declaringClass.getReferencedClass()).forEach(bean -> doInject(bean, factory));
-    }
-
-    private void doInject(Object bean, ApplicationContextFactoryBase factory) {
-        try {
-            doInjectFieldValue(bean, FieldUtils.getField(bean, fieldName), factory);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void doInjectFieldValue(Object bean, Field field, ApplicationContextFactoryBase factory) {
-        try {
-            field.setAccessible(true);
-            field.set(bean, getFieldValue(fieldType.getReferencedClass(), factory));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    abstract Object getFieldValue(Class<?> fieldType, ApplicationContextFactoryBase factory);
-
-
-}
-
-
-class SingleValueInjector extends InjectorBase {
-
-    public SingleValueInjector(ClassReference declaringClass, String fieldName, ClassReference fieldType) {
-        super(declaringClass, fieldName, fieldType);
-    }
-
-    @Override
-    Object getFieldValue(Class<?> fieldType, ApplicationContextFactoryBase factory) {
-        return factory.getBean(fieldType);
-    }
-}
-
-class MultiValueInjector extends InjectorBase {
-
-    private final ClassReference fieldValueType;
-
-    public MultiValueInjector(ClassReference declaringClass, String fieldName, Class<?> fieldType, ClassReference fieldValueType) {
-        super(declaringClass, fieldName, new ClassReference(fieldType));
-        this.fieldValueType = fieldValueType;
-    }
-
-    @Override
-    Object getFieldValue(Class<?> fieldType, ApplicationContextFactoryBase factory) {
-        Set<Object> set = factory.getBeans((Class<Object>) fieldValueType.getReferencedClass());
-        if (fieldType.isAssignableFrom(Set.class)) {
-            return set;
-        }
-        if (fieldType.isArray()) {
-            return set.toArray(new Object[set.size()]);
-        }
-        if (fieldType.isAssignableFrom(List.class)) {
-            return Collections.unmodifiableList(new ArrayList<>(set));
-        }
-        if (fieldType.isAssignableFrom(LinkedList.class)) {
-            return new LinkedList<>(set);
-        }
-        throw new IllegalStateException("unsupported collection type: " + fieldType);
-
-    }
-}
-
-@RequiredArgsConstructor
-class ConfigValueInjector {
-
-    private final ClassReference declaringClass;
-    private final String fieldName;
-    private final Class<?> fieldType;
-    private final String key;
-    private final String defaultValue;
-
-    void doInject(Function<Class<?>, Set<?>> selectFunction) {
-        selectFunction.apply(declaringClass.getReferencedClass()).forEach(bean -> doInject(bean));
-    }
-
-    private void doInject(Object bean) {
-        try {
-            Field field = FieldUtils.getField(bean, fieldName);
-            field.setAccessible(true);
-            field.set(bean, Config.getProperty(key, fieldType, defaultValue));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-}
-
-@RequiredArgsConstructor
-class InitInvoker {
-    private final ClassReference declaringClass;
-    private final String methodName;
-
-    void doInvoke(Function<Class<?>, Set<?>> selectFunction) {
-        selectFunction.apply(declaringClass.getReferencedClass()).forEach(bean -> doInvokeMethod(bean));
-    }
-
-    private void doInvokeMethod(Object bean) {
-        try {
-            Method method = bean.getClass().getDeclaredMethod(methodName);
-            method.setAccessible(true);
-            method.invoke(bean);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-}
-
-@RequiredArgsConstructor
-class LoadBeanMethodInvoker {
-    private final ClassReference declaringClass;
-    private final String methodName;
-
-    Collection<Object> doInvoke(ApplicationContextFactoryBase factoryBase) {
-        return factoryBase.getConfigurations(declaringClass.getReferencedClass()).stream()
-                .map(this::doInvokeMethod)
-                .collect(Collectors.toSet());
-    }
-
-    private Object doInvokeMethod(Object bean) {
-        try {
-            Method method = bean.getClass().getDeclaredMethod(methodName);
-            method.setAccessible(true);
-            return method.invoke(bean);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
 
 
