@@ -1,5 +1,6 @@
 package com.ejc.api.context;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Method;
@@ -8,6 +9,8 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 class BeanFactoryMethodInvoker {
+
+    @Getter
     private final ClassReference declaringClass;
     private final String methodName;
 
