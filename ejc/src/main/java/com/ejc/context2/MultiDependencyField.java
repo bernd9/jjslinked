@@ -3,31 +3,49 @@ package com.ejc.context2;
 import com.ejc.api.context.ClassReference;
 import lombok.Getter;
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 
 import java.lang.reflect.Field;
+import java.util.*;
 
 @Getter
-@RequiredArgsConstructor
-class DependencyField {
+class MultiDependencyField {
     private final ClassReference declaringClass;
     private final String fieldName;
-    private final ClassReference fieldType;
-    private Object fieldValue;
+    private final Class<?> fieldType;
+    private final ClassReference fieldValueType;
+    private Collection<Object> fieldValue;
 
     @Getter
     private boolean fulfilled;
 
+    MultiDependencyField(ClassReference declaringClass, String fieldName, Class<?> fieldType, ClassReference fieldValueType) {
+        this.declaringClass = declaringClass;
+        this.fieldName = fieldName;
+        this.fieldType = fieldType;
+        this.fieldValueType = fieldValueType;
+        this.fieldValue = createCollection();
+    }
+
+    private Collection<Object> createCollection() {
+        if (fieldType.isAssignableFrom(Set.class)) {
+            return new HashSet();
+        }
+        if (fieldType.isAssignableFrom(List.class)) {
+            return new ArrayList<>();
+        }
+        if (fieldType.isAssignableFrom(LinkedList.class)) {
+            return new LinkedList<>();
+        }
+        throw new IllegalStateException("unsupported collection type: " + fieldType);
+    }
+
     void onSingletonCreated(@NonNull Object singleton) {
-        if (fieldType.isInstance(singleton)) { // TODO Lists, Arrays etc.
-            this.fieldValue = singleton;
+        if (fieldValueType.isInstance(singleton)) {
+            this.fieldValue.add(singleton);
         }
     }
 
     void setFieldValue(@NonNull Object declaringBean) {
-        if (fulfilled) {
-            throw new IllegalStateException("multiple candidates for field " + fieldName + " in type " + fieldType.getClassName());
-        }
         try {
             Field field = getField(fieldName);
             field.setAccessible(true);

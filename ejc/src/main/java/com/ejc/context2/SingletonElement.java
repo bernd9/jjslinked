@@ -13,7 +13,7 @@ class SingletonElement {
     private final Set<InitMethod> initMethods = new HashSet<>();
     private final Set<BeanMethod> beanMethods = new HashSet<>();
     private final Set<ConfigValueField> configValueFields = new HashSet<>();
-    private final Set<DependencyField> dependencyFields = new HashSet<>();
+    private final Set<SingleDependencyField> singleDependencyFields = new HashSet<>();
     private Object singleton;
 
     public SingletonElement(ClassReference type, ClassReference... constructorParameters) {
@@ -25,7 +25,7 @@ class SingletonElement {
     }
 
     boolean isDependenciesComplete() {
-        return dependencyFields.stream().noneMatch(field -> !field.isFulfilled());
+        return singleDependencyFields.stream().noneMatch(field -> !field.isFulfilled());
     }
 
     Object createSingleton() {
@@ -33,8 +33,8 @@ class SingletonElement {
         return singleton;
     }
 
-    void onSingletonCreated(Object o) {
-        dependencyFields.forEach(field -> onSingletonCreated(o));
+    void updateDependencyFields(Object singleton) {
+        singleDependencyFields.forEach(field -> field.onSingletonCreated(singleton));
     }
 
     void invokeInitMethods() {

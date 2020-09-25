@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import java.util.*;
 import java.util.stream.Collectors;
 
+// TODO Es müste gepürft werden ob alle Bean-Methoden aufgerufen wurden. Dann erst kann das Init folgen folgen
 public class ApplicationContextInitializerBase {
 
     private final Map<ClassReference, SingletonElement> newSingletons = new HashMap<>();
@@ -29,14 +30,15 @@ public class ApplicationContextInitializerBase {
 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
-    protected <B> void addImplementation(ClassReference c, ClassReference... constructorParameters) {
-        newSingletons.put(c, new SingletonElement(c, constructorParameters));
+    protected <B> void addImplementation(ClassReference base, ClassReference impl, ClassReference... constructorParameters) {
+        newSingletons.remove(base);
+        newSingletons.put(impl, new SingletonElement(impl, constructorParameters));
     }
 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void addSingleValueDependency(ClassReference declaringClass, String fieldName, ClassReference fieldType) {
-        newSingletons.get(declaringClass).getDependencyFields().add(new DependencyField(declaringClass, fieldName, fieldType));
+        newSingletons.get(declaringClass).getSingleDependencyFields().add(new SingleDependencyField(declaringClass, fieldName, fieldType));
     }
 
     @UsedInGeneratedCode
@@ -65,22 +67,23 @@ public class ApplicationContextInitializerBase {
     }
 
     void initialize() {
-        SingletonStatusEventPublisher eventPublisher = new SingletonStatusEventPublisher();
+        SingletonEventPublisher eventPublisher = new SingletonEventPublisher();
         SingletonInstantiation singletonInstantiation = new SingletonInstantiation(eventPublisher, newSingletons.values());
         Singletons singletons = new Singletons();
         eventPublisher.addListener(singletons);
+        eventPublisher.addListener(new DependencyFieldInjector(eventPublisher));
         eventPublisher.addListener(new ConfigFieldInjector(eventPublisher));
         eventPublisher.addListener(new InitMethodInvoker(eventPublisher));
         eventPublisher.addListener(new DependencyFieldInjector(eventPublisher));
-        eventPublisher.addListener(new BeanMethodInvoker(eventPublisher, singletonInstantiation));
+        eventPublisher.addListener(new BeanMethodInvoker(eventPublisher));
         singletonInstantiation.runInstantiation();
         singletonsCreated.addAll(singletons.getValues());
     }
 
 
     @RequiredArgsConstructor
-    class SingletonInstantiation {
-        private final SingletonStatusEventPublisher publisher;
+    class SingletonInstantiation implements SingletonStatusEventListener {
+        private final SingletonEventPublisher publisher;
         private final Collection<SingletonElement> singletons;
 
         void runInstantiation() {
@@ -93,15 +96,21 @@ public class ApplicationContextInitializerBase {
                     .forEach(this::singletonCreated);
         }
 
-        void onBeanCreatedInConfig(Object o) {
+        @Override
+        public SingletonStatus getSupportedStatus() {
+            return SingletonStatus.NONE;
+        }
+
+        @Override
+        public void onBeanCreatedInConfig(Object o) {
             if (!singletons.isEmpty()) {
-                singletons.forEach(e -> e.onSingletonCreated(o));
+                singletons.forEach(e -> e.updateDependencyFields(o));
                 runInstantiation();
             }
         }
 
         private void singletonCreated(SingletonElement singletonElement) {
-            singletons.forEach(e -> e.onSingletonCreated(singletonElement.getSingleton()));
+            singletons.forEach(e -> e.updateDependencyFields(singletonElement.getSingleton()));
             publisher.publish(new SingletonStatusEvent(singletonElement, SingletonStatus.INSTANTIATED));
         }
     }
@@ -109,7 +118,7 @@ public class ApplicationContextInitializerBase {
     @RequiredArgsConstructor
     class ConfigFieldInjector implements SingletonStatusEventListener {
 
-        private final SingletonStatusEventPublisher publisher;
+        private final SingletonEventPublisher publisher;
 
         @Override
         public void onStatusEvent(SingletonStatusEvent e) {
@@ -126,7 +135,7 @@ public class ApplicationContextInitializerBase {
     @RequiredArgsConstructor
     class DependencyFieldInjector implements SingletonStatusEventListener {
 
-        private final SingletonStatusEventPublisher publisher;
+        private final SingletonEventPublisher publisher;
         private final Set<SingletonElement> singletons = new HashSet<>();
 
         @Override
@@ -145,12 +154,17 @@ public class ApplicationContextInitializerBase {
         public SingletonStatus getSupportedStatus() {
             return SingletonStatus.CONFIG_VALUES_SET;
         }
+
+        @Override
+        public void onBeanCreatedInConfig(Object o) {
+            singletons.forEach(e -> e.updateDependencyFields(o));
+        }
     }
 
     @RequiredArgsConstructor
     class InitMethodInvoker implements SingletonStatusEventListener {
 
-        private final SingletonStatusEventPublisher publisher;
+        private final SingletonEventPublisher publisher;
 
         @Override
         public void onStatusEvent(SingletonStatusEvent event) {
@@ -166,13 +180,12 @@ public class ApplicationContextInitializerBase {
 
     @RequiredArgsConstructor
     class BeanMethodInvoker implements SingletonStatusEventListener {
-        private final SingletonStatusEventPublisher publisher;
-        private final SingletonInstantiation singletonInstantiation;
+        private final SingletonEventPublisher publisher;
 
         @Override
         public void onStatusEvent(SingletonStatusEvent event) {
             event.getSingletonElement().invokeBeanFactoryMethods()
-                    .forEach(singletonInstantiation::onBeanCreatedInConfig);
+                    .forEach(o -> publisher.beanCreatedInConfig(o));
             publisher.publish(new SingletonStatusEvent(event.getSingletonElement(), SingletonStatus.BEAN_METHODS_INVOCATED));
         }
 
@@ -200,6 +213,7 @@ public class ApplicationContextInitializerBase {
     }
 
     enum SingletonStatus {
+        NONE,
         INSTANTIATED,
         CONFIG_VALUES_SET,
         DEPENDENCY_FIELDS_SET,
@@ -215,12 +229,16 @@ public class ApplicationContextInitializerBase {
     }
 
     interface SingletonStatusEventListener {
-        void onStatusEvent(SingletonStatusEvent event);
+        default void onStatusEvent(SingletonStatusEvent event) {
+        }
 
         SingletonStatus getSupportedStatus();
+
+        default void onBeanCreatedInConfig(Object o) {
+        }
     }
 
-    class SingletonStatusEventPublisher {
+    class SingletonEventPublisher {
         private Map<SingletonStatus, SingletonStatusEventListener> listeners = new HashMap<>();
 
         void addListener(SingletonStatusEventListener listener) {
@@ -230,6 +248,10 @@ public class ApplicationContextInitializerBase {
 
         void publish(SingletonStatusEvent event) {
             listeners.get(event.getSingletonStatus()).onStatusEvent(event);
+        }
+
+        void beanCreatedInConfig(Object o) {
+            listeners.values().forEach(listener -> listener.onBeanCreatedInConfig(o));
         }
     }
 }
