@@ -37,8 +37,8 @@ public class SingletonsWriter extends JavaWriter {
         constructorBuilder.addStatement("addConstructor($L)", addConstructorMethodParameters(model));
         model.getInitMethods().forEach(method -> constructorBuilder.addStatement("addInitMethod($L, \"$L\")", ref(model.getSingleton()), method));
         model.getBeanMethods().forEach(method -> constructorBuilder.addStatement("addBeanMethod($L, \"$L\")", ref(model.getSingleton()), method));
-        model.getConfigFields().forEach(field -> constructorBuilder.addStatement("addConfigField($L, \"$L\")", ref(model.getSingleton()), field));
-        model.getDependencyFields().forEach(field -> constructorBuilder.addStatement("addDependencyField($L, \"$L\")", ref(model.getSingleton()), field));
+        model.getConfigFields().forEach(field -> constructorBuilder.addStatement("addConfigField($L, \"$L\", $L)", ref(model.getSingleton()), field.getSimpleName(), ref(field.asType())));
+        model.getDependencyFields().forEach(field -> constructorBuilder.addStatement("addDependencyField($L, \"$L\", $L)", ref(model.getSingleton()), field.getSimpleName(), ref(field.asType())));
     }
 
     private CodeBlock addConstructorMethodParameters(SingletonWriterModels.SingletonWriterModel model) {

@@ -16,6 +16,9 @@ class TestApplication {
 class TestSingleton1 {
     private final TestSingleton4 singleton4;
 
+    @Value(key = "port", defaultValue = "80")
+    private int port;
+
     @Inject
     private TestSingleton5 singleton5;
 
@@ -39,6 +42,13 @@ class TestSingleton3 {
 
     @Inject
     private TestSingleton4 singleton4;
+
+    private boolean initInvoked;
+
+    @Init
+    void init() {
+        initInvoked = true;
+    }
 
     TestSingleton3(TestSingleton1 singleton1, TestSingleton2 singleton2) {
         this.singleton1 = singleton1;
@@ -68,6 +78,13 @@ class Config1 {
 
     @Inject
     private TestSingleton5 singleton5;
+
+    private boolean initInvoked;
+
+    @Init
+    void init() {
+        initInvoked = true;
+    }
 
     @Bean
     TestSingleton4 singleton4() {
