@@ -9,6 +9,8 @@ import java.util.Optional;
 
 public class Singletons {
 
+    public static String IMPLEMENTATION_SIMPLE_NAME = "SingletonsImpl";
+
     private Map<ClassReference, SingletonModel> singletonModels = new HashMap<>();
 
     public void addSingleton(ClassReference type) {

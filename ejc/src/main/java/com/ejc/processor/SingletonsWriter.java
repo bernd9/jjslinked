@@ -20,7 +20,7 @@ public class SingletonsWriter extends JavaWriter {
 
     @Builder
     public SingletonsWriter(SingletonWriterModels model, String packageName, ProcessingEnvironment processingEnvironment) {
-        super("SingletonsImpl", packageName, Optional.of(Singletons.class), processingEnvironment);
+        super(Singletons.IMPLEMENTATION_SIMPLE_NAME, packageName, Optional.of(Singletons.class), processingEnvironment);
         this.model = model;
     }
 
@@ -36,18 +36,18 @@ public class SingletonsWriter extends JavaWriter {
         model.getBeanMethods().forEach(method -> constructorBuilder.addStatement("addBeanMethod($L, \"$L\")", ref(model.getSingleton()), method));
         model.getConfigFields().forEach(field -> constructorBuilder.addStatement("addConfigField($L, \"$L\", $L)", ref(model.getSingleton()), field.getSimpleName(), ref(field.asType())));
         model.getDependencyFields().forEach(field -> constructorBuilder.addStatement("addDependencyField($L, \"$L\", $L)", ref(model.getSingleton()), field.getSimpleName(), ref(field.asType())));
-        model.getDependencyFields().forEach(field -> constructorBuilder.addStatement("addCollectionDependencyField($L, \"$L\", $L, $L)",
+        model.getCollectionDependencyFields().forEach(field -> constructorBuilder.addStatement("addCollectionDependencyField($L, \"$L\", $L, $L)",
                 ref(model.getSingleton()), field.getSimpleName(), ref(field.asType()), ref(JavaModelUtils.getGenericType(field))));
     }
-    
+
     private void addConstructorParameters(SingletonWriterModels.SingletonWriterModel model, MethodSpec.Builder constructorBuilder) {
         model.getConstructorParameters().forEach(parameter -> {
             if (CollectionConstructorParameterElement.class.isInstance(parameter)) {
                 CollectionConstructorParameterElement element = (CollectionConstructorParameterElement) parameter;
-                constructorBuilder.addStatement("addCollectionConstructorParameter($L, $T.class, $L)", model.getSingleton(), element.getCollectionType(), ref(element.getGenericType()));
+                constructorBuilder.addStatement("addCollectionConstructorParameter($L, $T.class, $L)", ref(model.getSingleton()), element.getCollectionType(), ref(element.getGenericType()));
             } else if (SimpleConstructorParameterElement.class.isInstance(parameter)) {
                 SimpleConstructorParameterElement element = (SimpleConstructorParameterElement) parameter;
-                constructorBuilder.addStatement("addConstructorParameter($L, $L)", model.getSingleton(), ref(element.getType()));
+                constructorBuilder.addStatement("addConstructorParameter($L, $L)", ref(model.getSingleton()), ref(element.getType()));
             } else throw new IllegalStateException();
         });
     }

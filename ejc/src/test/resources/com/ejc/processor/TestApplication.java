@@ -3,6 +3,8 @@ package com.ejc.processor;
 import com.ejc.*;
 import lombok.Getter;
 
+import java.util.Set;
+
 @Application
 class TestApplication {
 
@@ -68,18 +70,36 @@ class TestSingleton4 {
 
 @Getter
 @Singleton
-class TestSingleton5 {
+class TestSingleton5 implements TestInterface {
 
 }
+
+@Getter
+@Singleton
+class TestSingleton6 {
+    private final Set<TestInterface> singletons;
+
+    TestSingleton6(Set<TestInterface> singletons) {
+        this.singletons = singletons;
+    }
+
+}
+
 
 @Getter
 @Configuration
 class Config1 {
 
     @Inject
-    private TestSingleton5 singleton5;
+    private Set<TestInterface> singletons;
+
+    private final TestSingleton5 singleton5;
 
     private boolean initInvoked;
+
+    Config1(TestSingleton5 singleton5) {
+        this.singleton5 = singleton5;
+    }
 
     @Init
     void init() {
@@ -90,4 +110,8 @@ class Config1 {
     TestSingleton4 singleton4() {
         return new TestSingleton4(singleton5);
     }
+}
+
+interface TestInterface {
+
 }

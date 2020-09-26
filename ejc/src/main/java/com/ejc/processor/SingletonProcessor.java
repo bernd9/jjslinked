@@ -78,7 +78,7 @@ public class SingletonProcessor extends ProcessorBase {
         Name owner = singleton.getQualifiedName();
         List<ConstructorParameterElement> parameters = constructorParameters.computeIfAbsent(owner, name -> new ArrayList<>());
         getConstructor(singleton).getParameters().forEach(parameter -> {
-            if (isCollection().apply(parameter)) {
+            if (isCollection(parameter)) {
                 parameters.add(new CollectionConstructorParameterElement(getCollectionType(parameter), getGenericType(parameter)));
             } else {
                 parameters.add(new SimpleConstructorParameterElement(parameter.asType()));
@@ -102,8 +102,8 @@ public class SingletonProcessor extends ProcessorBase {
 
     private void processInjectFields(QueryResult result) {
         Set<VariableElement> fields = result.getElements(Inject.class, VariableElement.class);
-        fields.stream().filter(isCollection().negate()).forEach(this::processInjectCollectionField);
-        fields.stream().filter(isCollection()).forEach(this::processInjectField);
+        fields.stream().filter(isCollection()).forEach(this::processInjectCollectionField);
+        fields.stream().filter(isCollection().negate()).forEach(this::processInjectField);
     }
 
     private void processInjectField(VariableElement field) {
@@ -139,15 +139,20 @@ public class SingletonProcessor extends ProcessorBase {
     }
 
     private Predicate<VariableElement> isCollection() {
-        return variable -> isInstanceOf(variable.asType(), processingEnv.getElementUtils().getTypeElement(Collection.class.getName()));
+        return variable -> isCollection(variable);
     }
 
-    private boolean isCollection(TypeMirror variable) {
-        return isInstanceOf(variable, processingEnv.getElementUtils().getTypeElement(Collection.class.getName()));
+    private boolean isCollection(VariableElement var) {
+        String name = var.asType().toString().replaceAll("<[^\\]]*>", "");
+        try {
+            return Collection.class.isAssignableFrom(Class.forName(name));
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     private Class<? extends Collection> getCollectionType(VariableElement parameter) {
-        return (Class<? extends Collection>) ClassUtils.classForName(parameter.asType().toString());
+        return (Class<? extends Collection>) ClassUtils.classForName(parameter.asType().toString().replaceAll("<[^\\]]*>", ""));
     }
 
     private boolean isInstanceOf(TypeMirror candidate, TypeElement superType) {
