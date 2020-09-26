@@ -21,7 +21,7 @@ class ApplicationContextFactorySingleDependencyTest {
     @BeforeEach
     void init() {
         compiler = javac().withProcessors(new ApplicationContextFactoryProcessor());
-        files = ProcessorTestUtil.javaFileObjects("com/ejc/processor/context/single", "TestBean1.java", "TestBean1a.java", "TestBean2.java", "TestBean3.java", "TestBean3Impl.java");
+        files = ProcessorTestUtil.javaFileObjects("com/ejc/processor/context/single", "TestApplication.java", "TestBean1a.java", "TestBean2.java", "TestBean3.java", "TestBean3Impl.java");
     }
 
     @Test

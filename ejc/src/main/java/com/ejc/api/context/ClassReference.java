@@ -32,6 +32,10 @@ public class ClassReference {
         return references.computeIfAbsent(className, ClassReference::new);
     }
 
+    public boolean isInstance(Object o) {
+        return getReferencedClass().isInstance(o);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -45,5 +49,12 @@ public class ClassReference {
     @Override
     public int hashCode() {
         return className.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "ClassReference{" +
+                "className='" + className + '\'' +
+                '}';
     }
 }
