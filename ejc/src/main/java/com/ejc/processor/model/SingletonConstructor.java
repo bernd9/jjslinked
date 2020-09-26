@@ -1,20 +1,15 @@
 package com.ejc.processor.model;
 
-import com.ejc.api.context.ClassReference;
+import lombok.experimental.Delegate;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class SingletonConstructor {
-    private final List<ConstructorParameter> parameters;
+
+    @Delegate
+    private final List<ConstructorParameter> parameters = new ArrayList<>();
     private SingletonCreationEventBus bus;
-
-    public SingletonConstructor(ClassReference... parameterTypes) {
-        final SingletonConstructor singletonConstructor = this;
-        parameters = Arrays.stream(parameterTypes).map(classReference -> new ConstructorParameter(classReference, singletonConstructor)).collect(Collectors.toList());
-    }
-
 
     void setEventBus(SingletonCreationEventBus bus) {
         this.bus = bus;

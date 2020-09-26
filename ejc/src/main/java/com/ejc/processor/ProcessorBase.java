@@ -17,7 +17,7 @@ public abstract class ProcessorBase extends AbstractProcessor {
         if (roundEnv.processingOver()) {
             processingOver();
         } else {
-            ProcessingResult result = new ProcessingResult();
+            QueryResult result = new QueryResult();
             getSupportedAnnotationTypes().stream()
                     .map(name -> processingEnv.getElementUtils().getTypeElement(name))
                     .forEach(annotation -> process(annotation, roundEnv, result));
@@ -26,14 +26,14 @@ public abstract class ProcessorBase extends AbstractProcessor {
         return false;
     }
 
-    protected void process(TypeElement annotationClass, RoundEnvironment roundEnvironment, ProcessingResult result) {
+    protected void process(TypeElement annotationClass, RoundEnvironment roundEnvironment, QueryResult result) {
         String name = annotationClass.getQualifiedName().toString();
         result.computeIfAbsent(name, n -> new HashSet<>())
                 .addAll(roundEnvironment.getElementsAnnotatedWith(annotationClass).stream().collect(Collectors.toSet()));
     }
 
 
-    protected abstract void process(ProcessingResult result);
+    protected abstract void process(QueryResult result);
 
     protected void processingOver() {
 

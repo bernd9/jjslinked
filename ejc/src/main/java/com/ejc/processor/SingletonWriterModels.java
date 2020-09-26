@@ -5,10 +5,7 @@ import lombok.Data;
 import lombok.Getter;
 
 import javax.lang.model.element.*;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 class SingletonWriterModels {
@@ -20,28 +17,34 @@ class SingletonWriterModels {
         hierarchy.forEach((type, hierarchyList) -> singletonWriterModels.add(new SingletonWriterModel(type, hierarchyList)));
     }
 
-    void putInitMethod(Element type, ExecutableElement method) {
+    void putInitMethods(Element type, Collection<ExecutableElement> methods) {
         singletonWriterModels.stream()
                 .filter(model -> model.isAncestorClass(type))
-                .forEach(model -> model.getInitMethods().add(method));
+                .forEach(model -> model.getInitMethods().addAll(methods));
     }
 
-    void putBeanMethod(Element type, ExecutableElement method) {
+    void putBeanMethods(Element type, Collection<ExecutableElement> methods) {
         singletonWriterModels.stream()
                 .filter(model -> model.isAncestorClass(type))
-                .forEach(model -> model.getBeanMethods().add(method));
+                .forEach(model -> model.getBeanMethods().addAll(methods));
     }
 
-    void putDependencyField(Element type, VariableElement field) {
+    void putDependencyFields(Element type, Collection<VariableElement> fields) {
         singletonWriterModels.stream()
                 .filter(model -> model.isAncestorClass(type))
-                .forEach(model -> model.getDependencyFields().add(field));
+                .forEach(model -> model.getDependencyFields().addAll(fields));
     }
 
-    void putConfigField(Element type, VariableElement field) {
+    void putCollectionDependencyFields(Element type, Collection<VariableElement> fields) {
         singletonWriterModels.stream()
                 .filter(model -> model.isAncestorClass(type))
-                .forEach(model -> model.getConfigFields().add(field));
+                .forEach(model -> model.getCollectionDependencyFields().addAll(fields));
+    }
+
+    void putConfigFields(Element type, Collection<VariableElement> fields) {
+        singletonWriterModels.stream()
+                .filter(model -> model.isAncestorClass(type))
+                .forEach(model -> model.getConfigFields().addAll(fields));
     }
 
     void putImplementation(Element base, TypeElement impl) {
@@ -50,10 +53,10 @@ class SingletonWriterModels {
                 .forEach(model -> model.setImplementation(impl));
     }
 
-    void putConstructor(Element type, ExecutableElement constructor) {
+    void putConstructorParameters(Element type, List<ConstructorParameterElement> parameters) {
         singletonWriterModels.stream()
                 .filter(model -> model.getSingleton().equals(type))
-                .forEach(model -> model.setConstructor(constructor));
+                .forEach(model -> model.setConstructorParameters(parameters));
     }
 
     @Data
@@ -61,12 +64,13 @@ class SingletonWriterModels {
 
         private final TypeElement singleton;
         private final Set<Name> parentTypes;
-        private ExecutableElement constructor;
+        private List<ConstructorParameterElement> constructorParameters;
         private TypeElement implementation;
 
         private final Set<ExecutableElement> initMethods = new HashSet<>();
         private final Set<ExecutableElement> beanMethods = new HashSet<>();
         private final Set<VariableElement> dependencyFields = new HashSet<>();
+        private final Set<VariableElement> collectionDependencyFields = new HashSet<>();
         private final Set<VariableElement> configFields = new HashSet<>();
 
         SingletonWriterModel(TypeElement singleton, List<TypeElement> parentTypes) {

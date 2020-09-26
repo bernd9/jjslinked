@@ -23,11 +23,11 @@ public class ClassUtils {
         return createInstance(classForName(c));
     }
 
-    public static Object createInstance(Class<?> c) {
+    public static <T> T createInstance(Class<T> c) {
         try {
             Constructor constructor = c.getDeclaredConstructor();
             constructor.setAccessible(true);
-            return constructor.newInstance();
+            return (T) constructor.newInstance();
         } catch (Exception e1) {
             throw new RuntimeException(e1);
         }

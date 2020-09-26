@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class JavaModelUtils {
-
+    
 
     // TODO share these methods with GenericMethodAnnotationProcessor:
     public static String signature(ExecutableElement method) {

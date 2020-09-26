@@ -7,7 +7,7 @@ import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ProcessingResult {
+public class QueryResult {
     @Delegate
     private Map<String, Collection<Element>> elements = new HashMap<>();
 

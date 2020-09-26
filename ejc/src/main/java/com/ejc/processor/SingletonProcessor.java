@@ -3,36 +3,37 @@ package com.ejc.processor;
 import com.ejc.*;
 import com.ejc.api.context.UndefinedClass;
 import com.ejc.processor.model.Singletons;
+import com.ejc.util.ClassUtils;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.IOUtils;
 import com.ejc.util.JavaModelUtils;
 import com.google.auto.service.AutoService;
 import com.google.common.base.Functions;
+import com.google.common.base.Predicate;
 
 import javax.annotation.processing.Processor;
-import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.*;
-import javax.lang.model.type.TypeKind;
+import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
-import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.ejc.util.JavaModelUtils.getAnnotationMirrorOptional;
-import static com.ejc.util.JavaModelUtils.getAnnotationValue;
+import static com.ejc.util.JavaModelUtils.*;
 
 @AutoService(Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class SingletonProcessor extends ProcessorBase {
     static final String PACKAGE = "com.ejc.generated";
 
-    private Map<Element, ExecutableElement> initMethods = new HashMap<>();
-    private Map<Element, ExecutableElement> beanMethods = new HashMap<>();
-    private Map<Element, VariableElement> dependencyFields = new HashMap<>();
-    private Map<Element, VariableElement> configFields = new HashMap<>();
+    private Map<Name, Collection<ExecutableElement>> initMethods = new HashMap<>();
+    private Map<Name, Collection<ExecutableElement>> beanMethods = new HashMap<>();
+    private Map<Name, Collection<VariableElement>> dependencyFields = new HashMap<>();
+    private Map<Name, Collection<VariableElement>> collectionDependencyFields = new HashMap<>();
+    private Map<Name, Collection<VariableElement>> configFields = new HashMap<>();
+    private Map<Name, List<ConstructorParameterElement>> constructorParameters = new HashMap<>();
     private Set<TypeElement> singletons = new HashSet<>();
     private Map<TypeElement, TypeElement> implementations = new HashMap<>();
 
@@ -55,34 +56,125 @@ public class SingletonProcessor extends ProcessorBase {
     }
 
     @Override
-    protected void process(ProcessingResult result) {
+    protected void process(QueryResult result) {
+        processSingletons(result);
+        processInitMethods(result);
+        processBeanMethods(result);
+        processInjectFields(result);
+        processValueFields(result);
+        processImplementations(result);
+        processApplication(result);
+    }
+
+    private void processSingletons(QueryResult result) {
         singletons.addAll(singletonAnnotations.stream()
                 .map(name -> result.getElements(name, TypeElement.class))
                 .flatMap(Collection::stream)
+                .peek(this::processConstructorParameters)
                 .collect(Collectors.toSet()));
-        initMethods.putAll(result.getElements(Init.class, ExecutableElement.class).stream()
-                .collect(Collectors.toMap(Element::getEnclosingElement, Functions.identity())));
-        beanMethods.putAll(result.getElements(Bean.class, ExecutableElement.class).stream()
-                .collect(Collectors.toMap(Element::getEnclosingElement, Functions.identity())));
-        dependencyFields.putAll(result.getElements(Inject.class, VariableElement.class).stream()
-                .collect(Collectors.toMap(Element::getEnclosingElement, Functions.identity())));
-        configFields.putAll(result.getElements(Value.class, VariableElement.class).stream()
-                .collect(Collectors.toMap(Element::getEnclosingElement, Functions.identity())));
+    }
+
+    private void processConstructorParameters(TypeElement singleton) {
+        Name owner = singleton.getQualifiedName();
+        List<ConstructorParameterElement> parameters = constructorParameters.computeIfAbsent(owner, name -> new ArrayList<>());
+        getConstructor(singleton).getParameters().forEach(parameter -> {
+            if (isCollection().apply(parameter)) {
+                parameters.add(new CollectionConstructorParameterElement(getCollectionType(parameter), getGenericType(parameter)));
+            } else {
+                parameters.add(new SimpleConstructorParameterElement(parameter.asType()));
+            }
+        });
+    }
+
+    private void processImplementations(QueryResult result) {
         implementations.putAll(result.getElements(Implementation.class, TypeElement.class).stream()
                 .collect(Collectors.toMap(Functions.identity(), this::getSuperClassToOverride)));
     }
+
+    private void processValueFields(QueryResult result) {
+        result.getElements(Value.class, VariableElement.class).forEach(this::processValueField);
+    }
+
+    private void processValueField(VariableElement field) {
+        TypeElement owner = (TypeElement) field.getEnclosingElement();
+        configFields.computeIfAbsent(owner.getQualifiedName(), t -> new HashSet<>()).add(field);
+    }
+
+    private void processInjectFields(QueryResult result) {
+        Set<VariableElement> fields = result.getElements(Inject.class, VariableElement.class);
+        fields.stream().filter(isCollection().negate()).forEach(this::processInjectCollectionField);
+        fields.stream().filter(isCollection()).forEach(this::processInjectField);
+    }
+
+    private void processInjectField(VariableElement field) {
+        TypeElement owner = (TypeElement) field.getEnclosingElement();
+        dependencyFields.computeIfAbsent(owner.getQualifiedName(), t -> new HashSet<>()).add(field);
+    }
+
+    private void processInjectCollectionField(VariableElement field) {
+        TypeElement owner = (TypeElement) field.getEnclosingElement();
+        collectionDependencyFields.computeIfAbsent(owner.getQualifiedName(), t -> new HashSet<>()).add(field);
+    }
+
+    private void processBeanMethods(QueryResult result) {
+        result.getElements(Bean.class, ExecutableElement.class).stream()
+                .peek(this::validateNoParameters)
+                .forEach(this::processBeanMethod);
+    }
+
+    private void processBeanMethod(ExecutableElement method) {
+        TypeElement owner = (TypeElement) method.getEnclosingElement();
+        beanMethods.computeIfAbsent(owner.getQualifiedName(), name -> new HashSet()).add(method);
+    }
+
+    private void processInitMethods(QueryResult result) {
+        result.getElements(Init.class, ExecutableElement.class).stream()
+                .peek(this::validateNoParameters)
+                .forEach(this::processInitMethod);
+    }
+
+    private void processInitMethod(ExecutableElement method) {
+        TypeElement owner = (TypeElement) method.getEnclosingElement();
+        initMethods.computeIfAbsent(owner.getQualifiedName(), name -> new HashSet()).add(method);
+    }
+
+    private Predicate<VariableElement> isCollection() {
+        return variable -> isInstanceOf(variable.asType(), processingEnv.getElementUtils().getTypeElement(Collection.class.getName()));
+    }
+
+    private boolean isCollection(TypeMirror variable) {
+        return isInstanceOf(variable, processingEnv.getElementUtils().getTypeElement(Collection.class.getName()));
+    }
+
+    private Class<? extends Collection> getCollectionType(VariableElement parameter) {
+        return (Class<? extends Collection>) ClassUtils.classForName(parameter.asType().toString());
+    }
+
+    private boolean isInstanceOf(TypeMirror candidate, TypeElement superType) {
+        return isInstanceOf(candidate, superType.asType());
+    }
+
+    private boolean isInstanceOf(TypeMirror candidate, TypeMirror superType) {
+        return processingEnv.getTypeUtils().isAssignable(candidate, superType);
+    }
+
 
     private SingletonWriterModels createWriterModel() {
         Map<TypeElement, List<TypeElement>> hierarchy = singletons.stream()
                 .collect(Collectors.toMap(Functions.identity(), this::getClassHierarchy));
         SingletonWriterModels model = new SingletonWriterModels(hierarchy);
-        initMethods.forEach(model::putInitMethod);
-        beanMethods.forEach(model::putBeanMethod);
-        dependencyFields.forEach(model::putDependencyField);
-        configFields.forEach(model::putConfigField);
+        initMethods.forEach((name, methods) -> model.putInitMethods(typeForName(name), methods));
+        beanMethods.forEach((name, methods) -> model.putBeanMethods(typeForName(name), methods));
+        dependencyFields.forEach((name, fields) -> model.putDependencyFields(typeForName(name), fields));
+        collectionDependencyFields.forEach((name, fields) -> model.putCollectionDependencyFields(typeForName(name), fields));
+        configFields.forEach((name, fields) -> model.putConfigFields(typeForName(name), fields));
         implementations.forEach(model::putImplementation);
-        singletons.stream().forEach(singleton -> model.putConstructor(singleton, getConstructor(singleton)));
+        constructorParameters.forEach((name, parameters) -> model.putConstructorParameters(typeForName(name), parameters));
         return model;
+    }
+
+    private TypeElement typeForName(Name name) {
+        return processingEnv.getElementUtils().getTypeElement(name.toString());
     }
 
     @Override
@@ -104,7 +196,7 @@ public class SingletonProcessor extends ProcessorBase {
         }
     }
 
-    List<TypeElement> getClassHierarchy(TypeElement typeElement) {
+    private List<TypeElement> getClassHierarchy(TypeElement typeElement) {
         List<TypeElement> hierarchy = new LinkedList<>();
         TypeElement t = typeElement;
         while (t != null && !t.getQualifiedName().toString().equals(Object.class.getName())) {
@@ -112,6 +204,10 @@ public class SingletonProcessor extends ProcessorBase {
             t = (TypeElement) processingEnv.getTypeUtils().asElement(t.getSuperclass());
         }
         return hierarchy;
+    }
+
+    private static List<TypeMirror> getConstructorParameters(TypeElement typeElement) {
+        return getConstructor(typeElement).getParameters().stream().map(VariableElement::asType).collect(Collectors.toList());
     }
 
     private static ExecutableElement getConstructor(TypeElement typeElement) {
@@ -152,67 +248,14 @@ public class SingletonProcessor extends ProcessorBase {
         }
     }
 
-    private void validateEnclosedBySingleton(Element variableElement, Class<? extends Annotation> reason) {
-        if (!variableElement.getEnclosingElement().getKind().equals(ElementKind.CLASS)) {
-            throw new IllegalStateException("expected parent element to ba a class: " + variableElement);
-        }
-        TypeElement typeElement = (TypeElement) variableElement.getEnclosingElement();
-        if (typeElement.getAnnotation(Singleton.class) == null) {
-            throw new IllegalStateException(variableElement.getEnclosingElement() + " must be annotated with @Singleton, because it uses " + reason.getSimpleName());
-        }
-        if (typeElement.getAnnotation(Configuration.class) != null) {
-            throw new IllegalStateException(variableElement.getEnclosingElement() + " must be not be annotated with @Configuration, because it uses " + reason.getSimpleName());
-        }
-    }
-
-    private void validateEnclosedBySingletonOrConfiguration(Element variableElement, Class<? extends Annotation> reason) {
-        if (!variableElement.getEnclosingElement().getKind().equals(ElementKind.CLASS)) {
-            throw new IllegalStateException("expected parent element to ba a class: " + variableElement);
-        }
-        TypeElement typeElement = (TypeElement) variableElement.getEnclosingElement();
-        if (typeElement.getAnnotation(Singleton.class) != null) {
-            return;
-        }
-        if (typeElement.getAnnotation(Configuration.class) != null) {
-            return;
-        }
-        throw new IllegalStateException(variableElement.getEnclosingElement() + " must be annotated with @Singleton or Configuration, because it uses " + reason.getSimpleName());
-    }
-
-    private void validateEnclosedByConfiguration(Element variableElement, Class<? extends Annotation> reason) {
-        if (!variableElement.getEnclosingElement().getKind().equals(ElementKind.CLASS)) {
-            throw new IllegalStateException("expected parent element to ba a class: " + variableElement);
-        }
-        TypeElement typeElement = (TypeElement) variableElement.getEnclosingElement();
-        if (typeElement.getAnnotation(Singleton.class) != null) {
-            throw new IllegalStateException(variableElement.getEnclosingElement() + " must not be annotated with @Singleton, because it uses " + reason.getSimpleName());
-        }
-    }
-
-    private void validateBeanMethodHasReturnType(ExecutableElement element) {
-        if (element.getReturnType().getKind() == TypeKind.VOID) {
-            throw new IllegalStateException(element + " must not return void. It should return a bean.");
-        }
-    }
-
-    private Optional<PackageElement> getGeneratedClassPackage(Class<? extends Annotation> a, RoundEnvironment roundEnvironment) {
-        Set<? extends Element> e = roundEnvironment.getElementsAnnotatedWith(a);
-        if (e.size() > 0) {
-            return Optional.of(e.iterator().next()).map(Element::getEnclosingElement).map(PackageElement.class::cast);
-        }
-        return Optional.empty();
-    }
-
-    private void processApplication(RoundEnvironment roundEnv) {
-        List<TypeElement> classes = roundEnv.getElementsAnnotatedWith(Application.class).stream()
-                .map(TypeElement.class::cast)
-                .collect(Collectors.toList());
+    private void processApplication(QueryResult result) {
+        Set<TypeElement> classes = result.getElements(Application.class, TypeElement.class);
         TypeElement appClass;
         switch (classes.size()) {
             case 0:
                 return;
             case 1:
-                appClass = classes.get(0);
+                appClass = classes.iterator().next();
                 break;
             default:
                 throw new IllegalStateException("Multiple Application-annotations");
