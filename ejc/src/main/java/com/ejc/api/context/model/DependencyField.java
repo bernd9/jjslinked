@@ -1,4 +1,4 @@
-package com.ejc.processor.model;
+package com.ejc.api.context.model;
 
 import com.ejc.api.context.ClassReference;
 import lombok.EqualsAndHashCode;
@@ -8,8 +8,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @EqualsAndHashCode
 @RequiredArgsConstructor
-public class CollectionDependencyField {
+public class DependencyField {
     private final String name;
-    private final ClassReference collectionType;
-    private final ClassReference genericType;
+    private final ClassReference type;
 }

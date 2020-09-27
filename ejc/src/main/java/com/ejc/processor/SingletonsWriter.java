@@ -1,8 +1,8 @@
 package com.ejc.processor;
 
 import com.ejc.api.context.ClassReference;
+import com.ejc.api.context.model.Singletons;
 import com.ejc.javapoet.JavaWriter;
-import com.ejc.processor.model.Singletons;
 import com.ejc.util.JavaModelUtils;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
@@ -16,20 +16,20 @@ import java.util.Optional;
 
 public class SingletonsWriter extends JavaWriter {
 
-    private SingletonWriterModels model;
+    private SingletonWriterModel model;
 
     @Builder
-    public SingletonsWriter(SingletonWriterModels model, String packageName, ProcessingEnvironment processingEnvironment) {
-        super(Singletons.IMPLEMENTATION_SIMPLE_NAME, packageName, Optional.of(Singletons.class), processingEnvironment);
+    public SingletonsWriter(SingletonWriterModel model, String simpleName, Optional<String> packageName, ProcessingEnvironment processingEnvironment) {
+        super(simpleName, packageName, Optional.of(Singletons.class), processingEnvironment);
         this.model = model;
     }
 
     @Override
     protected void writeConstructor(MethodSpec.Builder constructorBuilder) {
-        model.getSingletonWriterModels().forEach(singleton -> writeSingleton(singleton, constructorBuilder));
+        model.getSingletonElements().forEach(singleton -> writeSingleton(singleton, constructorBuilder));
     }
 
-    private void writeSingleton(SingletonWriterModels.SingletonWriterModel model, MethodSpec.Builder constructorBuilder) {
+    private void writeSingleton(SingletonElement model, MethodSpec.Builder constructorBuilder) {
         constructorBuilder.addStatement("addSingleton($L)", ref(model.getSingleton()));
         addConstructorParameters(model, constructorBuilder);
         model.getInitMethods().forEach(method -> constructorBuilder.addStatement("addInitMethod($L, \"$L\")", ref(model.getSingleton()), method));
@@ -40,7 +40,7 @@ public class SingletonsWriter extends JavaWriter {
                 ref(model.getSingleton()), field.getSimpleName(), ref(field.asType()), ref(JavaModelUtils.getGenericType(field))));
     }
 
-    private void addConstructorParameters(SingletonWriterModels.SingletonWriterModel model, MethodSpec.Builder constructorBuilder) {
+    private void addConstructorParameters(SingletonElement model, MethodSpec.Builder constructorBuilder) {
         model.getConstructorParameters().forEach(parameter -> {
             if (CollectionConstructorParameterElement.class.isInstance(parameter)) {
                 CollectionConstructorParameterElement element = (CollectionConstructorParameterElement) parameter;

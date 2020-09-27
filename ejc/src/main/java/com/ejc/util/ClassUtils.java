@@ -5,6 +5,7 @@ import lombok.NoArgsConstructor;
 
 import java.lang.reflect.Constructor;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,20 @@ public class ClassUtils {
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public static Optional<String> getPackageName(String qualifiedName) {
+        if (!qualifiedName.contains(".")) {
+            return Optional.empty();
+        }
+        return Optional.of(qualifiedName.substring(0, qualifiedName.lastIndexOf(".") - 1));
+    }
+
+    public static String getSimpleName(String qualifiedName) {
+        if (!qualifiedName.contains(".")) {
+            return qualifiedName;
+        }
+        return qualifiedName.substring(0, qualifiedName.lastIndexOf("."));
     }
 
     public static void main(String[] args) {

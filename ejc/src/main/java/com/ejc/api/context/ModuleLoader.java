@@ -1,37 +1,36 @@
 package com.ejc.api.context;
 
-import com.ejc.ApplicationContextFactory;
+import com.ejc.api.context.model.Singletons;
+import com.ejc.util.CollectorUtils;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Getter
+@RequiredArgsConstructor
 public class ModuleLoader {
-    private final ApplicationContextFactoryBase actualContextFactory;
 
-    public ModuleLoader(ApplicationContextFactory actualContextFactory) {
-        this.actualContextFactory = (ApplicationContextFactoryBase) actualContextFactory;
+    private final Class<?> applicationClass;
+    private Singletons actualModule;
+    private Set<Singletons> modules;
+
+    public void load() {
+        Set<Singletons> allSingleton = loadAllSingletons();
+        String actualSingletonsName = Singletons.getQualifiedName(applicationClass.getName());
+        actualModule = allSingleton.stream()
+                .filter(singletons -> !singletons.getClass().getName().equals(actualSingletonsName))
+                .collect(CollectorUtils.toSingleton(() -> new IllegalStateException("no singelton class")));
+        modules = new HashSet<>(allSingleton);
+        modules.remove(actualModule);
     }
 
-    public void addModules() {
-        Set<ApplicationContextFactory> factories = loadContext();
-        doClassReplacement(factories);
-        appendFactories(factories);
-    }
-
-    private Set<ApplicationContextFactory> loadContext() {
-        ServiceLoader<ApplicationContextFactory> loader = ServiceLoader.load(ApplicationContextFactory.class);
+    private Set<Singletons> loadAllSingletons() {
+        ServiceLoader<Singletons> loader = ServiceLoader.load(Singletons.class);
         return loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toSet());
     }
 
-    private void doClassReplacement(Collection<ApplicationContextFactory> factories) {
-        factories.stream()
-                .map(ApplicationContextFactoryBase.class::cast)
-                .forEach(factoryInJar -> factoryInJar.removeBeanClasses(actualContextFactory.getClassesToReplace()));
-    }
-
-    private void appendFactories(Collection<ApplicationContextFactory> factories) {
-        factories.stream().forEach(actualContextFactory::append);
-    }
 }

@@ -11,10 +11,10 @@ import java.io.IOException;
 import java.util.Optional;
 
 @RequiredArgsConstructor
-public class JavaWriter {
+public abstract class JavaWriter {
 
     private final String simpleName;
-    private final String packageName;
+    private final Optional<String> packageName;
     private final Optional<Class<?>> superClass;
     private final ProcessingEnvironment processingEnvironment;
 
@@ -23,9 +23,9 @@ public class JavaWriter {
                 .addModifiers(Modifier.PUBLIC)
                 .addMethod(constructor());
         superClass.ifPresent(builder::superclass);
-        writeType(builder);
+        writeTypeBody(builder);
         TypeSpec typeSpec = builder.build();
-        JavaFile javaFile = JavaFile.builder(packageName, typeSpec).build();
+        JavaFile javaFile = JavaFile.builder(packageName.orElse(""), typeSpec).build();
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
@@ -40,7 +40,7 @@ public class JavaWriter {
 
     }
 
-    protected void writeType(TypeSpec.Builder builder) {
+    protected void writeTypeBody(TypeSpec.Builder builder) {
 
     }
 

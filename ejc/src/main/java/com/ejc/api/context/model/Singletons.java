@@ -1,6 +1,7 @@
-package com.ejc.processor.model;
+package com.ejc.api.context.model;
 
 import com.ejc.api.context.ClassReference;
+import com.ejc.util.ClassUtils;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -9,9 +10,19 @@ import java.util.Optional;
 
 public class Singletons {
 
-    public static String IMPLEMENTATION_SIMPLE_NAME = "SingletonsImpl";
-
     private Map<ClassReference, SingletonModel> singletonModels = new HashMap<>();
+
+    public static Optional<String> getPackageName(String appClassQualifiedName) {
+        return ClassUtils.getPackageName(appClassQualifiedName);
+    }
+
+    public static String getSimpleName(String appClassQualifiedName) {
+        return ClassUtils.getSimpleName(appClassQualifiedName) + "Singletons";
+    }
+
+    public static String getQualifiedName(String appClassQualifiedName) {
+        return getPackageName(appClassQualifiedName) + ". " + getSimpleName(appClassQualifiedName);
+    }
 
     public void addSingleton(ClassReference type) {
         singletonModels.put(type, new SingletonModel(type));

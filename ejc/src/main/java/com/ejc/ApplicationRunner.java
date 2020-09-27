@@ -1,5 +1,6 @@
 package com.ejc;
 
+import com.ejc.api.context.ApplicationContextInitializer;
 import com.ejc.api.context.ModuleLoader;
 import lombok.NoArgsConstructor;
 
@@ -11,26 +12,16 @@ public class ApplicationRunner {
             throw new IllegalStateException(applicationClass + " is not annotated with @" + Application.class.getName());
         }
         try {
-            ApplicationContextFactory factory = actualFactory(applicationClass);
-            loadModules(factory);
-            factory.createContext();
+            createContext(applicationClass);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
-    private static String contextFactory(Class<?> applicationClass) {
-        return new StringBuilder(applicationClass.getPackageName()).append(".").append(ApplicationContextFactory.IMPLEMENTATION_SIMPLE_NAME).toString();
-    }
-
-    private static ApplicationContextFactory actualFactory(Class<?> applicationClass) throws Exception {
-        Class<ApplicationContextFactory> factoryClass = (Class<ApplicationContextFactory>) Class.forName(contextFactory(applicationClass));
-        return factoryClass.getConstructor().newInstance();
-    }
-
-
-    private static void loadModules(ApplicationContextFactory factory) {
-        ModuleLoader moduleLoader = new ModuleLoader(factory);
-        moduleLoader.addModules();
+    private static void createContext(Class<?> applicationClass) {
+        ModuleLoader moduleLoader = new ModuleLoader(applicationClass);
+        moduleLoader.load();
+        ApplicationContextInitializer initializer = new ApplicationContextInitializer(moduleLoader.getActualModule(), moduleLoader.getModules());
+        initializer.initialize();
     }
 }

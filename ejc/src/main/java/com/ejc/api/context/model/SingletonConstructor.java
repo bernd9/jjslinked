@@ -1,4 +1,4 @@
-package com.ejc.processor.model;
+package com.ejc.api.context.model;
 
 import lombok.experimental.Delegate;
 

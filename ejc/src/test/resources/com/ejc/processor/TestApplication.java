@@ -34,6 +34,13 @@ class TestSingleton1 {
 class TestSingleton2 {
     @Inject
     private TestSingleton4 singleton4;
+
+    private boolean initInvoked;
+
+    @Init
+    void init() {
+        initInvoked = true;
+    }
 }
 
 @Getter
@@ -113,5 +120,10 @@ class Config1 {
 }
 
 interface TestInterface {
+
+}
+
+@Singleton
+class TestSingleton7 extends TestSingleton2 {
 
 }
