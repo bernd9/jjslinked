@@ -2,17 +2,18 @@ package com.ejc.api.context.model;
 
 import java.util.function.Consumer;
 
-class SingletonCreationEventBus {
+// TODO refactoring -> package-protected for model herer
+public class SingletonCreationEventBus {
 
-    void singletonCreated(Object o) {
+    public void singletonCreated(Object o) {
     }
 
-    void subscribe(Consumer<Object> listener) {
+    public void subscribe(Consumer<SingletonModel> listener) {
 
     }
 
 
-    void unsubscribe(Consumer<Object> listener) {
+    public void unsubscribe(Consumer<Object> listener) {
 
     }
 
