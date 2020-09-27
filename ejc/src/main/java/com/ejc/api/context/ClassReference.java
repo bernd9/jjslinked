@@ -11,6 +11,8 @@ import java.util.Map;
 public class ClassReference {
     private static Map<String, ClassReference> references = new HashMap<>();
 
+    // TODO Check if class references free meomory after initialization
+    private Map<Object, Boolean> isInstance;
     private Class<?> clazz;
 
     @Getter
@@ -33,7 +35,8 @@ public class ClassReference {
     }
 
     public boolean isInstance(Object o) {
-        return getReferencedClass().isInstance(o);
+        // TODO check if this caching is faster than class isInstance
+        return isInstance.computeIfAbsent(o, getReferencedClass()::isInstance);
     }
 
     @Override

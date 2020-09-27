@@ -21,7 +21,7 @@ public class ApplicationRunner {
     private static void createContext(Class<?> applicationClass) {
         ModuleLoader moduleLoader = new ModuleLoader(applicationClass);
         moduleLoader.load();
-        ApplicationContextInitializer initializer = new ApplicationContextInitializer(moduleLoader.getActualModule(), moduleLoader.getModules());
+        ApplicationContextInitializer initializer = new ApplicationContextInitializer(moduleLoader.getModules());
         initializer.initialize();
     }
 }

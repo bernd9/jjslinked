@@ -56,7 +56,7 @@ public class Singletons {
         getSingletonModel(owner).ifPresent(model -> model.addCollectionDependencyValueField(name, fieldType, genericType));
     }
 
-    Collection<SingletonModel> getSingletonModels() {
+    public Collection<SingletonModel> getSingletonModels() {
         return singletonModels.values();
     }
 

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 @Data
@@ -18,6 +19,11 @@ public class SingletonModel {
     private Set<DependencyField> dependencyFields = new HashSet<>();
     private Set<CollectionDependencyField> collectionDependencyFields = new HashSet<>();
     private Set<ConfigValueField> configValueFields = new HashSet<>();
+    private Optional<ClassReference> replaceClass;// TODO
+
+    public boolean isCreatable() {
+        return constructor.allParametersSatisfied();
+    }
 
     public void addConstructorParameter(ClassReference parameterType) {
         constructor.add(new SimpleConstructorParameter(parameterType, constructor));
@@ -49,5 +55,9 @@ public class SingletonModel {
 
     void setEventBus(SingletonCreationEventBus bus) {
         constructor.setEventBus(bus);
+    }
+
+    public void create() {
+        constructor.invoke();
     }
 }

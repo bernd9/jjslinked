@@ -16,18 +16,18 @@ public class SingletonConstructor {
         parameters.forEach(parameter -> parameter.setEventBus(bus));
     }
 
-
     void onParameterSatisfied() {
         if (allParametersSatisfied()) {
-            bus.singletonCreated(invoke());
+            invoke();
         }
     }
 
-    private Object invoke() {
-        return null;
+    void invoke() {
+        // TODO
+        //bus.singletonCreated(invoke());
     }
 
-    private boolean allParametersSatisfied() {
+    boolean allParametersSatisfied() {
         return parameters.stream().noneMatch(param -> !param.isSatisfied());
     }
 
