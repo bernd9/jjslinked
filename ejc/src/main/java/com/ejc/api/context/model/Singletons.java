@@ -25,7 +25,11 @@ public class Singletons {
     }
 
     public void addSingleton(ClassReference type) {
-        singletonModels.put(type, new SingletonModel(type));
+        singletonModels.put(type, new SingletonModel(type, Optional.empty()));
+    }
+
+    public void addSingleton(ClassReference type, ClassReference replacement) {
+        singletonModels.put(type, new SingletonModel(type, Optional.of(replacement)));
     }
 
     public void addConstructorParameter(ClassReference owner, ClassReference parameterType) {

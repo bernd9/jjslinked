@@ -2,7 +2,6 @@ package com.ejc.api.context.model;
 
 import com.ejc.api.context.ClassReference;
 import lombok.Data;
-import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -10,16 +9,22 @@ import java.util.Optional;
 import java.util.Set;
 
 @Data
-@RequiredArgsConstructor
 public class SingletonModel {
     private final ClassReference type;
-    private SingletonConstructor constructor = new SingletonConstructor();
+    private final Optional<ClassReference> typeToReplace;
+    private final SingletonConstructor constructor;
     private Set<BeanMethod> beanMethods = new HashSet<>();
     private Set<InitMethod> initMethods = new HashSet<>();
     private Set<DependencyField> dependencyFields = new HashSet<>();
     private Set<CollectionDependencyField> collectionDependencyFields = new HashSet<>();
     private Set<ConfigValueField> configValueFields = new HashSet<>();
-    private Optional<ClassReference> replaceClass;// TODO
+    private Optional<ClassReference> replaceClass;
+
+    SingletonModel(ClassReference type, Optional<ClassReference> typeToReplace) {
+        this.type = type;
+        this.typeToReplace = typeToReplace;
+        constructor = new SingletonConstructor(type);
+    }
 
     public boolean isCreatable() {
         return constructor.allParametersSatisfied();
@@ -53,8 +58,8 @@ public class SingletonModel {
         collectionDependencyFields.add(new CollectionDependencyField(name, fieldType, genericType));
     }
 
-    void setEventBus(SingletonCreationEventBus bus) {
-        constructor.setEventBus(bus);
+    public void bindEvents(SingletonCreationEvents bus) {
+        constructor.setEvents(bus);
     }
 
     public void create() {

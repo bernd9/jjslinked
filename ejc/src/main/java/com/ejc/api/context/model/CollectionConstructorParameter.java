@@ -11,7 +11,7 @@ public class CollectionConstructorParameter implements ConstructorParameter, Sin
     private final Class<? extends Collection> collectionType;
     private final ClassReference genericType;
     private final Collection<Object> value;
-    private SingletonCreationEventBus bus;
+    private SingletonCreationEvents events;
 
     public CollectionConstructorParameter(Class<? extends Collection> collectionType, ClassReference genericType) {
         this.collectionType = collectionType;
@@ -20,9 +20,14 @@ public class CollectionConstructorParameter implements ConstructorParameter, Sin
     }
 
     @Override
-    public void setEventBus(SingletonCreationEventBus bus) {
-        this.bus = bus;
-        bus.subscribe(this::onSingletonCreated);
+    public void setEvents(SingletonCreationEvents events) {
+        this.events = events;
+        events.subscribe(this::onSingletonCreated);
+    }
+
+    @Override
+    public Class<?> getType() {
+        return collectionType;
     }
 
     @Override

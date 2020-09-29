@@ -4,5 +4,9 @@ public interface ConstructorParameter {
 
     boolean isSatisfied();
 
-    void setEventBus(SingletonCreationEventBus bus);
+    void setEvents(SingletonCreationEvents events);
+
+    Class<?> getType();
+
+    Object getValue();
 }

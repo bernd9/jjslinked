@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
 import java.io.IOException;
 import java.util.Optional;
 
@@ -17,6 +20,18 @@ public abstract class JavaWriter {
     private final Optional<String> packageName;
     private final Optional<Class<?>> superClass;
     private final ProcessingEnvironment processingEnvironment;
+
+    protected Elements getElementUtils() {
+        return processingEnvironment.getElementUtils();
+    }
+
+    protected Types getTypeUtils() {
+        return processingEnvironment.getTypeUtils();
+    }
+
+    protected TypeElement getTypeElement(String name) {
+        return getElementUtils().getTypeElement(name);
+    }
 
     public void write() throws IOException {
         TypeSpec.Builder builder = TypeSpec.classBuilder(simpleName)

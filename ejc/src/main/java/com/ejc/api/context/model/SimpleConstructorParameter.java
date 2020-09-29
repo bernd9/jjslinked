@@ -11,19 +11,19 @@ public class SimpleConstructorParameter implements ConstructorParameter, Singlet
     private final SingletonConstructor constructor;
     private Object value;
     private boolean satisfied;
-    private SingletonCreationEventBus bus;
+    private SingletonCreationEvents events;
 
     @Override
-    public void setEventBus(SingletonCreationEventBus bus) {
-        this.bus = bus;
-        bus.subscribe(this::onSingletonCreated);
+    public void setEvents(SingletonCreationEvents events) {
+        this.events = events;
+        events.subscribe(this::onSingletonCreated);
     }
 
     @Override
     public void onSingletonCreated(Object o) {
         if (type.isInstance(o)) {
             this.value = o;
-            bus.unsubscribe(this::onSingletonCreated);
+            events.unsubscribe(this::onSingletonCreated);
             constructor.onParameterSatisfied();
         }
     }

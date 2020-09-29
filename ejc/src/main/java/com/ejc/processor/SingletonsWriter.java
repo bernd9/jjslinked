@@ -1,5 +1,6 @@
 package com.ejc.processor;
 
+import com.ejc.Singleton;
 import com.ejc.api.context.ClassReference;
 import com.ejc.api.context.model.Singletons;
 import com.ejc.javapoet.JavaWriter;
@@ -9,6 +10,7 @@ import com.squareup.javapoet.MethodSpec;
 import lombok.Builder;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.Optional;
@@ -30,7 +32,7 @@ public class SingletonsWriter extends JavaWriter {
     }
 
     private void writeSingleton(SingletonElement model, MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("addSingleton($L)", ref(model.getSingleton()));
+        writeAddSingleton(model, constructorBuilder);
         addConstructorParameters(model, constructorBuilder);
         model.getInitMethods().forEach(method -> constructorBuilder.addStatement("addInitMethod($L, \"$L\")", ref(model.getSingleton()), method));
         model.getBeanMethods().forEach(method -> constructorBuilder.addStatement("addBeanMethod($L, \"$L\")", ref(model.getSingleton()), method));
@@ -38,6 +40,14 @@ public class SingletonsWriter extends JavaWriter {
         model.getDependencyFields().forEach(field -> constructorBuilder.addStatement("addDependencyField($L, \"$L\", $L)", ref(model.getSingleton()), field.getSimpleName(), ref(field.asType())));
         model.getCollectionDependencyFields().forEach(field -> constructorBuilder.addStatement("addCollectionDependencyField($L, \"$L\", $L, $L)",
                 ref(model.getSingleton()), field.getSimpleName(), ref(field.asType()), ref(JavaModelUtils.getGenericType(field))));
+    }
+
+    private void writeAddSingleton(SingletonElement model, MethodSpec.Builder constructorBuilder) {
+        TypeElement singletonType = model.getImplementation() != null ? model.getImplementation() : model.getSingleton();
+        getReplacementAttribute(model.getSingleton())
+                .ifPresentOrElse(replace -> constructorBuilder.addStatement("addSingleton($L, $L)", ref(singletonType), ref(getTypeElement(replace))),
+                        () -> constructorBuilder.addStatement("addSingleton($L)", ref(singletonType)));
+
     }
 
     private void addConstructorParameters(SingletonElement model, MethodSpec.Builder constructorBuilder) {
@@ -50,6 +60,13 @@ public class SingletonsWriter extends JavaWriter {
                 constructorBuilder.addStatement("addConstructorParameter($L, $L)", ref(model.getSingleton()), ref(element.getType()));
             } else throw new IllegalStateException();
         });
+    }
+
+    private Optional<String> getReplacementAttribute(TypeElement annotatedElement) {
+        return JavaModelUtils.getAnnotationMirrorOptional(annotatedElement, Singleton.class)
+                .map(annotation -> JavaModelUtils.getAnnotationValue(annotation, "replace"))
+                .map(AnnotationValue::getValue)
+                .map(Object::toString);
     }
 
     private static String ref(TypeElement e) {
