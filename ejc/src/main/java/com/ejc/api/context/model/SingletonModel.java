@@ -63,6 +63,11 @@ public class SingletonModel {
     }
 
     public void create() {
-        constructor.invoke();
+        try {
+            constructor.invoke();
+        } catch (Exception e) {
+            throw new RuntimeException("unable to create " + type.getClassName());
+        }
+
     }
 }

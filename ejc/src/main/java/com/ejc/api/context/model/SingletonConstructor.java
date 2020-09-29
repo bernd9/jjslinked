@@ -33,18 +33,30 @@ public class SingletonConstructor {
     }
 
     void invoke() throws Exception {
-        Constructor<?> constructor = classReference.getReferencedClass()
-                .getDeclaredConstructor(parameters.stream()
-                        .map(ConstructorParameter::getType)
-                        .map(Object.class::cast)
-                        .toArray(Class[]::new));
+        Constructor<?> constructor = getConstructor();
         constructor.setAccessible(true);
-        Object[] args = parameters.stream().map(ConstructorParameter::getValue).toArray(Object[]::new);
-        events.singletonCreated(constructor.newInstance(args));
+        events.singletonCreated(constructor.newInstance(getParameters()));
     }
+
 
     boolean allParametersSatisfied() {
         return parameters.stream().noneMatch(param -> !param.isSatisfied());
+    }
+
+    private Constructor<?> getConstructor() throws Exception {
+        return classReference.getReferencedClass()
+                .getDeclaredConstructor(getParameterTypes());
+    }
+
+    private Class<?>[] getParameterTypes() {
+        return parameters.stream()
+                .map(ConstructorParameter::getType)
+                .map(Object.class::cast)
+                .toArray(Class[]::new);
+    }
+
+    private Object[] getParameters() {
+        return parameters.stream().map(ConstructorParameter::getValue).toArray(Object[]::new);
     }
 
 }
