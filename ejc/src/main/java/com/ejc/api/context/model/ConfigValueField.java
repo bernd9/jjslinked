@@ -11,4 +11,8 @@ import lombok.RequiredArgsConstructor;
 public class ConfigValueField {
     private final String name;
     private final ClassReference type;
+
+    public void injectConfigValue() {
+        
+    }
 }

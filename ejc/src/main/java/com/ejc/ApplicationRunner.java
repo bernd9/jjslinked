@@ -1,6 +1,5 @@
 package com.ejc;
 
-import com.ejc.api.context.ApplicationContextInitializer;
 import com.ejc.api.context.ModuleLoader;
 import lombok.NoArgsConstructor;
 
@@ -21,7 +20,8 @@ public class ApplicationRunner {
     private static void createContext(Class<?> applicationClass) {
         ModuleLoader moduleLoader = new ModuleLoader(applicationClass);
         moduleLoader.load();
-        ApplicationContextInitializer initializer = new ApplicationContextInitializer(moduleLoader.getModules());
-        initializer.initialize();
+        // TODO
+        //ApplicationContextInitializer initializer = new ApplicationContextInitializer(moduleLoader.getModules());
+        //initializer.initialize();
     }
 }

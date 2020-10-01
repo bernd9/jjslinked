@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.function.Function;
 
 @RequiredArgsConstructor
-class InitInvoker {
+class BeanMethodInvoker {
     private final ClassReference declaringClass;
     private final String methodName;
 
@@ -15,7 +15,7 @@ class InitInvoker {
         selectFunction.apply(declaringClass.getReferencedClass()).forEach(bean -> doInvokeMethod(bean));
     }
 
-    private void doInvokeMethod(Object bean) {
+    void doInvokeMethod(Object bean) {
         try {
             Method method = bean.getClass().getDeclaredMethod(methodName);
             method.setAccessible(true);

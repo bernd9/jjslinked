@@ -13,6 +13,7 @@ public class ClassReference {
 
     // TODO Check if class references free meomory after initialization
     private Map<Object, Boolean> isInstance;
+    private Map<ClassReference, Boolean> isTypeOf;
     private Class<?> clazz;
 
     @Getter
@@ -37,6 +38,10 @@ public class ClassReference {
     public boolean isInstance(Object o) {
         // TODO check if this caching is faster than class isInstance
         return isInstance.computeIfAbsent(o, getReferencedClass()::isInstance);
+    }
+
+    public boolean isOfType(ClassReference classReference) {
+        return isTypeOf.computeIfAbsent(classReference, ref -> getReferencedClass().isAssignableFrom(ref.getReferencedClass()));
     }
 
     @Override

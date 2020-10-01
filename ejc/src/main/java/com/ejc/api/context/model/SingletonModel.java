@@ -62,6 +62,9 @@ public class SingletonModel {
         constructor.setEvents(bus);
     }
 
+    public void setSingletons(Set<SingletonModel> models) {
+    }
+
     public void create() {
         try {
             constructor.invoke();

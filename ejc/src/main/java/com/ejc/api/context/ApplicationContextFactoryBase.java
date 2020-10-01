@@ -21,8 +21,8 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     private final Map<Class<?>, Set<Object>> configurationCache = new HashMap<>();
     private final Set<SingleValueInjector> singleValueInjectors = new HashSet<>();
     private final Set<MultiValueInjector> multiValueInjectors = new HashSet<>();
-    private final Set<InitInvoker> initInvokersForSingleton = new HashSet<>();
-    private final Set<InitInvoker> initInvokersForConfiguration = new HashSet<>();
+    private final Set<InitMethodInvoker> initMethodInvokersForSingleton = new HashSet<>();
+    private final Set<InitMethodInvoker> initMethodInvokersForConfiguration = new HashSet<>();
     private final Set<ConfigValueInjector> configValueInjectorsForSingleton = new HashSet<>();
     private final Set<ConfigValueInjector> configValueInjectorsForConfiguration = new HashSet<>();
     private final Set<BeanFactoryMethodInvoker> loadBeanMethodInvokers = new HashSet<>();
@@ -48,6 +48,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
         beanClasses.removeAll(classes);
     }
 
+    @Override
     public void append(ApplicationContextFactory factory) {
         ApplicationContextFactoryBase factoryBase = (ApplicationContextFactoryBase) factory;
         beanClasses.addAll(factoryBase.getBeanClasses());
@@ -58,8 +59,8 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
         loadedConfigurations.addAll(factoryBase.getLoadedConfigurations());
         singleValueInjectors.addAll(factoryBase.getSingleValueInjectors());
         multiValueInjectors.addAll(factoryBase.getMultiValueInjectors());
-        initInvokersForSingleton.addAll(factoryBase.getInitInvokersForSingleton());
-        initInvokersForConfiguration.addAll(factoryBase.getInitInvokersForConfiguration());
+        initMethodInvokersForSingleton.addAll(factoryBase.getInitMethodInvokersForSingleton());
+        initMethodInvokersForConfiguration.addAll(factoryBase.getInitMethodInvokersForConfiguration());
         configValueInjectorsForSingleton.addAll(factoryBase.getConfigValueInjectorsForSingleton());
         configValueInjectorsForConfiguration.addAll(factoryBase.getConfigValueInjectorsForConfiguration());
     }
@@ -92,11 +93,11 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     }
 
     private void invokeInitializersOnBeans() {
-        initInvokersForSingleton.forEach(invoker -> invoker.doInvoke(this::getBeans));
+        initMethodInvokersForSingleton.forEach(invoker -> invoker.doInvoke(this::getBeans));
     }
 
     private void invokeInitializersOnConfigurations() {
-        initInvokersForConfiguration.forEach(invoker -> invoker.doInvoke(this::getConfigurations));
+        initMethodInvokersForConfiguration.forEach(invoker -> invoker.doInvoke(this::getConfigurations));
     }
 
 
@@ -162,7 +163,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void addInitMethodForSingleton(ClassReference declaringClass, String methodName) {
-        initInvokersForSingleton.add(new InitInvoker(declaringClass, methodName));
+        initMethodInvokersForSingleton.add(new InitMethodInvoker(declaringClass, methodName));
     }
 
     @UsedInGeneratedCode
@@ -174,7 +175,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void addInitMethodForConfiguration(ClassReference declaringClass, String methodName) {
-        initInvokersForConfiguration.add(new InitInvoker(declaringClass, methodName));
+        initMethodInvokersForConfiguration.add(new InitMethodInvoker(declaringClass, methodName));
     }
 
     @UsedInGeneratedCode
@@ -182,7 +183,7 @@ public class ApplicationContextFactoryBase implements ApplicationContextFactory 
     protected void addConfigValueFieldInSingleton(ClassReference declaringClass, String fieldName, Class<?> fieldType, String key, String defaultValue) {
         configValueInjectorsForSingleton.add(new ConfigValueInjector(declaringClass, fieldName, fieldType, key, defaultValue));
     }
-    
+
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void addConfigValueFieldInConfiguration(ClassReference declaringClass, String fieldName, Class<?> fieldType, String key, String defaultValue) {

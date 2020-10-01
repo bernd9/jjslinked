@@ -1,50 +1,78 @@
 package com.ejc.api.context;
 
-import com.ejc.ApplicationContext;
-import com.ejc.api.context.model.SingletonCreationEvents;
-import com.ejc.api.context.model.SingletonModel;
-import com.ejc.api.context.model.Singletons;
-import com.google.common.base.Functions;
+import com.ejc.api.context.model.ConfigValueField;
+import com.ejc.api.context.model.DependencyField;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class ApplicationContextInitializer {
-    private final Set<Singletons> modules;
-    private ApplicationContext applicationContext;
-    private final SingletonCreationEvents events = new SingletonCreationEvents();
-    private Map<ClassReference, SingletonModel> singletonModels;
+
+    private Set<ConstructorSingletonProvider> constructorSingletonProviders = new HashSet<>();
+    private Map<ClassReference, Collection<BeanMethodSingletonProvider>> beanMethodSingeltonProviders = new HashMap<>();
+    private Map<ClassReference, Collection<InitMethodInvoker>> initInvokers = new HashMap<>();
+    private Map<ClassReference, Collection<DependencyField>> dependencyFields = new HashMap<>();
+    private Map<ClassReference, Collection<ConfigValueField>> configFields = new HashMap<>();
+
+    private Set<Object> singletons = new HashSet<>();
 
     public void initialize() {
-        singletonModels = new HashMap<>(modules.stream()
-                .map(Singletons::getSingletonModels)
+        Set<Class<?>> allSingletonTypes = constructorSingletonProviders.stream()
+                .map(SingletonProvider::getSingletonTypes)
+                .flatMap(Set::stream)
+                .map(ClassReference::getReferencedClass)
+                .collect(Collectors.toSet());
+        constructorSingletonProviders.forEach(provider -> provider.setAllSingletonTypes(allSingletonTypes));
+    }
+
+    public void onSingletonCreated(Object o) {
+        injectConfigFields(o);
+        if (dependencyFieldsComplete(o)) {
+            invokeInitMethods(o);
+            invokeBeanMethods(o);
+        }
+        constructorSingletonProviders.forEach(provider -> provider.onSingletonCreated(o));
+        dependencyFields.values().stream()
                 .flatMap(Collection::stream)
-                .collect(Collectors.toMap(SingletonModel::getType, Functions.identity())));
-        doReplacement();
-        bindEvents();
-        startInitializationQueue();
+                .forEach(field -> field.onSingletonCreated(o));
+        singletons.add(o);
+    }
+
+    public void onDependencyFieldComplete(Object o) {
+        if (dependencyFieldsComplete(o)) {
+            invokeInitMethods(o);
+            invokeBeanMethods(o);
+        }
+    }
+
+    private void invokeBeanMethods(Object o) {
+        ClassReference reference = ClassReference.getRef(o.getClass().getName());
+        beanMethodSingeltonProviders.getOrDefault(reference, Collections.emptySet()).stream()
+                .map(BeanMethodSingletonProvider::create)
+                .forEach(this::onSingletonCreated);
+    }
+
+    private void invokeInitMethods(Object o) {
+        ClassReference reference = ClassReference.getRef(o.getClass().getName());
+        initInvokers.getOrDefault(reference, Collections.emptySet())
+                .forEach(invoker -> invoker.doInvokeMethod(o));
+    }
+
+    private void injectConfigFields(Object o) {
+        ClassReference reference = ClassReference.getRef(o.getClass().getName());
+        configFields.getOrDefault(reference, Collections.emptySet())
+                .forEach(ConfigValueField::injectConfigValue);
+    }
+
+    private boolean dependencyFieldsComplete(Object o) {
+        ClassReference reference = ClassReference.getRef(o.getClass().getName());
+        return dependencyFields.getOrDefault(reference, Collections.emptySet())
+                .stream().noneMatch(field -> !field.isSatisfied());
     }
 
 
-    void doReplacement() {
-        SingletonReplacer singletonReplacer = new SingletonReplacer(singletonModels);
-        singletonReplacer.doReplacement();
-    }
-
-    private void bindEvents() {
-        singletonModels.values().forEach(model -> model.bindEvents(events));
-    }
-
-    private void startInitializationQueue() {
-        singletonModels.values().stream()
-                .filter(SingletonModel::isCreatable)
-                .forEach(SingletonModel::create);
-    }
 }
 
 

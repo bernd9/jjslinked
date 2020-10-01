@@ -5,6 +5,7 @@ import com.ejc.util.ClassUtils;
 import lombok.Data;
 
 import java.util.Collection;
+import java.util.Set;
 
 @Data
 public class CollectionConstructorParameter implements ConstructorParameter, SingletonCreationListener {
@@ -17,6 +18,10 @@ public class CollectionConstructorParameter implements ConstructorParameter, Sin
         this.collectionType = collectionType;
         this.genericType = genericType;
         this.value = ClassUtils.createInstance(collectionType);
+    }
+
+    public void setAllSingletonTypes(Set<Class<?>> types) {
+
     }
 
     @Override
