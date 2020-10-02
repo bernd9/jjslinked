@@ -1,7 +1,6 @@
 package com.ejc.api.context;
 
 import com.ejc.api.context.model.ConfigValueField;
-import com.ejc.api.context.model.DependencyField;
 import lombok.RequiredArgsConstructor;
 
 import java.util.*;
@@ -10,21 +9,37 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ApplicationContextInitializer {
 
-    private Set<ConstructorSingletonProvider> constructorSingletonProviders = new HashSet<>();
-    private Map<ClassReference, Collection<BeanMethodSingletonProvider>> beanMethodSingeltonProviders = new HashMap<>();
-    private Map<ClassReference, Collection<InitMethodInvoker>> initInvokers = new HashMap<>();
-    private Map<ClassReference, Collection<DependencyField>> dependencyFields = new HashMap<>();
-    private Map<ClassReference, Collection<ConfigValueField>> configFields = new HashMap<>();
+    private final Map<ClassReference, SingletonConstructor> singletonConstructors = new HashMap<>();
+    private final Map<ClassReference, Collection<BeanMethod>> beanMethods = new HashMap<>();
+    private final Map<ClassReference, Collection<InitMethodInvoker>> initInvokers = new HashMap<>();
+    private final Map<ClassReference, Collection<DependencyField>> dependencyFields = new HashMap<>();
+    private final Map<ClassReference, Collection<ConfigValueField>> configFields = new HashMap<>();
+    private final Set<ClassReference> classesToReplace = new HashSet<>();
 
     private Set<Object> singletons = new HashSet<>();
 
+    public void addModule(Module module) {
+        singletonConstructors.putAll(module.getSingletonConstructors());
+        beanMethods.putAll(module.getBeanMethods());
+        initInvokers.putAll(module.getInitInvokers());
+        dependencyFields.putAll(module.getDependencyFields());
+        configFields.putAll(module.getConfigFields());
+    }
+
     public void initialize() {
-        Set<Class<?>> allSingletonTypes = constructorSingletonProviders.stream()
+        classesToReplace.forEach(type -> {
+            beanMethods.remove(type);
+            initInvokers.remove(type);
+            dependencyFields.remove(type);
+            configFields.remove(type);
+        });
+
+        Set<Class<?>> allSingletonTypes = singletonConstructors.values().stream()
                 .map(SingletonProvider::getSingletonTypes)
                 .flatMap(Set::stream)
                 .map(ClassReference::getReferencedClass)
                 .collect(Collectors.toSet());
-        constructorSingletonProviders.forEach(provider -> provider.setAllSingletonTypes(allSingletonTypes));
+        singletonConstructors.values().forEach(provider -> provider.setAllSingletonTypes(allSingletonTypes));
     }
 
     public void onSingletonCreated(Object o) {
@@ -33,7 +48,7 @@ public class ApplicationContextInitializer {
             invokeInitMethods(o);
             invokeBeanMethods(o);
         }
-        constructorSingletonProviders.forEach(provider -> provider.onSingletonCreated(o));
+        singletonConstructors.values().forEach(provider -> provider.onSingletonCreated(o));
         dependencyFields.values().stream()
                 .flatMap(Collection::stream)
                 .forEach(field -> field.onSingletonCreated(o));
@@ -49,8 +64,8 @@ public class ApplicationContextInitializer {
 
     private void invokeBeanMethods(Object o) {
         ClassReference reference = ClassReference.getRef(o.getClass().getName());
-        beanMethodSingeltonProviders.getOrDefault(reference, Collections.emptySet()).stream()
-                .map(BeanMethodSingletonProvider::create)
+        beanMethods.getOrDefault(reference, Collections.emptySet()).stream()
+                .map(BeanMethod::create)
                 .forEach(this::onSingletonCreated);
     }
 
@@ -63,7 +78,7 @@ public class ApplicationContextInitializer {
     private void injectConfigFields(Object o) {
         ClassReference reference = ClassReference.getRef(o.getClass().getName());
         configFields.getOrDefault(reference, Collections.emptySet())
-                .forEach(ConfigValueField::injectConfigValue);
+                .forEach(field -> field.injectConfigValue(o));
     }
 
     private boolean dependencyFieldsComplete(Object o) {

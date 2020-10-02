@@ -1,8 +1,8 @@
 package com.ejc.processor;
 
 import com.ejc.*;
+import com.ejc.api.context.ModuleFactory;
 import com.ejc.api.context.UndefinedClass;
-import com.ejc.api.context.model.Singletons;
 import com.ejc.util.ClassUtils;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.IOUtils;
@@ -20,18 +20,18 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.ejc.util.JavaModelUtils.*;
+import static com.ejc.util.JavaModelUtils.getAnnotationMirrorOptional;
+import static com.ejc.util.JavaModelUtils.getAnnotationValue;
 
 @AutoService(Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
-public class SingletonProcessor extends ProcessorBase {
+public class ModuleProcessor extends ProcessorBase {
 
     private Map<Name, Collection<ExecutableElement>> initMethods = new HashMap<>();
     private Map<Name, Collection<ExecutableElement>> beanMethods = new HashMap<>();
     private Map<Name, Collection<VariableElement>> dependencyFields = new HashMap<>();
     private Map<Name, Collection<VariableElement>> collectionDependencyFields = new HashMap<>();
     private Map<Name, Collection<VariableElement>> configFields = new HashMap<>();
-    private Map<Name, List<ConstructorParameterElement>> constructorParameters = new HashMap<>();
     private Set<TypeElement> singletons = new HashSet<>();
     private Map<TypeElement, TypeElement> implementations = new HashMap<>();
 
@@ -46,6 +46,7 @@ public class SingletonProcessor extends ProcessorBase {
         singletonAnnotations = new HashSet<>();
         singletonAnnotations.add(Singleton.class.getName());
         singletonAnnotations.add(Configuration.class.getName());
+        singletonAnnotations.add(Implementation.class.getName());
         singletonAnnotations.addAll(CustomSingletonAnnotationLoader.load());
         Set<String> types = new HashSet<>();
         types.addAll(singletonAnnotations);
@@ -68,21 +69,9 @@ public class SingletonProcessor extends ProcessorBase {
         singletons.addAll(singletonAnnotations.stream()
                 .map(name -> result.getElements(name, TypeElement.class))
                 .flatMap(Collection::stream)
-                .peek(this::processConstructorParameters)
                 .collect(Collectors.toSet()));
     }
 
-    private void processConstructorParameters(TypeElement singleton) {
-        Name owner = singleton.getQualifiedName();
-        List<ConstructorParameterElement> parameters = constructorParameters.computeIfAbsent(owner, name -> new ArrayList<>());
-        getConstructor(singleton).getParameters().forEach(parameter -> {
-            if (isCollection(parameter)) {
-                parameters.add(new CollectionConstructorParameterElement(getCollectionType(parameter), getGenericType(parameter)));
-            } else {
-                parameters.add(new SimpleConstructorParameterElement(parameter.asType()));
-            }
-        });
-    }
 
     private void processImplementations(QueryResult result) {
         implementations.putAll(result.getElements(Implementation.class, TypeElement.class).stream()
@@ -160,20 +149,19 @@ public class SingletonProcessor extends ProcessorBase {
     private boolean isInstanceOf(TypeMirror candidate, TypeMirror superType) {
         return processingEnv.getTypeUtils().isAssignable(candidate, superType);
     }
-
-
-    private SingletonWriterModel createWriterModel() {
+    
+    private ModuleWriterModel createWriterModel() {
         Map<TypeElement, List<TypeElement>> hierarchy = singletons.stream()
                 .collect(Collectors.toMap(Functions.identity(), this::getClassHierarchy));
-        SingletonWriterModelBuilder modelBuilder = new SingletonWriterModelBuilder(hierarchy);
-        initMethods.forEach((name, methods) -> modelBuilder.putInitMethods(typeForName(name), methods));
-        beanMethods.forEach((name, methods) -> modelBuilder.putBeanMethods(typeForName(name), methods));
-        dependencyFields.forEach((name, fields) -> modelBuilder.putDependencyFields(typeForName(name), fields));
-        collectionDependencyFields.forEach((name, fields) -> modelBuilder.putCollectionDependencyFields(typeForName(name), fields));
-        configFields.forEach((name, fields) -> modelBuilder.putConfigFields(typeForName(name), fields));
-        implementations.forEach(modelBuilder::putImplementation);
-        constructorParameters.forEach((name, parameters) -> modelBuilder.putConstructorParameters(typeForName(name), parameters));
-        return modelBuilder.getSingletonWriterModel();
+        SingletonElementMapper mapper = new SingletonElementMapper(hierarchy);
+        initMethods.forEach((name, methods) -> mapper.putInitMethods(typeForName(name), methods));
+        beanMethods.forEach((name, methods) -> mapper.putBeanMethods(typeForName(name), methods));
+        dependencyFields.forEach((name, fields) -> mapper.putDependencyFields(typeForName(name), fields));
+        collectionDependencyFields.forEach((name, fields) -> mapper.putCollectionDependencyFields(typeForName(name), fields));
+        configFields.forEach((name, fields) -> mapper.putConfigFields(typeForName(name), fields));
+        implementations.forEach(mapper::putImplementation);
+        singletons.forEach(type -> mapper.putConstructor(type, getConstructor(type)));
+        return mapper.getSingletonWriterModel();
     }
 
     private TypeElement typeForName(Name name) {
@@ -186,11 +174,11 @@ public class SingletonProcessor extends ProcessorBase {
         writeContextFile();
     }
 
-    private void writeSingletons(SingletonWriterModel model) {
-        SingletonsWriter writer = SingletonsWriter.builder()
+    private void writeSingletons(ModuleWriterModel model) {
+        ModuleWriter writer = ModuleWriter.builder()
                 .model(model)
-                .packageName(Singletons.getPackageName(appClassQualifiedName))
-                .simpleName(Singletons.getSimpleName(appClassQualifiedName))
+                .packageName(ModuleFactory.getPackageName(appClassQualifiedName))
+                .simpleName(ModuleFactory.getSimpleName(appClassQualifiedName))
                 .processingEnvironment(processingEnv)
                 .build();
         try {
@@ -277,7 +265,7 @@ public class SingletonProcessor extends ProcessorBase {
 
 
     private void writeContextFile() {
-        IOUtils.write(Collections.singletonList(factoryQualifiedName()), processingEnv.getFiler(), "META-INF/services/" + Singletons.class.getName());
+        IOUtils.write(Collections.singletonList(factoryQualifiedName()), processingEnv.getFiler(), "META-INF/services/" + ModuleFactory.class.getName());
     }
 
 

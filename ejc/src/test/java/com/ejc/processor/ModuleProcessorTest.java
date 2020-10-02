@@ -9,14 +9,14 @@ import javax.tools.JavaFileObject;
 
 import static com.google.testing.compile.Compiler.javac;
 
-class SingletonProcessorTest {
+class ModuleProcessorTest {
 
     private Compiler compiler;
     private JavaFileObject[] files;
 
     @BeforeEach
     void init() {
-        compiler = javac().withProcessors(new SingletonProcessor());
+        compiler = javac().withProcessors(new ModuleProcessor());
         files = ProcessorTestUtil.javaFileObjects("com/ejc/processor", "TestApplication.java");
     }
 

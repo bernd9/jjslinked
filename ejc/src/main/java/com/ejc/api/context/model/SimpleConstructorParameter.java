@@ -16,7 +16,7 @@ public class SimpleConstructorParameter implements ConstructorParameter, Singlet
     @Override
     public void setEvents(SingletonCreationEvents events) {
         this.events = events;
-        events.subscribe(this::onSingletonCreated);
+        //events.subscribe(this::onSingletonCreated);
     }
 
     @Override

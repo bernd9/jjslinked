@@ -27,7 +27,7 @@ public class CollectionConstructorParameter implements ConstructorParameter, Sin
     @Override
     public void setEvents(SingletonCreationEvents events) {
         this.events = events;
-        events.subscribe(this::onSingletonCreated);
+        // events.subscribe(this::onSingletonCreated);
     }
 
     @Override

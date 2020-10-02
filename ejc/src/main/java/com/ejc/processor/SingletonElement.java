@@ -13,7 +13,7 @@ class SingletonElement {
 
     private final TypeElement singleton;
     private final Set<Name> parentTypes;
-    private List<ConstructorParameterElement> constructorParameters;
+    private ExecutableElement constructor;
     private TypeElement implementation;
 
     private final Set<ExecutableElement> initMethods = new HashSet<>();

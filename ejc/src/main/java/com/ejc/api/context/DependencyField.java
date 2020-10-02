@@ -1,14 +1,10 @@
-package com.ejc.api.context.model;
+package com.ejc.api.context;
 
-import com.ejc.api.context.ApplicationContextInitializer;
-import com.ejc.api.context.ClassReference;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Data;
 
-@Getter
-@EqualsAndHashCode
-@RequiredArgsConstructor
+import java.lang.reflect.Field;
+
+@Data
 public class DependencyField {
     private final String name;
     private final ClassReference declaringType;
@@ -18,7 +14,7 @@ public class DependencyField {
     private Object owner;
 
     public boolean isSatisfied() {
-        return false;
+        return owner != null && fieldValue != null;
     }
 
     public void onSingletonCreated(Object o) {
@@ -41,7 +37,13 @@ public class DependencyField {
     }
 
     private void setFieldValue() {
-
+        try {
+            Field field = owner.getClass().getDeclaredField(name);
+            field.setAccessible(true);
+            field.set(owner, fieldValue);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
 

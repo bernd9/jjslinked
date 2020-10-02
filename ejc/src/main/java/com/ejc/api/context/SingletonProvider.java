@@ -1,19 +1,20 @@
 package com.ejc.api.context;
 
 import com.ejc.api.context.model.CollectionConstructorParameter;
+import lombok.Data;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-@RequiredArgsConstructor
+@Data
 abstract class SingletonProvider {
-
 
     private final ClassReference type;
     private final List<ClassReference> parameterTypes;
-    private final ApplicationContextInitializer initializer;
+    private ApplicationContextInitializer initializer;
     private List<Parameter> parameters;
 
     // TODO invoke
@@ -30,10 +31,12 @@ abstract class SingletonProvider {
 
     public void onSingletonCreated(Object o) {
         parameters.forEach(param -> param.onSingletonCreated(o));
-        if (isParametersSatisfied()) {
-            initializer.onSingletonCreated(create());
+        if (isSatisfied()) {
+            initializer.onDependencyFieldComplete(create());
         }
     }
+
+    protected abstract Object create();
 
     private void addParameter(ClassReference parameterType) {
         if (Collections.class.isAssignableFrom(parameterType.getReferencedClass())) {
@@ -43,12 +46,17 @@ abstract class SingletonProvider {
         }
     }
 
-    private boolean isParametersSatisfied() {
+    protected boolean isSatisfied() {
         return parameters.stream().noneMatch(parameter -> !parameter.isSatisfied());
     }
 
+    protected Class<?>[] parameterTypes() {
+        return parameterTypes.stream().map(ClassReference::getReferencedClass).toArray(Class<?>[]::new);
+    }
 
-    abstract Object create();
+    protected Object[] parameters() {
+        return parameters.stream().map(Parameter::getValue).toArray(Object[]::new);
+    }
 
 
     public Set<ClassReference> getSingletonTypes() {
@@ -60,11 +68,15 @@ abstract class SingletonProvider {
         void onSingletonCreated(Object o);
 
         boolean isSatisfied();
+
+        Object getValue();
     }
 
     @RequiredArgsConstructor
     class SimpleParameter implements Parameter {
         private final ClassReference parameterType;
+
+        @Getter
         private Object value;
 
         @Override

@@ -13,7 +13,7 @@ public class JavaPoetUtils {
 
     /**
      * The signature of this method is "signature(javax.lang.model.element.ExecutableElement)"
-     * Does not contian the return type.
+     * Does not contain the return type.
      *
      * @param e
      * @return
@@ -22,7 +22,7 @@ public class JavaPoetUtils {
         CodeBlock.Builder builder = CodeBlock.builder()
                 .add(e.getSimpleName().toString())
                 .add("(");
-        addClassNameList(e, builder);
+        addParameterTypeNameList(e, builder);
         return builder.add(")")
                 .build();
     }
@@ -49,7 +49,7 @@ public class JavaPoetUtils {
         return builder.build();
     }
 
-    private static void addClassNameList(ExecutableElement e, CodeBlock.Builder builder) {
+    public static void addParameterTypeNameList(ExecutableElement e, CodeBlock.Builder builder) {
         Iterator<? extends VariableElement> iterator = e.getParameters().iterator();
         while (iterator.hasNext()) {
             builder.add("$T", iterator.next().asType());

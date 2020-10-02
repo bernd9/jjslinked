@@ -1,21 +1,20 @@
 package com.ejc.processor;
 
-
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import java.util.*;
 
-class SingletonWriterModelBuilder {
+class SingletonElementMapper {
 
     private Set<SingletonElement> singletonElements = new HashSet<>();
 
-    SingletonWriterModel getSingletonWriterModel() {
-        return new SingletonWriterModel(singletonElements);
+    ModuleWriterModel getSingletonWriterModel() {
+        return new ModuleWriterModel(singletonElements);
     }
 
-    SingletonWriterModelBuilder(Map<TypeElement, List<TypeElement>> hierarchy) {
+    SingletonElementMapper(Map<TypeElement, List<TypeElement>> hierarchy) {
         hierarchy.forEach((type, hierarchyList) -> singletonElements.add(new SingletonElement(type, hierarchyList)));
     }
 
@@ -55,10 +54,10 @@ class SingletonWriterModelBuilder {
                 .forEach(model -> model.setImplementation(impl));
     }
 
-    void putConstructorParameters(Element type, List<ConstructorParameterElement> parameters) {
+    void putConstructor(Element type, ExecutableElement constructor) {
         singletonElements.stream()
                 .filter(model -> model.getSingleton().equals(type))
-                .forEach(model -> model.setConstructorParameters(parameters));
+                .forEach(model -> model.setConstructor(constructor));
     }
 
 }
