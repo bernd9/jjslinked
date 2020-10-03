@@ -3,6 +3,7 @@ package com.ejc.api.context;
 import lombok.Data;
 
 import java.lang.reflect.Field;
+import java.util.Set;
 
 @Data
 public class SimpleDependencyField {
@@ -16,22 +17,23 @@ public class SimpleDependencyField {
         return owner != null && fieldValue != null;
     }
 
-    public void onSingletonCreated(Object o) {
-        if (fieldType.isInstance(o)) {
-            if (fieldValue != null) {
-                // TODO Exception
-            }
-            fieldValue = o;
-        }
-        if (declaringType.isInstance(o)) {
-            if (owner != null) {
-                // TODO Exception
-            }
-            owner = o;
+    void setOwner(Object owner, Set<SimpleDependencyField> satisfied) {
+        this.owner = owner;
+        if (isSatisfied()) {
+            satisfied.add(this);
+            injectFieldValue();
         }
     }
 
-    void setFieldValue() {
+    void setFieldValue(Object value, Set<SimpleDependencyField> satisfied) {
+        this.fieldValue = value;
+        if (isSatisfied()) {
+            satisfied.add(this);
+            injectFieldValue();
+        }
+    }
+
+    private void injectFieldValue() {
         try {
             Field field = owner.getClass().getDeclaredField(name);
             field.setAccessible(true);
@@ -40,7 +42,6 @@ public class SimpleDependencyField {
             throw new RuntimeException(e);
         }
     }
-
 
     @Override
     public boolean equals(Object o) {

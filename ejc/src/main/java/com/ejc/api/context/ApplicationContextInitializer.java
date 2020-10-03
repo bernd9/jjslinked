@@ -93,18 +93,48 @@ public class ApplicationContextInitializer {
     }
 
 
+    private Map<ClassReference, Set<SimpleDependencyField>> ownerCache = new HashMap<>();
+
+    private Set<SimpleDependencyField> getByOwnerType(ClassReference reference) {
+        return ownerCache.computeIfAbsent(reference, type -> dependencyFields.stream()
+                .filter(field -> field.getDeclaringType().equals(reference))
+                .collect(Collectors.toSet()));
+    }
+
+
+    private Map<ClassReference, Set<SimpleDependencyField>> fieldTypeCache = new HashMap<>();
+
+    private Set<SimpleDependencyField> getByFieldTypeType(ClassReference reference) {
+        return fieldTypeCache.computeIfAbsent(reference, type -> dependencyFields.stream()
+                .filter(field -> field.getFieldType().equals(reference))
+                .collect(Collectors.toSet()));
+    }
+
     private void dependencyFieldsOnSingletonCreated(Object o) {
+        Set<SimpleDependencyField> satisfied = new HashSet<>();
         ClassReference reference = ClassReference.getRef(o.getClass().getName());
-        dependencyFields.stream().filter(field -> field.getDeclaringType().equals(reference))
-                .forEach(field -> field.setOwner(o));
-        dependencyFields.stream().filter(field -> field.getFieldType().equals(reference))
-                .forEach(field -> field.setFieldValue(o));
-        Set<SimpleDependencyField> satisfied = dependencyFields.stream()
-                .filter(SimpleDependencyField::isSatisfied)
-                .peek(field -> field.setFieldValue())
-                .collect(Collectors.toSet());
+        getByOwnerType(reference)
+                .forEach(field -> field.setOwner(o, satisfied));
+        getByFieldTypeType(reference)
+                .stream().peek(field -> {
+                    field.setFieldValue(o, satisfied);
+                    onDependencyFieldComplete(o);
+                }
+        );
         dependencyFields.removeAll(satisfied);
 
+        /* /// TODO
+        collectionDependencyFields.stream().filter(field -> field.getDeclaringType().equals(reference))
+                .forEach(field -> field.setOwner(o));
+        collectionDependencyFields.stream().filter(field -> field.getFieldType().equals(reference))
+                .forEach(field -> field.addFieldValue(o));
+
+        Set<CollectionDependencyField> satisfiedColl = collectionDependencyFields.stream()
+                .filter(CollectionDependencyField::isSatisfied)
+                .peek(field -> field.injectFieldValue())
+                .collect(Collectors.toSet());
+        collectionDependencyFields.removeAll(satisfiedColl);
+*/
 
     }
 
@@ -140,7 +170,7 @@ public class ApplicationContextInitializer {
 
     private boolean dependencyFieldsComplete(Object o) {
         ClassReference reference = ClassReference.getRef(o.getClass().getName());
-        return dependencyFields.stream().filter(field -> field.getDeclaringType().equals(reference)).count() == 0;
+        return dependencyFields.stream().noneMatch(field -> field.getDeclaringType().equals(reference));
     }
 }
 

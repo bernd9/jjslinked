@@ -39,7 +39,7 @@ public class ModuleWriter extends JavaWriter {
     private void writeSingleton(SingletonElement model, MethodSpec.Builder constructorBuilder) {
         writeSetConstructor(model, constructorBuilder);
         writeReplacement(model, constructorBuilder);
-        model.getInitMethods().forEach(method -> constructorBuilder.addStatement("addInitMethod($L, \"$L\")", ref(model.getSingleton()), method));
+        model.getInitMethods().forEach(method -> constructorBuilder.addStatement("addInitMethod($L, \"$L\")", ref(model.getSingleton()), method.getSimpleName()));
         model.getBeanMethods().forEach(method -> writeBeanMethod(model.getSingleton(), method, constructorBuilder));
         model.getConfigFields().forEach(field -> writeConfigField(model.getSingleton(), field, constructorBuilder));
         model.getDependencyFields().forEach(field -> writeDependencyField(model.getSingleton(), field, constructorBuilder));

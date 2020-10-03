@@ -5,6 +5,7 @@ import com.ejc.ApplicationContextFactory;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.Compiler;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import javax.tools.JavaFileObject;
@@ -12,6 +13,7 @@ import javax.tools.JavaFileObject;
 import static com.ejc.processor.ProcessorTestUtil.bindClassLoader;
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Disabled
 class ApplicationContextFactoryConfigurationTest {
 
     private Compiler compiler;
