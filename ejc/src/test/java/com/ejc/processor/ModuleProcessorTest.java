@@ -53,7 +53,7 @@ class ModuleProcessorTest {
             assertThat(provider1.isSatisfied()).isTrue();
             assertThat(provider2.isSatisfied()).isTrue();
 
-            DependencyField dependencyField = CollectionUtils.getOnlyElement(module.getDependencyFields().get(reference1));
+            SimpleDependencyField dependencyField = CollectionUtils.getOnlyElement(module.getDependencyFields().get(reference1));
             assertThat(dependencyField.getDeclaringType()).isEqualTo(reference1);
             assertThat(dependencyField.getFieldType()).isEqualTo(reference2);
 

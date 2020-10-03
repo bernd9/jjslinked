@@ -5,7 +5,7 @@ import lombok.Data;
 import java.lang.reflect.Field;
 
 @Data
-public class DependencyField {
+public class SimpleDependencyField {
     private final String name;
     private final ClassReference declaringType;
     private final ClassReference fieldType;

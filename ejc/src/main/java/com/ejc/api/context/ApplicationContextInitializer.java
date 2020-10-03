@@ -11,8 +11,8 @@ public class ApplicationContextInitializer {
     private final Map<ClassReference, SingletonConstructor> singletonConstructors = new HashMap<>();
     private final Map<ClassReference, Collection<BeanMethod>> beanMethods = new HashMap<>();
     private final Map<ClassReference, Collection<InitMethodInvoker>> initInvokers = new HashMap<>();
-    private final Map<ClassReference, Collection<DependencyField>> dependencyFields = new HashMap<>();
-    private final Map<ClassReference, Collection<CollectionDependencyField>> collectionDependencyFields = new HashMap<>();
+    private final Collection<SimpleDependencyField> dependencyFields = new HashSet<>();
+    private final Collection<CollectionDependencyField> collectionDependencyFields = new HashSet<>();
     private final Map<ClassReference, Collection<ConfigValueField>> configFields = new HashMap<>();
     private final Set<ClassReference> classesToReplace = new HashSet<>();
 
@@ -29,8 +29,8 @@ public class ApplicationContextInitializer {
         singletonConstructors.putAll(module.getSingletonConstructors());
         beanMethods.putAll(module.getBeanMethods());
         initInvokers.putAll(module.getInitInvokers());
-        dependencyFields.putAll(module.getDependencyFields());
-        collectionDependencyFields.putAll(module.getCollectionDependencyFields());
+        dependencyFields.addAll(module.getDependencyFields().values().stream().flatMap(Collection::stream).collect(Collectors.toSet())); // TODO  remove map in module
+        collectionDependencyFields.addAll(module.getCollectionDependencyFields().values().stream().flatMap(Collection::stream).collect(Collectors.toSet())); // TODO  remove map in module
         configFields.putAll(module.getConfigFields());
     }
 
@@ -56,15 +56,15 @@ public class ApplicationContextInitializer {
 
     private void publishExpectedSingletonTypes(Set<ClassReference> allSingletonTypes) {
         singletonConstructors.values().forEach(provider -> provider.registerSingletonTypes(allSingletonTypes));
-        collectionDependencyFields.values().stream().flatMap(Collection::stream).forEach(field -> field.registerSingletonTypes(allSingletonTypes));
+        collectionDependencyFields.forEach(field -> field.registerSingletonTypes(allSingletonTypes));
     }
 
     private void doReplacement() {
         classesToReplace.forEach(type -> {
             beanMethods.remove(type);
             initInvokers.remove(type);
-            dependencyFields.remove(type);
             configFields.remove(type);
+            // TODO remove dependency fields, too
         });
     }
 
@@ -94,31 +94,17 @@ public class ApplicationContextInitializer {
 
 
     private void dependencyFieldsOnSingletonCreated(Object o) {
-        // TODO speed up ? Comcurrent hashmap ?
-        Set<ClassReference> emptyCollections = new HashSet<>();
-        for (ClassReference reference : dependencyFields.keySet()) {
-            Collection<DependencyField> satisfied = dependencyFields.getOrDefault(reference, Collections.emptySet()).stream()
-                    .peek(field -> field.onSingletonCreated(o))
-                    .filter(DependencyField::isSatisfied)
-                    .collect(Collectors.toSet());
-            dependencyFields.get(reference).removeAll(satisfied);
-            satisfied.forEach(DependencyField::setFieldValue);
-            if (dependencyFields.get(reference).isEmpty())
-                emptyCollections.add(reference);
-        }
-        emptyCollections.forEach(dependencyFields::remove);
+        ClassReference reference = ClassReference.getRef(o.getClass().getName());
+        dependencyFields.stream().filter(field -> field.getDeclaringType().equals(reference))
+                .forEach(field -> field.setOwner(o));
+        dependencyFields.stream().filter(field -> field.getFieldType().equals(reference))
+                .forEach(field -> field.setFieldValue(o));
+        Set<SimpleDependencyField> satisfied = dependencyFields.stream()
+                .filter(SimpleDependencyField::isSatisfied)
+                .peek(field -> field.setFieldValue())
+                .collect(Collectors.toSet());
+        dependencyFields.removeAll(satisfied);
 
-        emptyCollections.clear();
-        for (ClassReference reference : collectionDependencyFields.keySet()) {
-            Collection<CollectionDependencyField> satisfied = collectionDependencyFields.getOrDefault(reference, Collections.emptySet()).stream()
-                    .peek(field -> field.onSingletonCreated(o))
-                    .filter(CollectionDependencyField::isSatisfied)
-                    .collect(Collectors.toSet());
-            collectionDependencyFields.get(reference).removeAll(satisfied);
-            if (collectionDependencyFields.get(reference).isEmpty())
-                emptyCollections.add(reference);
-        }
-        emptyCollections.forEach(collectionDependencyFields::remove);
 
     }
 
@@ -154,8 +140,7 @@ public class ApplicationContextInitializer {
 
     private boolean dependencyFieldsComplete(Object o) {
         ClassReference reference = ClassReference.getRef(o.getClass().getName());
-        return dependencyFields.getOrDefault(reference, Collections.emptySet()).stream().noneMatch(field -> !field.isSatisfied())
-                && collectionDependencyFields.getOrDefault(reference, Collections.emptySet()).stream().noneMatch(field -> !field.isSatisfied());
+        return dependencyFields.stream().filter(field -> field.getDeclaringType().equals(reference)).count() == 0;
     }
 }
 
