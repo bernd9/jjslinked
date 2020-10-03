@@ -1,6 +1,5 @@
 package com.ejc.api.context;
 
-import com.ejc.api.context.model.ConfigValueField;
 import com.ejc.processor.ModuleWriter;
 import com.ejc.util.ClassUtils;
 import lombok.Getter;
@@ -41,6 +40,11 @@ public class ModuleFactory {
     @UsedInGeneratedCode(ModuleWriter.class)
     public void addDependencyField(ClassReference owner, String name, ClassReference fieldType) {
         module.getDependencyFields().computeIfAbsent(owner, type -> new HashSet<>()).add(new DependencyField(name, owner, fieldType));
+    }
+
+    @UsedInGeneratedCode(ModuleWriter.class) // TODO support arrays in new class ArrayDependencyField
+    public void addCollectionDependencyField(ClassReference owner, String name, ClassReference fieldType) {
+        module.getCollectionDependencyFields().computeIfAbsent(owner, type -> new HashSet<>()).add(new CollectionDependencyField(name, owner, fieldType));
     }
 
     @UsedInGeneratedCode(ModuleWriter.class)

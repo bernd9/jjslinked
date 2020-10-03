@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Set;
 
 import static com.ejc.processor.ProcessorTestUtil.bindClassLoader;
-import static com.google.testing.compile.Compiler.javac;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ApplicationContextFactoryMultiDependencyTest {
@@ -24,7 +23,7 @@ class ApplicationContextFactoryMultiDependencyTest {
 
     @BeforeEach
     void init() {
-        compiler = javac().withProcessors(new ApplicationContextFactoryProcessor());
+        //compiler = javac().withProcessors(new ApplicationContextFactoryProcessor());
         files = ProcessorTestUtil.javaFileObjects("com/ejc/processor/context/multi", "TestApplication.java", "TestBean2.java", "TestBean3.java", "TestBean3Impl.java", "TestInterface.java");
     }
 

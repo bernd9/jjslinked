@@ -1,10 +1,11 @@
 package com.ejc.api.context;
 
-import com.ejc.api.context.model.CollectionConstructorParameter;
+import com.ejc.util.TypeUtils;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -22,11 +23,11 @@ abstract class SingletonProvider {
         parameterTypes.forEach(this::addParameter);
     }
 
-    public void setAllSingletonTypes(Set<Class<?>> types) {
+    public void registerSingletonTypes(Set<ClassReference> types) {
         parameters.stream()
-                .filter(CollectionConstructorParameter.class::isInstance)
-                .map(CollectionConstructorParameter.class::cast)
-                .forEach(parameter -> parameter.setAllSingletonTypes(types));
+                .filter(CollectionParameter.class::isInstance)
+                .map(CollectionParameter.class::cast)
+                .forEach(parameter -> parameter.registerSingletonTypes(types));
     }
 
     public void onSingletonCreated(Object o) {
@@ -40,13 +41,13 @@ abstract class SingletonProvider {
 
     private void addParameter(ClassReference parameterType) {
         if (Collections.class.isAssignableFrom(parameterType.getReferencedClass())) {
-
+            parameters.add(new CollectionParameter(parameterType));
         } else {
             parameters.add(new SimpleParameter(parameterType));
         }
     }
 
-    protected boolean isSatisfied() {
+    boolean isSatisfied() {
         return parameters.stream().noneMatch(parameter -> !parameter.isSatisfied());
     }
 
@@ -92,6 +93,45 @@ abstract class SingletonProvider {
         @Override
         public boolean isSatisfied() {
             return value != null;
+        }
+    }
+
+
+    class CollectionParameter implements Parameter {
+
+        private final Collection<?> values;
+        private int expectedElementCount;
+        private Class<?> elementType;
+
+
+        CollectionParameter(ClassReference collectionType) {
+            this((Class<Collection<Object>>) collectionType.getReferencedClass());
+        }
+
+        CollectionParameter(Class<? extends Collection<?>> collectionType) {
+            values = TypeUtils.emptyCollection(collectionType);
+            elementType = TypeUtils.getGenericType(collectionType);
+        }
+
+        @Override
+        public void onSingletonCreated(Object o) {
+
+        }
+
+        @Override
+        public boolean isSatisfied() {
+            return false;
+        }
+
+        @Override
+        public Object getValue() {
+            return null;
+        }
+
+        void registerSingletonTypes(Set<ClassReference> types) {
+            expectedElementCount = (int) types.stream()
+                    .filter(type -> type.getReferencedClass().isAssignableFrom(elementType))
+                    .count();
         }
     }
 

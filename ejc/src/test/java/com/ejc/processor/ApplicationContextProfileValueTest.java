@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import javax.tools.JavaFileObject;
 
 import static com.ejc.processor.ProcessorTestUtil.bindClassLoader;
-import static com.google.testing.compile.Compiler.javac;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ApplicationContextProfileValueTest {
@@ -21,7 +20,7 @@ class ApplicationContextProfileValueTest {
     @BeforeEach
     void init() {
         System.setProperty("profile", "test");
-        compiler = javac().withProcessors(new ApplicationContextFactoryProcessor());
+        //compiler = javac().withProcessors(new ApplicationContextFactoryProcessor());
         files = ProcessorTestUtil.javaFileObjects("com/ejc/processor/context/value", "Test.java");
     }
 

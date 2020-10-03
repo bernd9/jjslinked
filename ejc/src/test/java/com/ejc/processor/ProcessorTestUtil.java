@@ -87,11 +87,12 @@ public class ProcessorTestUtil {
 
     public static String getContextFactoryDefaultName() {
         return new StringBuilder()
-                .append(ApplicationContextFactoryProcessor.PACKAGE)
+                //.append(ApplicationContextFactoryProcessor.PACKAGE)
                 .append(".")
                 .append(ApplicationContextFactory.IMPLEMENTATION_SIMPLE_NAME).toString();
 
     }
+
 
     public static Object getFieldValue(Object bean, String name) {
         for (Class<?> c = bean.getClass(); c != null && !c.equals(Object.class); c = c.getSuperclass()) {

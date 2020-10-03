@@ -3,7 +3,6 @@ package com.ejc.processor;
 import com.ejc.*;
 import com.ejc.api.context.ModuleFactory;
 import com.ejc.api.context.UndefinedClass;
-import com.ejc.util.ClassUtils;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.IOUtils;
 import com.google.auto.service.AutoService;
@@ -137,11 +136,7 @@ public class ModuleProcessor extends ProcessorBase {
             return false;
         }
     }
-
-    private Class<? extends Collection> getCollectionType(VariableElement parameter) {
-        return (Class<? extends Collection>) ClassUtils.classForName(parameter.asType().toString().replaceAll("<[^\\]]*>", ""));
-    }
-
+    
     private boolean isInstanceOf(TypeMirror candidate, TypeElement superType) {
         return isInstanceOf(candidate, superType.asType());
     }
@@ -149,7 +144,7 @@ public class ModuleProcessor extends ProcessorBase {
     private boolean isInstanceOf(TypeMirror candidate, TypeMirror superType) {
         return processingEnv.getTypeUtils().isAssignable(candidate, superType);
     }
-    
+
     private ModuleWriterModel createWriterModel() {
         Map<TypeElement, List<TypeElement>> hierarchy = singletons.stream()
                 .collect(Collectors.toMap(Functions.identity(), this::getClassHierarchy));
@@ -196,10 +191,6 @@ public class ModuleProcessor extends ProcessorBase {
             t = (TypeElement) processingEnv.getTypeUtils().asElement(t.getSuperclass());
         }
         return hierarchy;
-    }
-
-    private static List<TypeMirror> getConstructorParameters(TypeElement typeElement) {
-        return getConstructor(typeElement).getParameters().stream().map(VariableElement::asType).collect(Collectors.toList());
     }
 
     private static ExecutableElement getConstructor(TypeElement typeElement) {
@@ -259,14 +250,7 @@ public class ModuleProcessor extends ProcessorBase {
         return appClassQualifiedName + "." + ApplicationContextFactory.IMPLEMENTATION_SIMPLE_NAME;
     }
 
-    private void writeApplicationContextFactory() throws IOException {
-
-    }
-
-
     private void writeContextFile() {
         IOUtils.write(Collections.singletonList(factoryQualifiedName()), processingEnv.getFiler(), "META-INF/services/" + ModuleFactory.class.getName());
     }
-
-
 }

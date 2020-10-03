@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import javax.tools.JavaFileObject;
 
 import static com.ejc.processor.ProcessorTestUtil.bindClassLoader;
-import static com.google.testing.compile.Compiler.javac;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ApplicationContextFactoryConfigurationTest {
@@ -20,7 +19,7 @@ class ApplicationContextFactoryConfigurationTest {
 
     @BeforeEach
     void init() {
-        compiler = javac().withProcessors(new ApplicationContextFactoryProcessor());
+        //compiler = javac().withProcessors(new ApplicationContextFactoryProcessor());
         files = ProcessorTestUtil.javaFileObjects("com/ejc/processor/context/config", "TestBean.java", "TestConfig.java");
     }
 

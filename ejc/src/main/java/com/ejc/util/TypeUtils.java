@@ -3,11 +3,36 @@ package com.ejc.util;
 import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.TypeVariable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.*;
 
 @UtilityClass
 public class TypeUtils {
+
+    public static <T, C extends Collection<? extends T>> C emptyCollection(Class<C> collectionType) {
+        if (!collectionType.isInterface() && !Modifier.isAbstract(collectionType.getModifiers())) {
+            return ClassUtils.createInstance(collectionType);
+        }
+        if (collectionType.equals(List.class)) {
+            return (C) new ArrayList<T>();
+        }
+        if (collectionType.equals(Set.class)) {
+            return (C) new ArrayList<T>();
+        }
+        if (collectionType.equals(Vector.class)) {
+            return (C) new Vector<T>();
+        }
+        if (collectionType.equals(Iterable.class)) {
+            return (C) new HashSet<T>();
+        }
+
+        throw new IllegalArgumentException("unsupported collection type ");
+
+    }
 
     public <T> T convertSimple(Object value, @NonNull Class<T> fieldType) {
         if (value == null) {
@@ -61,5 +86,11 @@ public class TypeUtils {
         }
         throw new IllegalArgumentException("illegal type " + fieldType);
 
+    }
+
+    public static Class<?> getGenericType(Class<? extends Collection> collectionType) {
+        ParameterizedType parameterizedType = (ParameterizedType) collectionType.getGenericSuperclass();
+        TypeVariable<?> typeVariable = (TypeVariable) parameterizedType.getActualTypeArguments()[0];
+        return ClassUtils.classForName(typeVariable.getTypeName());
     }
 }

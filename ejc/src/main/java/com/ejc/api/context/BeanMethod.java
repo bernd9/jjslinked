@@ -4,6 +4,7 @@ import lombok.NonNull;
 
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Objects;
 
 class BeanMethod extends SingletonProvider {
 
@@ -26,7 +27,7 @@ class BeanMethod extends SingletonProvider {
     }
 
     @Override
-    protected boolean isSatisfied() {
+    boolean isSatisfied() {
         return configuration != null && super.isSatisfied();
     }
 
@@ -35,7 +36,9 @@ class BeanMethod extends SingletonProvider {
         try {
             Method method = configuration.getClass().getDeclaredMethod(name, parameterTypes());
             method.setAccessible(true);
-            return method.invoke(configuration, parameters());
+            Object rv = method.invoke(configuration, parameters());
+            Objects.requireNonNull(rv, "Method " + method + " returned null");
+            return rv;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

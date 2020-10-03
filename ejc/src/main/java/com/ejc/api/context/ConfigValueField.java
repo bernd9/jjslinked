@@ -1,13 +1,10 @@
-package com.ejc.api.context.model;
+package com.ejc.api.context;
 
 import com.ejc.api.config.Config;
-import com.ejc.api.context.ClassReference;
 import com.ejc.util.FieldUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import java.lang.reflect.Field;
 
 @Getter
 @EqualsAndHashCode
@@ -20,12 +17,6 @@ public class ConfigValueField {
     private final String defaultValue;
 
     public void injectConfigValue(Object bean) {
-        try {
-            Field field = FieldUtils.getField(bean, fieldName);
-            field.setAccessible(true);
-            field.set(bean, Config.getProperty(key, fieldType, defaultValue));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        FieldUtils.setFieldValue(bean, fieldName, Config.getProperty(key, fieldType, defaultValue));
     }
 }

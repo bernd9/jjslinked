@@ -1,10 +1,10 @@
 package com.ejc.api.context;
 
-import com.ejc.api.context.model.ConfigValueField;
 import lombok.RequiredArgsConstructor;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 public class ApplicationContextInitializer {
@@ -13,6 +13,7 @@ public class ApplicationContextInitializer {
     private final Map<ClassReference, Collection<BeanMethod>> beanMethods = new HashMap<>();
     private final Map<ClassReference, Collection<InitMethodInvoker>> initInvokers = new HashMap<>();
     private final Map<ClassReference, Collection<DependencyField>> dependencyFields = new HashMap<>();
+    private final Map<ClassReference, Collection<CollectionDependencyField>> collectionDependencyFields = new HashMap<>();
     private final Map<ClassReference, Collection<ConfigValueField>> configFields = new HashMap<>();
     private final Set<ClassReference> classesToReplace = new HashSet<>();
 
@@ -23,23 +24,43 @@ public class ApplicationContextInitializer {
         beanMethods.putAll(module.getBeanMethods());
         initInvokers.putAll(module.getInitInvokers());
         dependencyFields.putAll(module.getDependencyFields());
+        collectionDependencyFields.putAll(module.getCollectionDependencyFields());
         configFields.putAll(module.getConfigFields());
     }
 
     public void initialize() {
+        doReplacement();
+        Set<ClassReference> allSingletonTypes = getExpectedSingletonTypes();
+        publishExpectedSingletonTypes(allSingletonTypes);
+        runInstantiation();
+    }
+
+    private void runInstantiation() {
+        singletonConstructors.values().stream()
+                .filter(SingletonProvider::isSatisfied)
+                .map(SingletonConstructor::create)
+                .forEach(o -> onSingletonCreated(o));
+    }
+
+    private void publishExpectedSingletonTypes(Set<ClassReference> allSingletonTypes) {
+        singletonConstructors.values().forEach(provider -> provider.registerSingletonTypes(allSingletonTypes));
+        collectionDependencyFields.values().stream().flatMap(Collection::stream).forEach(field -> field.registerSingletonTypes(allSingletonTypes));
+    }
+
+    private void doReplacement() {
         classesToReplace.forEach(type -> {
             beanMethods.remove(type);
             initInvokers.remove(type);
             dependencyFields.remove(type);
             configFields.remove(type);
         });
+    }
 
-        Set<Class<?>> allSingletonTypes = singletonConstructors.values().stream()
+    private Set<ClassReference> getExpectedSingletonTypes() {
+        return Stream.concat(singletonConstructors.values().stream(), beanMethods.values().stream().flatMap(Collection::stream))
                 .map(SingletonProvider::getSingletonTypes)
                 .flatMap(Set::stream)
-                .map(ClassReference::getReferencedClass)
                 .collect(Collectors.toSet());
-        singletonConstructors.values().forEach(provider -> provider.setAllSingletonTypes(allSingletonTypes));
     }
 
     public void onSingletonCreated(Object o) {
@@ -86,8 +107,6 @@ public class ApplicationContextInitializer {
         return dependencyFields.getOrDefault(reference, Collections.emptySet())
                 .stream().noneMatch(field -> !field.isSatisfied());
     }
-
-
 }
 
 

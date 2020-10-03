@@ -1,17 +1,18 @@
 package com.ejc.api.context;
 
+import com.ejc.processor.ModuleWriter;
 import com.ejc.util.ClassUtils;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
-@RequiredArgsConstructor
+
 public class ClassReference {
     private static Map<String, ClassReference> references = new HashMap<>();
 
-    // TODO Check if class references free meomory after initialization
+    // TODO Check if class references free memory after initialization
     private Map<Object, Boolean> isInstance;
     private Map<ClassReference, Boolean> isTypeOf;
     private Class<?> clazz;
@@ -19,9 +20,24 @@ public class ClassReference {
     @Getter
     private final String className;
 
+    @Getter
+    private final Optional<ClassReference> genericType;
+
+    @UsedInGeneratedCode(ModuleWriter.class)
     ClassReference(Class<?> c) {
         this.clazz = c;
         this.className = c.getName();
+        this.genericType = Optional.empty();
+    }
+
+    ClassReference(String className) {
+        this.className = className;
+        this.genericType = Optional.empty();
+    }
+
+    ClassReference(String className, String genericType) {
+        this.className = className;
+        this.genericType = Optional.of(getRef(genericType));
     }
 
     public Class<?> getReferencedClass() {

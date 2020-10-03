@@ -6,7 +6,6 @@ import com.ejc.api.context.ClassReference;
 import com.ejc.api.context.ModuleFactory;
 import com.ejc.javapoet.JavaWriter;
 import com.ejc.util.JavaModelUtils;
-import com.ejc.util.JavaPoetUtils;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import lombok.Builder;
@@ -17,6 +16,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
+import java.util.Iterator;
 import java.util.Optional;
 
 
@@ -42,6 +42,7 @@ public class ModuleWriter extends JavaWriter {
         model.getBeanMethods().forEach(method -> writeBeanMethod(model.getSingleton(), method, constructorBuilder));
         model.getConfigFields().forEach(field -> writeConfigField(model.getSingleton(), field, constructorBuilder));
         model.getDependencyFields().forEach(field -> writeDependencyField(model.getSingleton(), field, constructorBuilder));
+        model.getCollectionDependencyFields().forEach(field -> writeDependencyCollectionField(model.getSingleton(), field, constructorBuilder));
     }
 
     private void writeReplacement(SingletonElement model, MethodSpec.Builder constructorBuilder) {
@@ -68,9 +69,37 @@ public class ModuleWriter extends JavaWriter {
         constructorBuilder.addStatement("addDependencyField($L, \"$L\", $L)", ref(singleton), field.getSimpleName(), ref(field.asType()));
     }
 
-    private CodeBlock parameterTypeList(ExecutableElement method) {
+    private void writeDependencyCollectionField(TypeElement singleton, VariableElement field, MethodSpec.Builder constructorBuilder) {
+        constructorBuilder.addStatement("addCollectionDependencyField($L, \"$L\", $L)",
+                ref(singleton), field.getSimpleName(), parameterRef(field));
+    }
+
+    private CodeBlock parameterTypeList(ExecutableElement e) {
         CodeBlock.Builder builder = CodeBlock.builder();
-        JavaPoetUtils.addParameterTypeNameList(method, builder);
+        Iterator<? extends VariableElement> iterator = e.getParameters().iterator();
+        while (iterator.hasNext()) {
+            VariableElement variableElement = iterator.next();
+            addParameter(variableElement, builder);
+            if (iterator.hasNext()) {
+                builder.add(",");
+            }
+        }
+        return builder.build();
+    }
+
+    private CodeBlock parameterRef(VariableElement variableElement) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        addParameter(variableElement, builder);
+        return builder.build();
+    }
+
+    private CodeBlock addParameter(VariableElement variableElement, CodeBlock.Builder builder) {
+        if (JavaModelUtils.hasGenericType(variableElement)) {
+            TypeMirror genericType = JavaModelUtils.getGenericType(variableElement);
+            builder.add(ref(variableElement.asType(), genericType));
+        } else {
+            builder.add(ref(variableElement.asType()));
+        }
         return builder.build();
     }
 
@@ -98,6 +127,12 @@ public class ModuleWriter extends JavaWriter {
     private static String ref(TypeMirror e) {
         return CodeBlock.builder()
                 .add("$T.getRef(\"$L\")", ClassReference.class, e)
+                .build().toString();
+    }
+
+    private static String ref(TypeMirror e, TypeMirror genericType) {
+        return CodeBlock.builder()
+                .add("$T.getRef(\"$L\", \"$L\")", ClassReference.class, e, genericType)
                 .build().toString();
     }
 

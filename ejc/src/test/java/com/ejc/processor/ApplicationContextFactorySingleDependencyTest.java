@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import javax.tools.JavaFileObject;
 
 import static com.ejc.processor.ProcessorTestUtil.bindClassLoader;
-import static com.google.testing.compile.Compiler.javac;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ApplicationContextFactorySingleDependencyTest {
@@ -20,7 +19,7 @@ class ApplicationContextFactorySingleDependencyTest {
 
     @BeforeEach
     void init() {
-        compiler = javac().withProcessors(new ApplicationContextFactoryProcessor());
+        //compiler = javac().withProcessors(new ApplicationContextFactoryProcessor());
         files = ProcessorTestUtil.javaFileObjects("com/ejc/processor/context/single", "TestApplication.java", "TestBean1a.java", "TestBean2.java", "TestBean3.java", "TestBean3Impl.java");
     }
 
