@@ -17,6 +17,7 @@ public class CollectionDependencyField {
     private Collection<Object> fieldValues;
     private Object owner;
     private ClassReference elementType;
+    private boolean satisfied;
 
     public CollectionDependencyField(String name, ClassReference declaringType, ClassReference fieldType) {
         this.name = name;
@@ -32,10 +33,6 @@ public class CollectionDependencyField {
                 .count();
     }
 
-    public boolean isSatisfied() {
-        return owner != null && fieldValues.size() >= expectedElementCount;
-    }
-
     public void onSingletonCreated(Object o) {
         if (elementType.isInstance(o)) {
             fieldValues.add(o);
@@ -46,10 +43,9 @@ public class CollectionDependencyField {
             }
             owner = o;
         }
-        if (isSatisfied()) {
+        if (owner != null && fieldValues.size() >= expectedElementCount) {
             FieldUtils.setFieldValue(owner, name, fieldValues);
-            ApplicationContextInitializer.getInstance().remove(this);
-            ApplicationContextInitializer.getInstance().onDependencyFieldComplete(owner);
+            satisfied = true;
         }
     }
 }

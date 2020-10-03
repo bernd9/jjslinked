@@ -29,10 +29,6 @@ public abstract class SingletonProvider {
 
     public void onSingletonCreated(Object o) {
         parameters.forEach(param -> param.onSingletonCreated(o));
-        if (isSatisfied()) {
-            ApplicationContextInitializer.getInstance().remove(this);
-            ApplicationContextInitializer.getInstance().onSingletonCreated(invoke());
-        }
     }
 
     public Object invoke() {
