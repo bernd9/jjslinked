@@ -94,6 +94,8 @@ public class ApplicationContextInitializer {
 
 
     private void dependencyFieldsOnSingletonCreated(Object o) {
+        // TODO speed up ? Comcurrent hashmap ?
+        Set<ClassReference> emptyCollections = new HashSet<>();
         for (ClassReference reference : dependencyFields.keySet()) {
             Collection<DependencyField> satisfied = dependencyFields.getOrDefault(reference, Collections.emptySet()).stream()
                     .peek(field -> field.onSingletonCreated(o))
@@ -101,19 +103,27 @@ public class ApplicationContextInitializer {
                     .collect(Collectors.toSet());
             dependencyFields.get(reference).removeAll(satisfied);
             satisfied.forEach(DependencyField::setFieldValue);
-
+            if (dependencyFields.get(reference).isEmpty())
+                emptyCollections.add(reference);
         }
+        emptyCollections.forEach(dependencyFields::remove);
+
+        emptyCollections.clear();
         for (ClassReference reference : collectionDependencyFields.keySet()) {
             Collection<CollectionDependencyField> satisfied = collectionDependencyFields.getOrDefault(reference, Collections.emptySet()).stream()
                     .peek(field -> field.onSingletonCreated(o))
                     .filter(CollectionDependencyField::isSatisfied)
                     .collect(Collectors.toSet());
             collectionDependencyFields.get(reference).removeAll(satisfied);
+            if (collectionDependencyFields.get(reference).isEmpty())
+                emptyCollections.add(reference);
         }
+        emptyCollections.forEach(collectionDependencyFields::remove);
 
     }
 
     public void onDependencyFieldComplete(Object o) {
+        // TODO
         if (dependencyFieldsComplete(o)) {
             invokeInitMethods(o);
             invokeBeanMethods(o);
