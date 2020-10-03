@@ -101,12 +101,10 @@ public class JavaModelUtils {
     }
 
     public static AnnotationValue getAnnotationValue(AnnotationMirror annotationMirror, String name) {
-        AnnotationValue value = Iterables.getOnlyElement(annotationMirror.getElementValues().entrySet().stream()
+        return annotationMirror.getElementValues().entrySet().stream()
                 .filter(e -> e.getKey().getSimpleName().toString().equals(name))
                 .map(Map.Entry::getValue)
-                .collect(Collectors.toList()));
-        Object o = value.accept(new ValueVisitor<>(), null);
-        return value;
+                .findFirst().orElse(null);
     }
 
     private static class ValueVisitor<R> extends SimpleAnnotationValueVisitor9<R, Class<?>> {

@@ -27,7 +27,7 @@ class BeanMethod extends SingletonProvider {
     }
 
     @Override
-    boolean isSatisfied() {
+    public boolean isSatisfied() {
         return configuration != null && super.isSatisfied();
     }
 

@@ -9,7 +9,6 @@ public class DependencyField {
     private final String name;
     private final ClassReference declaringType;
     private final ClassReference fieldType;
-    private ApplicationContextInitializer initializer;
     private Object fieldValue;
     private Object owner;
 
@@ -32,7 +31,8 @@ public class DependencyField {
         }
         if (owner != null && fieldValue != null) {
             setFieldValue();
-            initializer.onDependencyFieldComplete(owner);
+            ApplicationContextInitializer.getInstance().remove(this);
+            ApplicationContextInitializer.getInstance().onDependencyFieldComplete(owner);
         }
     }
 
@@ -47,4 +47,16 @@ public class DependencyField {
     }
 
 
+    @Override
+    public boolean equals(Object o) {
+        return o.hashCode() == hashCode();
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (declaringType != null ? declaringType.hashCode() : 0);
+        result = 31 * result + (fieldType != null ? fieldType.hashCode() : 0);
+        return result;
+    }
 }

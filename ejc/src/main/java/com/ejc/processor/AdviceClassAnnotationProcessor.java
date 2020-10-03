@@ -46,7 +46,8 @@ public class AdviceClassAnnotationProcessor extends AbstractProcessor {
 
     private void writeProcessor(TypeElement annotation) {
         AnnotationMirror mirror = JavaModelUtils.getAnnotationMirror(annotation, AdviceClass.class);
-        String adviceClass = JavaModelUtils.getAnnotationValue(mirror, "value").getValue().toString().replace(".class", "");
+        String adviceClass = JavaModelUtils.getAnnotationValue(mirror, "value")
+                .getValue().toString().replace(".class", "");
         AdviceAnnotationProcessorWriter annotationProcessorWriter = AdviceAnnotationProcessorWriter.builder()
                 .adviceClass(adviceClass)
                 .annotation(annotation)

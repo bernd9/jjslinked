@@ -136,7 +136,7 @@ public class ModuleProcessor extends ProcessorBase {
             return false;
         }
     }
-    
+
     private boolean isInstanceOf(TypeMirror candidate, TypeElement superType) {
         return isInstanceOf(candidate, superType.asType());
     }
@@ -246,11 +246,7 @@ public class ModuleProcessor extends ProcessorBase {
         appClassQualifiedName = appClass.getQualifiedName().toString();
     }
 
-    private String factoryQualifiedName() {
-        return appClassQualifiedName + "." + ApplicationContextFactory.IMPLEMENTATION_SIMPLE_NAME;
-    }
-
     private void writeContextFile() {
-        IOUtils.write(Collections.singletonList(factoryQualifiedName()), processingEnv.getFiler(), "META-INF/services/" + ModuleFactory.class.getName());
+        IOUtils.write(Collections.singletonList(ModuleFactory.getQualifiedName(appClassQualifiedName)), processingEnv.getFiler(), "META-INF/services/" + ModuleFactory.class.getName());
     }
 }

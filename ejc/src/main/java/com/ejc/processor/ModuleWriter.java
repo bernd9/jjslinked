@@ -17,6 +17,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.Optional;
 
 
@@ -114,6 +115,7 @@ public class ModuleWriter extends JavaWriter {
     private Optional<String> getReplacementAttribute(TypeElement annotatedElement) {
         return JavaModelUtils.getAnnotationMirrorOptional(annotatedElement, Singleton.class)
                 .map(annotation -> JavaModelUtils.getAnnotationValue(annotation, "replace"))
+                .filter(Objects::nonNull)
                 .map(AnnotationValue::getValue)
                 .map(Object::toString);
     }

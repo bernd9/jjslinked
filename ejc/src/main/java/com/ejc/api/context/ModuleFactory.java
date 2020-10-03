@@ -58,7 +58,7 @@ public class ModuleFactory {
     }
 
     public static String getQualifiedName(String appClassQualifiedName) {
-        return getPackageName(appClassQualifiedName) + ". " + getSimpleName(appClassQualifiedName);
+        return getPackageName(appClassQualifiedName).map(name -> name + ".").orElse("") + getSimpleName(appClassQualifiedName);
     }
 
 

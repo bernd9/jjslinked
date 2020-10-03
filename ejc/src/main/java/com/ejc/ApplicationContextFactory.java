@@ -1,5 +1,6 @@
 package com.ejc;
 
+// TODO delete
 public interface ApplicationContextFactory {
 
     String IMPLEMENTATION_SIMPLE_NAME = "ApplicationContextFactoryImpl";

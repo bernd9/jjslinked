@@ -13,7 +13,6 @@ public class CollectionDependencyField {
     private final String name;
     private final ClassReference declaringType;
     private final ClassReference fieldType;
-    private ApplicationContextInitializer initializer;
     private int expectedElementCount;
     private Collection<Object> fieldValues;
     private Object owner;
@@ -49,8 +48,8 @@ public class CollectionDependencyField {
         }
         if (isSatisfied()) {
             FieldUtils.setFieldValue(owner, name, fieldValues);
-            // TODO check if complete
-            // initializer.onDependencyFieldComplete(owner);
+            ApplicationContextInitializer.getInstance().remove(this);
+            ApplicationContextInitializer.getInstance().onDependencyFieldComplete(owner);
         }
     }
 }

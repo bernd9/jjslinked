@@ -48,14 +48,14 @@ public class ClassUtils {
         if (!qualifiedName.contains(".")) {
             return Optional.empty();
         }
-        return Optional.of(qualifiedName.substring(0, qualifiedName.lastIndexOf(".") - 1));
+        return Optional.of(qualifiedName.substring(0, qualifiedName.lastIndexOf(".")));
     }
 
     public static String getSimpleName(String qualifiedName) {
         if (!qualifiedName.contains(".")) {
             return qualifiedName;
         }
-        return qualifiedName.substring(0, qualifiedName.lastIndexOf("."));
+        return qualifiedName.substring(qualifiedName.lastIndexOf(".") + 1);
     }
 
     public static void main(String[] args) {

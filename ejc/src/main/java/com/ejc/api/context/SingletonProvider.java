@@ -5,21 +5,18 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Data
-abstract class SingletonProvider {
+public abstract class SingletonProvider {
 
     private final ClassReference type;
     private final List<ClassReference> parameterTypes;
-    private ApplicationContextInitializer initializer;
-    private List<Parameter> parameters;
+    private final List<Parameter> parameters = new ArrayList<>();
 
-    // TODO invoke
-    void init() {
+    public SingletonProvider(ClassReference type, List<ClassReference> parameterTypes) {
+        this.type = type;
+        this.parameterTypes = parameterTypes;
         parameterTypes.forEach(this::addParameter);
     }
 
@@ -33,8 +30,13 @@ abstract class SingletonProvider {
     public void onSingletonCreated(Object o) {
         parameters.forEach(param -> param.onSingletonCreated(o));
         if (isSatisfied()) {
-            initializer.onDependencyFieldComplete(create());
+            ApplicationContextInitializer.getInstance().remove(this);
+            ApplicationContextInitializer.getInstance().onSingletonCreated(invoke());
         }
+    }
+
+    public Object invoke() {
+        return create();
     }
 
     protected abstract Object create();
@@ -47,7 +49,7 @@ abstract class SingletonProvider {
         }
     }
 
-    boolean isSatisfied() {
+    public boolean isSatisfied() {
         return parameters.stream().noneMatch(parameter -> !parameter.isSatisfied());
     }
 

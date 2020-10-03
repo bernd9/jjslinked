@@ -1,12 +1,11 @@
 package com.ejc.api.context;
 
-import lombok.RequiredArgsConstructor;
+import lombok.Getter;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@RequiredArgsConstructor
 public class ApplicationContextInitializer {
 
     private final Map<ClassReference, SingletonConstructor> singletonConstructors = new HashMap<>();
@@ -18,6 +17,13 @@ public class ApplicationContextInitializer {
     private final Set<ClassReference> classesToReplace = new HashSet<>();
 
     private Set<Object> singletons = new HashSet<>();
+
+    @Getter
+    private static ApplicationContextInitializer instance;
+
+    public ApplicationContextInitializer() {
+        instance = this;
+    }
 
     public void addModule(Module module) {
         singletonConstructors.putAll(module.getSingletonConstructors());
@@ -35,10 +41,13 @@ public class ApplicationContextInitializer {
         runInstantiation();
     }
 
+
     private void runInstantiation() {
-        singletonConstructors.values().stream()
+        Collection<SingletonConstructor> invokeConstructors = singletonConstructors.values().stream()
                 .filter(SingletonProvider::isSatisfied)
-                .map(SingletonConstructor::create)
+                .collect(Collectors.toSet());
+        invokeConstructors.stream()
+                .map(SingletonConstructor::invoke)
                 .forEach(o -> onSingletonCreated(o));
     }
 
@@ -69,11 +78,25 @@ public class ApplicationContextInitializer {
             invokeInitMethods(o);
             invokeBeanMethods(o);
         }
-        singletonConstructors.values().forEach(provider -> provider.onSingletonCreated(o));
-        dependencyFields.values().stream()
+        constructorsOnSingletonCreated(o);
+        dependencyFieldsOnSingletonCreated(o);
+        singletons.add(o);
+    }
+
+
+    private void constructorsOnSingletonCreated(Object o) {
+        new HashSet<>(singletonConstructors.values())
+                .forEach(provider -> provider.onSingletonCreated(o));
+    }
+
+
+    private void dependencyFieldsOnSingletonCreated(Object o) {
+        new HashSet<>(dependencyFields.values()).stream()
                 .flatMap(Collection::stream)
                 .forEach(field -> field.onSingletonCreated(o));
-        singletons.add(o);
+        new HashSet<>(collectionDependencyFields.values()).stream()
+                .flatMap(Collection::stream)
+                .forEach(field -> field.onSingletonCreated(o));
     }
 
     public void onDependencyFieldComplete(Object o) {
@@ -85,9 +108,8 @@ public class ApplicationContextInitializer {
 
     private void invokeBeanMethods(Object o) {
         ClassReference reference = ClassReference.getRef(o.getClass().getName());
-        beanMethods.getOrDefault(reference, Collections.emptySet()).stream()
-                .map(BeanMethod::create)
-                .forEach(this::onSingletonCreated);
+        Collection<BeanMethod> invokeMethods = new HashSet<>(beanMethods.getOrDefault(reference, Collections.emptySet()));
+        invokeMethods.stream().map(BeanMethod::invoke).forEach(this::onSingletonCreated);
     }
 
     private void invokeInitMethods(Object o) {
@@ -107,6 +129,25 @@ public class ApplicationContextInitializer {
         return dependencyFields.getOrDefault(reference, Collections.emptySet())
                 .stream().noneMatch(field -> !field.isSatisfied());
     }
+
+    public void remove(SingletonProvider provider) {
+        if (provider instanceof SingletonConstructor) {
+            singletonConstructors.remove(provider.getType());
+        } else if (provider instanceof BeanMethod) {
+            Collection<BeanMethod> methods = beanMethods.get(provider.getType());
+            methods.remove(provider);
+        }
+    }
+
+    public void remove(DependencyField field) {
+        Collection<DependencyField> fields = dependencyFields.get(field.getDeclaringType());
+        fields.remove(field);
+    }
+
+    public void remove(CollectionDependencyField field) {
+        collectionDependencyFields.get(field.getDeclaringType()).remove(field);
+    }
+
 }
 
 
