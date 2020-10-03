@@ -11,8 +11,8 @@ public class ApplicationContextInitializer {
     private final Map<ClassReference, SingletonConstructor> singletonConstructors = new HashMap<>();
     private final Map<ClassReference, Collection<BeanMethod>> beanMethods = new HashMap<>();
     private final Map<ClassReference, Collection<InitMethodInvoker>> initInvokers = new HashMap<>();
-    private final Map<ClassReference, Collection<DependencyField>> dependencyFields = new HashMap<>();
-    private final Map<ClassReference, Collection<CollectionDependencyField>> collectionDependencyFields = new HashMap<>();
+    private final Collection<DependencyField> dependencyFields = new HashSet<>();
+    private final Collection<CollectionDependencyField> collectionDependencyFields = new HashSet<>();
     private final Map<ClassReference, Collection<ConfigValueField>> configFields = new HashMap<>();
     private final Set<ClassReference> classesToReplace = new HashSet<>();
 
@@ -29,7 +29,7 @@ public class ApplicationContextInitializer {
         singletonConstructors.putAll(module.getSingletonConstructors());
         beanMethods.putAll(module.getBeanMethods());
         initInvokers.putAll(module.getInitInvokers());
-        dependencyFields.putAll(module.getDependencyFields());
+        dependencyFields.addAll(module.getDependencyFields().values());
         collectionDependencyFields.putAll(module.getCollectionDependencyFields());
         configFields.putAll(module.getConfigFields());
     }
@@ -38,22 +38,24 @@ public class ApplicationContextInitializer {
         doReplacement();
         Set<ClassReference> allSingletonTypes = getExpectedSingletonTypes();
         publishExpectedSingletonTypes(allSingletonTypes);
-        runInstantiation();
+        runConstructorInstantiation();
     }
 
 
-    private void runInstantiation() {
-        Collection<SingletonConstructor> invokeConstructors = singletonConstructors.values().stream()
-                .filter(SingletonProvider::isSatisfied)
+    private void runConstructorInstantiation() {
+        Set<ClassReference> executableConstructorTypes = singletonConstructors.entrySet().stream()
+                .filter(e -> e.getValue().isSatisfied())
+                .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
-        invokeConstructors.stream()
-                .map(SingletonConstructor::invoke)
-                .forEach(o -> onSingletonCreated(o));
+        executableConstructorTypes.stream()
+                .map(type -> singletonConstructors.remove(type))
+                .map(SingletonProvider::invoke)
+                .forEach(this::onSingletonCreated);
     }
 
     private void publishExpectedSingletonTypes(Set<ClassReference> allSingletonTypes) {
         singletonConstructors.values().forEach(provider -> provider.registerSingletonTypes(allSingletonTypes));
-        collectionDependencyFields.values().stream().flatMap(Collection::stream).forEach(field -> field.registerSingletonTypes(allSingletonTypes));
+        collectionDependencyFields.forEach(field -> field.registerSingletonTypes(allSingletonTypes));
     }
 
     private void doReplacement() {
@@ -85,18 +87,27 @@ public class ApplicationContextInitializer {
 
 
     private void constructorsOnSingletonCreated(Object o) {
-        new HashSet<>(singletonConstructors.values())
-                .forEach(provider -> provider.onSingletonCreated(o));
+        singletonConstructors.values().forEach(provider -> provider.onSingletonCreated(o));
+        runConstructorInstantiation();
     }
 
 
     private void dependencyFieldsOnSingletonCreated(Object o) {
-        new HashSet<>(dependencyFields.values()).stream()
-                .flatMap(Collection::stream)
-                .forEach(field -> field.onSingletonCreated(o));
-        new HashSet<>(collectionDependencyFields.values()).stream()
-                .flatMap(Collection::stream)
-                .forEach(field -> field.onSingletonCreated(o));
+        dependencyFields.forEach(field -> field.onSingletonCreated(o));
+        Set<DependencyField> satisfiedFields = dependencyFields.stream()
+                .filter(DependencyField::isSatisfied)
+                .collect(Collectors.toSet());
+        dependencyFields.removeAll(satisfiedFields);
+        satisfiedFields.forEach(DependencyField::setFieldValue);
+
+        collectionDependencyFields.forEach(field -> field.onSingletonCreated(o));
+        satisfiedFields = dependencyFields.stream()
+                .filter(DependencyField::isSatisfied)
+                .collect(Collectors.toSet());
+        collectionDependencyFields.removeAll(satisfiedFields);
+        satisfiedFields.forEach(DependencyField::setFieldValue);
+
+
     }
 
     public void onDependencyFieldComplete(Object o) {
@@ -108,46 +119,28 @@ public class ApplicationContextInitializer {
 
     private void invokeBeanMethods(Object o) {
         ClassReference reference = ClassReference.getRef(o.getClass().getName());
-        Collection<BeanMethod> invokeMethods = new HashSet<>(beanMethods.getOrDefault(reference, Collections.emptySet()));
+        Collection<BeanMethod> invokeMethods = beanMethods.getOrDefault(reference, Collections.emptySet())
+                .stream().filter(BeanMethod::isSatisfied).collect(Collectors.toSet());
+        beanMethods.get(reference).removeAll(invokeMethods);
         invokeMethods.stream().map(BeanMethod::invoke).forEach(this::onSingletonCreated);
     }
 
     private void invokeInitMethods(Object o) {
         ClassReference reference = ClassReference.getRef(o.getClass().getName());
-        initInvokers.getOrDefault(reference, Collections.emptySet())
-                .forEach(invoker -> invoker.doInvokeMethod(o));
+        Collection<InitMethodInvoker> invokers = initInvokers.remove(reference);
+        invokers.forEach(invoker -> invoker.doInvokeMethod(o));
     }
 
     private void injectConfigFields(Object o) {
         ClassReference reference = ClassReference.getRef(o.getClass().getName());
-        configFields.getOrDefault(reference, Collections.emptySet())
-                .forEach(field -> field.injectConfigValue(o));
+        Collection<ConfigValueField> fields = configFields.remove(reference);
+        fields.forEach(field -> field.injectConfigValue(o));
     }
 
     private boolean dependencyFieldsComplete(Object o) {
         ClassReference reference = ClassReference.getRef(o.getClass().getName());
-        return dependencyFields.getOrDefault(reference, Collections.emptySet())
-                .stream().noneMatch(field -> !field.isSatisfied());
+        return dependencyFields.stream().noneMatch(field -> !field.isSatisfied());
     }
-
-    public void remove(SingletonProvider provider) {
-        if (provider instanceof SingletonConstructor) {
-            singletonConstructors.remove(provider.getType());
-        } else if (provider instanceof BeanMethod) {
-            Collection<BeanMethod> methods = beanMethods.get(provider.getType());
-            methods.remove(provider);
-        }
-    }
-
-    public void remove(DependencyField field) {
-        Collection<DependencyField> fields = dependencyFields.get(field.getDeclaringType());
-        fields.remove(field);
-    }
-
-    public void remove(CollectionDependencyField field) {
-        collectionDependencyFields.get(field.getDeclaringType()).remove(field);
-    }
-
 }
 
 

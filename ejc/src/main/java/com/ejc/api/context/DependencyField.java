@@ -29,14 +29,9 @@ public class DependencyField {
             }
             owner = o;
         }
-        if (owner != null && fieldValue != null) {
-            setFieldValue();
-            ApplicationContextInitializer.getInstance().remove(this);
-            ApplicationContextInitializer.getInstance().onDependencyFieldComplete(owner);
-        }
     }
 
-    private void setFieldValue() {
+    void setFieldValue() {
         try {
             Field field = owner.getClass().getDeclaredField(name);
             field.setAccessible(true);
