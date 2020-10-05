@@ -1,9 +1,7 @@
 package com.ejc.api.context;
 
+import com.ejc.util.FieldUtils;
 import lombok.Data;
-
-import java.lang.reflect.Field;
-import java.util.Set;
 
 @Data
 public class SimpleDependencyField {
@@ -17,30 +15,26 @@ public class SimpleDependencyField {
         return owner != null && fieldValue != null;
     }
 
-    void setOwner(Object owner, Set<SimpleDependencyField> satisfied) {
+    boolean setOwner(Object owner) {
         this.owner = owner;
         if (isSatisfied()) {
-            satisfied.add(this);
             injectFieldValue();
+            return true;
         }
+        return false;
     }
 
-    void setFieldValue(Object value, Set<SimpleDependencyField> satisfied) {
+    boolean setFieldValue(Object value) {
         this.fieldValue = value;
         if (isSatisfied()) {
-            satisfied.add(this);
             injectFieldValue();
+            return true;
         }
+        return false;
     }
 
     private void injectFieldValue() {
-        try {
-            Field field = owner.getClass().getDeclaredField(name);
-            field.setAccessible(true);
-            field.set(owner, fieldValue);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        FieldUtils.setFieldValue(owner, name, fieldValue);
     }
 
     @Override

@@ -14,6 +14,16 @@ public class FieldUtils {
         throw new RuntimeException(bean.getClass() + ": no such field: " + fieldName); // TODO Exceptionclass
     }
 
+    public static Object getFieldValue(Object o, String fieldName) {
+        try {
+            Field field = getField(o, fieldName);
+            field.setAccessible(true);
+            return field.get(o);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public static void setFieldValue(Object bean, Field field, Object value) {
         field.setAccessible(true);
         try {

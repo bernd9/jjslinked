@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 @UtilityClass
 public class CollectorUtils {
 
-    public static <T> Collector<T, ?, T> toSingleton(Supplier<RuntimeException> exceptionSupplier) {
+    public static <T> Collector<T, ?, T> toOnlyElement(Supplier<RuntimeException> exceptionSupplier) {
         return Collectors.collectingAndThen(
                 Collectors.toList(),
                 list -> {
@@ -21,7 +21,7 @@ public class CollectorUtils {
         );
     }
 
-    public static <T> Collector<T, ?, T> toSingleton() {
-        return toSingleton(() -> new IllegalArgumentException("not a singleton"));
+    public static <T> Collector<T, ?, T> toOnlyElement() {
+        return toOnlyElement(() -> new IllegalArgumentException("not a singleton"));
     }
 }

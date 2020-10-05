@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
 public class ApplicationRunner {
-    
+
     public static void run(Class<?> applicationClass) {
         if (!applicationClass.isAnnotationPresent(Application.class)) {
             throw new IllegalStateException(applicationClass + " is not annotated with @" + Application.class.getName());
@@ -26,3 +26,6 @@ public class ApplicationRunner {
         initializer.initialize();
     }
 }
+
+
+

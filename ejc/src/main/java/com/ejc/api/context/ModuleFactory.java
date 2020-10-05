@@ -39,7 +39,7 @@ public class ModuleFactory {
 
     @UsedInGeneratedCode(ModuleWriter.class)
     public void addDependencyField(ClassReference owner, String name, ClassReference fieldType) {
-        module.getDependencyFields().computeIfAbsent(owner, type -> new HashSet<>()).add(new SimpleDependencyField(name, owner, fieldType));
+        module.getDependencyFields().add(new SimpleDependencyField(name, owner, fieldType));
     }
 
     @UsedInGeneratedCode(ModuleWriter.class) // TODO support arrays in new class ArrayDependencyField
@@ -49,7 +49,7 @@ public class ModuleFactory {
 
     @UsedInGeneratedCode(ModuleWriter.class)
     public void addConstructor(ClassReference owner, ClassReference... parameterTypes) {
-        module.getSingletonConstructors().put(owner, new SingletonConstructor(owner, Arrays.asList(parameterTypes)));
+        module.getSingletonConstructors().add(new SingletonConstructor(owner, Arrays.asList(parameterTypes)));
     }
 
     @UsedInGeneratedCode(ModuleWriter.class)

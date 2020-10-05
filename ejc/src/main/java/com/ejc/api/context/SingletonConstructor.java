@@ -3,7 +3,7 @@ package com.ejc.api.context;
 import java.lang.reflect.Constructor;
 import java.util.List;
 
-class SingletonConstructor extends SingletonProvider {
+public class SingletonConstructor extends SingletonProvider {
 
     public SingletonConstructor(ClassReference type, List<ClassReference> parameterTypes) {
         super(type, parameterTypes);

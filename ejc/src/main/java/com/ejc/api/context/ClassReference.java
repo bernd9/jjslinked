@@ -53,11 +53,13 @@ public class ClassReference {
 
     public boolean isInstance(Object o) {
         // TODO check if this caching is faster than class isInstance
-        return isInstance.computeIfAbsent(o, getReferencedClass()::isInstance);
+        return getReferencedClass().isInstance(o);
+        //return isInstance.computeIfAbsent(o, getReferencedClass()::isInstance);
     }
 
     public boolean isOfType(ClassReference classReference) {
-        return isTypeOf.computeIfAbsent(classReference, ref -> getReferencedClass().isAssignableFrom(ref.getReferencedClass()));
+        return classReference.getReferencedClass().isAssignableFrom(getReferencedClass());
+        //return isTypeOf.computeIfAbsent(classReference, ref -> ref.getReferencedClass().isAssignableFrom(getReferencedClass()));
     }
 
     @Override

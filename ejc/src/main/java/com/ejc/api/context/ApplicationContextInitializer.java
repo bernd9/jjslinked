@@ -2,20 +2,22 @@ package com.ejc.api.context;
 
 import lombok.Getter;
 
+import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ApplicationContextInitializer {
 
-    private final Map<ClassReference, SingletonConstructor> singletonConstructors = new HashMap<>();
+    private final Collection<SingletonConstructor> singletonConstructors = new HashSet<>();
     private final Map<ClassReference, Collection<BeanMethod>> beanMethods = new HashMap<>();
     private final Map<ClassReference, Collection<InitMethodInvoker>> initInvokers = new HashMap<>();
-    private final Collection<SimpleDependencyField> dependencyFields = new HashSet<>();
+    private final SimpleDependencyInjection simpleDependencyInjection = new SimpleDependencyInjection(this);
     private final Collection<CollectionDependencyField> collectionDependencyFields = new HashSet<>();
     private final Map<ClassReference, Collection<ConfigValueField>> configFields = new HashMap<>();
     private final Set<ClassReference> classesToReplace = new HashSet<>();
 
+    @Getter
     private Set<Object> singletons = new HashSet<>();
 
     @Getter
@@ -26,12 +28,13 @@ public class ApplicationContextInitializer {
     }
 
     public void addModule(Module module) {
-        singletonConstructors.putAll(module.getSingletonConstructors());
+        singletonConstructors.addAll(module.getSingletonConstructors());
         beanMethods.putAll(module.getBeanMethods());
         initInvokers.putAll(module.getInitInvokers());
-        dependencyFields.addAll(module.getDependencyFields().values().stream().flatMap(Collection::stream).collect(Collectors.toSet())); // TODO  remove map in module
         collectionDependencyFields.addAll(module.getCollectionDependencyFields().values().stream().flatMap(Collection::stream).collect(Collectors.toSet())); // TODO  remove map in module
         configFields.putAll(module.getConfigFields());
+        simpleDependencyInjection.addFields(module.getDependencyFields());
+
     }
 
     public void initialize() {
@@ -43,19 +46,16 @@ public class ApplicationContextInitializer {
 
 
     private void runConstructorInstantiation() {
-        Set<ClassReference> executableConstructorTypes = singletonConstructors.entrySet().stream()
-                .filter(e -> e.getValue().isSatisfied())
-                .map(Map.Entry::getKey)
+        Set<SingletonConstructor> executableConstructors = singletonConstructors.stream()
+                .filter(SingletonProvider::isSatisfied)
                 .collect(Collectors.toSet());
-        executableConstructorTypes.stream()
-                .map(type -> singletonConstructors.remove(type))
-                .filter(Objects::nonNull)
-                .map(SingletonProvider::invoke)
+        singletonConstructors.removeAll(executableConstructors);
+        executableConstructors.stream().map(SingletonConstructor::create)
                 .forEach(this::onSingletonCreated);
     }
 
     private void publishExpectedSingletonTypes(Set<ClassReference> allSingletonTypes) {
-        singletonConstructors.values().forEach(provider -> provider.registerSingletonTypes(allSingletonTypes));
+        singletonConstructors.forEach(provider -> provider.registerSingletonTypes(allSingletonTypes));
         collectionDependencyFields.forEach(field -> field.registerSingletonTypes(allSingletonTypes));
     }
 
@@ -69,7 +69,7 @@ public class ApplicationContextInitializer {
     }
 
     private Set<ClassReference> getExpectedSingletonTypes() {
-        return Stream.concat(singletonConstructors.values().stream(), beanMethods.values().stream().flatMap(Collection::stream))
+        return Stream.concat(singletonConstructors.stream(), beanMethods.values().stream().flatMap(Collection::stream))
                 .map(SingletonProvider::getSingletonTypes)
                 .flatMap(Set::stream)
                 .collect(Collectors.toSet());
@@ -77,26 +77,26 @@ public class ApplicationContextInitializer {
 
     public void onSingletonCreated(Object o) {
         injectConfigFields(o);
-        if (dependencyFieldsComplete(o)) {
-            invokeInitMethods(o);
-            invokeBeanMethods(o);
-        }
         constructorsOnSingletonCreated(o);
-        dependencyFieldsOnSingletonCreated(o);
+        simpleDependencyInjection.onSingletonCreated(o);
         singletons.add(o);
     }
 
 
     private void constructorsOnSingletonCreated(Object o) {
-        singletonConstructors.values().forEach(provider -> provider.onSingletonCreated(o));
-        runConstructorInstantiation();
+        singletonConstructors.stream()
+                .peek(provider -> provider.onSingletonCreated(o))
+                .filter(SingletonProvider::isSatisfied)
+                .map(SingletonConstructor::create)
+                .forEach(this::onSingletonCreated);
     }
 
 
+    /*
     private Map<ClassReference, Set<SimpleDependencyField>> ownerCache = new HashMap<>();
 
     private Set<SimpleDependencyField> getByOwnerType(ClassReference reference) {
-        return ownerCache.computeIfAbsent(reference, type -> dependencyFields.stream()
+        return ownerCache.computeIfAbsent(reference, type -> dependencyFieldsByOwner.stream()
                 .filter(field -> field.getDeclaringType().equals(reference))
                 .collect(Collectors.toSet()));
     }
@@ -105,45 +105,18 @@ public class ApplicationContextInitializer {
     private Map<ClassReference, Set<SimpleDependencyField>> fieldTypeCache = new HashMap<>();
 
     private Set<SimpleDependencyField> getByFieldTypeType(ClassReference reference) {
-        return fieldTypeCache.computeIfAbsent(reference, type -> dependencyFields.stream()
+        return fieldTypeCache.computeIfAbsent(reference, type -> dependencyFieldsByOwner.stream()
                 .filter(field -> field.getFieldType().equals(reference))
                 .collect(Collectors.toSet()));
     }
 
-    private void dependencyFieldsOnSingletonCreated(Object o) {
-        Set<SimpleDependencyField> satisfied = new HashSet<>();
-        ClassReference reference = ClassReference.getRef(o.getClass().getName());
-        getByOwnerType(reference)
-                .forEach(field -> field.setOwner(o, satisfied));
-        getByFieldTypeType(reference)
-                .stream().peek(field -> {
-                    field.setFieldValue(o, satisfied);
-                    onDependencyFieldComplete(o);
-                }
-        );
-        dependencyFields.removeAll(satisfied);
+    */
 
-        /* /// TODO
-        collectionDependencyFields.stream().filter(field -> field.getDeclaringType().equals(reference))
-                .forEach(field -> field.setOwner(o));
-        collectionDependencyFields.stream().filter(field -> field.getFieldType().equals(reference))
-                .forEach(field -> field.addFieldValue(o));
 
-        Set<CollectionDependencyField> satisfiedColl = collectionDependencyFields.stream()
-                .filter(CollectionDependencyField::isSatisfied)
-                .peek(field -> field.injectFieldValue())
-                .collect(Collectors.toSet());
-        collectionDependencyFields.removeAll(satisfiedColl);
-*/
+    public void onDependencyFieldsComplete(Object o) {
+        invokeInitMethods(o);
+        invokeBeanMethods(o);
 
-    }
-
-    public void onDependencyFieldComplete(Object o) {
-        // TODO
-        if (dependencyFieldsComplete(o)) {
-            invokeInitMethods(o);
-            invokeBeanMethods(o);
-        }
     }
 
     private void invokeBeanMethods(Object o) {
@@ -168,9 +141,13 @@ public class ApplicationContextInitializer {
             fields.forEach(field -> field.injectConfigValue(o));
     }
 
-    private boolean dependencyFieldsComplete(Object o) {
-        ClassReference reference = ClassReference.getRef(o.getClass().getName());
-        return dependencyFields.stream().noneMatch(field -> field.getDeclaringType().equals(reference));
+    public static void main(String[] args) {
+        Integer i = 1;
+        List<WeakReference<Integer>> list = new ArrayList<>();
+        list.add(new WeakReference<>(i));
+        i = null;
+        System.out.println(list.get(0).get());
+
     }
 }
 

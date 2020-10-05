@@ -6,10 +6,10 @@ import com.ejc.Inject;
 import com.ejc.Singleton;
 
 @Application
-class FieldInjectionTestApp {
+class SimpleDependencyInjectionTestApp {
 
     public static void main(String[] args) {
-        ApplicationRunner.run(FieldInjectionTestApp.class);
+        ApplicationRunner.run(SimpleDependencyInjectionTestApp.class);
     }
 }
 
