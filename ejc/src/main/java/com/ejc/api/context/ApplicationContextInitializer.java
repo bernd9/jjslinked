@@ -44,7 +44,6 @@ public class ApplicationContextInitializer {
         runConstructorInstantiation();
     }
 
-
     private void runConstructorInstantiation() {
         Set<SingletonConstructor> executableConstructors = singletonConstructors.stream()
                 .filter(SingletonProvider::isSatisfied)
@@ -64,7 +63,8 @@ public class ApplicationContextInitializer {
             beanMethods.remove(type);
             initInvokers.remove(type);
             configFields.remove(type);
-            // TODO remove dependency fields, too
+            simpleDependencyInjection.removeType(type);
+            // TODO remove collection-dependency fields, too
         });
     }
 
@@ -78,39 +78,28 @@ public class ApplicationContextInitializer {
     public void onSingletonCreated(Object o) {
         injectConfigFields(o);
         constructorsOnSingletonCreated(o);
+        beanMethodsOnSingletonCreated(o);
         simpleDependencyInjection.onSingletonCreated(o);
         singletons.add(o);
     }
 
 
     private void constructorsOnSingletonCreated(Object o) {
-        singletonConstructors.stream()
+        Set<SingletonConstructor> invocableConstructors = singletonConstructors.stream()
                 .peek(provider -> provider.onSingletonCreated(o))
                 .filter(SingletonProvider::isSatisfied)
+                .collect(Collectors.toSet());
+        invocableConstructors.stream()
+                .peek(singletonConstructors::remove)
                 .map(SingletonConstructor::create)
                 .forEach(this::onSingletonCreated);
     }
 
-
-    /*
-    private Map<ClassReference, Set<SimpleDependencyField>> ownerCache = new HashMap<>();
-
-    private Set<SimpleDependencyField> getByOwnerType(ClassReference reference) {
-        return ownerCache.computeIfAbsent(reference, type -> dependencyFieldsByOwner.stream()
-                .filter(field -> field.getDeclaringType().equals(reference))
-                .collect(Collectors.toSet()));
+    private void beanMethodsOnSingletonCreated(Object o) {
+        beanMethods.values().stream()
+                .flatMap(Collection::stream)
+                .forEach(method -> method.onSingletonCreated(o));
     }
-
-
-    private Map<ClassReference, Set<SimpleDependencyField>> fieldTypeCache = new HashMap<>();
-
-    private Set<SimpleDependencyField> getByFieldTypeType(ClassReference reference) {
-        return fieldTypeCache.computeIfAbsent(reference, type -> dependencyFieldsByOwner.stream()
-                .filter(field -> field.getFieldType().equals(reference))
-                .collect(Collectors.toSet()));
-    }
-
-    */
 
 
     public void onDependencyFieldsComplete(Object o) {
@@ -121,8 +110,9 @@ public class ApplicationContextInitializer {
 
     private void invokeBeanMethods(Object o) {
         ClassReference reference = ClassReference.getRef(o.getClass().getName());
-        Collection<BeanMethod> invokeMethods = beanMethods.getOrDefault(reference, Collections.emptySet())
-                .stream().filter(BeanMethod::isSatisfied).collect(Collectors.toSet());
+        Collection<BeanMethod> invokeMethods = beanMethods.getOrDefault(reference, Collections.emptySet()).stream()
+                .peek(method -> method.onSingletonCreated(o))
+                .filter(BeanMethod::isSatisfied).collect(Collectors.toSet());
         beanMethods.getOrDefault(reference, Collections.emptySet()).removeAll(invokeMethods);
         invokeMethods.stream().map(BeanMethod::invoke).forEach(this::onSingletonCreated);
     }

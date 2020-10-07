@@ -44,6 +44,9 @@ class SimpleDependencyInjection {
         if (fieldByOwnerType.isEmpty()) {
             initializer.onDependencyFieldsComplete(singleton);
         }
+    }
 
+    public void removeType(ClassReference type) {
+        allFields.removeAll(simpleDependenciesByOwner.remove(type));
     }
 }

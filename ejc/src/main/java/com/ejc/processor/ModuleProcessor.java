@@ -104,7 +104,6 @@ public class ModuleProcessor extends ProcessorBase {
 
     private void processBeanMethods(QueryResult result) {
         result.getElements(Bean.class, ExecutableElement.class).stream()
-                .peek(this::validateNoParameters)
                 .forEach(this::processBeanMethod);
     }
 

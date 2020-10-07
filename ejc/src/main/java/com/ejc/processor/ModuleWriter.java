@@ -56,8 +56,14 @@ public class ModuleWriter extends JavaWriter {
     }
 
     private void writeBeanMethod(TypeElement singleton, ExecutableElement method, MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("addBeanMethod($L, \"$L\", $L, $L)",
-                ref(singleton), method, ref(method.getReturnType()), parameterTypeList(method));
+        if (method.getParameters().isEmpty()) {
+            constructorBuilder.addStatement("addBeanMethod($L, \"$L\", $L)",
+                    ref(singleton), method.getSimpleName(), ref(method.getReturnType()));
+        } else {
+            constructorBuilder.addStatement("addBeanMethod($L, \"$L\", $L, $L)",
+                    ref(singleton), method.getSimpleName(), ref(method.getReturnType()), parameterTypeList(method));
+        }
+
     }
 
     private void writeConfigField(TypeElement singleton, VariableElement field, MethodSpec.Builder constructorBuilder) {

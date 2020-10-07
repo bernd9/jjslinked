@@ -1,11 +1,11 @@
 package com.ejc.api.context;
 
-import com.ejc.util.TypeUtils;
 import lombok.Data;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 @Data
 public abstract class SingletonProvider {
@@ -56,81 +56,10 @@ public abstract class SingletonProvider {
     protected Object[] parameters() {
         return parameters.stream().map(Parameter::getValue).toArray(Object[]::new);
     }
-
-
+    
     public Set<ClassReference> getSingletonTypes() {
         return Collections.singleton(type);
     }
 
-    interface Parameter {
-
-        void onSingletonCreated(Object o);
-
-        boolean isSatisfied();
-
-        Object getValue();
-    }
-
-    @RequiredArgsConstructor
-    class SimpleParameter implements Parameter {
-        private final ClassReference parameterType;
-
-        @Getter
-        private Object value;
-
-        @Override
-        public void onSingletonCreated(Object o) {
-            if (parameterType.isInstance(o)) {
-                if (value != null) {
-                    // TODO Exception
-                }
-                value = o;
-            }
-        }
-
-        @Override
-        public boolean isSatisfied() {
-            return value != null;
-        }
-    }
-
-
-    class CollectionParameter implements Parameter {
-
-        private final Collection<?> values;
-        private int expectedElementCount;
-        private Class<?> elementType;
-
-
-        CollectionParameter(ClassReference collectionType) {
-            this((Class<Collection<Object>>) collectionType.getReferencedClass());
-        }
-
-        CollectionParameter(Class<? extends Collection<?>> collectionType) {
-            values = TypeUtils.emptyCollection(collectionType);
-            elementType = TypeUtils.getGenericType(collectionType);
-        }
-
-        @Override
-        public void onSingletonCreated(Object o) {
-
-        }
-
-        @Override
-        public boolean isSatisfied() {
-            return false;
-        }
-
-        @Override
-        public Object getValue() {
-            return null;
-        }
-
-        void registerSingletonTypes(Set<ClassReference> types) {
-            expectedElementCount = (int) types.stream()
-                    .filter(type -> type.getReferencedClass().isAssignableFrom(elementType))
-                    .count();
-        }
-    }
 
 }

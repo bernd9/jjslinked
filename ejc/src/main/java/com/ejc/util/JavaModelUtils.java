@@ -32,9 +32,9 @@ public class JavaModelUtils {
                 .toString();
     }
 
-    public static boolean hasGenericType(VariableElement collectionVariable) {
+    public static boolean hasGenericType(VariableElement variableElement) {
         GenericTypeVisitor visitor = new GenericTypeVisitor();
-        TypeMirror typeMirror = collectionVariable.asType().accept(visitor, null).orElseThrow(null);
+        TypeMirror typeMirror = variableElement.asType().accept(visitor, null).orElse(null);
         return typeMirror != null;
     }
 

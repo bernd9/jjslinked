@@ -1,7 +1,12 @@
 package com.ejc.processor;
 
 import com.ejc.ApplicationContextFactory;
+import com.ejc.api.context.ApplicationContextInitializer;
+import com.ejc.api.context.Module;
+import com.ejc.api.context.ModuleFactory;
+import com.ejc.util.CollectorUtils;
 import com.google.testing.compile.Compilation;
+import com.google.testing.compile.Compiler;
 import com.google.testing.compile.JavaFileObjects;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -19,8 +24,34 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import static com.google.testing.compile.Compiler.javac;
+
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProcessorTestUtil {
+
+    public static Object getSingletonBySimpleClassName(String simpleClassName, ApplicationContextInitializer initializer) {
+        return initializer.getSingletons().stream().filter(o -> o.getClass().getSimpleName().equals(simpleClassName)).collect(CollectorUtils.toOnlyElement());
+    }
+
+    public static ApplicationContextInitializer compileContext(String appName) throws Exception {
+        Compiler compiler = javac().withProcessors(new ModuleProcessor());
+        JavaFileObject fileObject = JavaFileObjects.forResource(appName.replace(".", "/") + ".java");
+        Compilation compilation = compiler.compile(fileObject);
+        ProcessorTestUtil.assertSuccess(compilation);
+
+        String moduleFactoryName = ModuleFactory.getQualifiedName(appName);
+        FileObjectClassLoader classLoader = bindClassLoader(Thread.currentThread(), compilation);
+        Class<? extends ModuleFactory> factoryClass = (Class<? extends ModuleFactory>) classLoader.findClass(moduleFactoryName);
+        ModuleFactory factory = factoryClass.getConstructor().newInstance();
+        Module module = factory.getModule();
+
+        ApplicationContextInitializer initializer = new ApplicationContextInitializer();
+        initializer.addModule(module);
+
+        initializer.initialize();
+        return initializer;
+    }
+
 
     public static JavaFileObject[] javaFileObjects(String directory, String... javaFileNames) {
         List<JavaFileObject> fileObjects = javaFileObjectList(directory, javaFileNames);
