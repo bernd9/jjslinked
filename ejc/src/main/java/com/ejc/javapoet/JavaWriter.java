@@ -19,7 +19,7 @@ public abstract class JavaWriter {
     private final String simpleName;
     private final Optional<String> packageName;
     private final Optional<Class<?>> superClass;
-    private final ProcessingEnvironment processingEnvironment;
+    protected final ProcessingEnvironment processingEnvironment;
 
     protected Elements getElementUtils() {
         return processingEnvironment.getElementUtils();

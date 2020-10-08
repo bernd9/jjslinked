@@ -2,7 +2,6 @@ package com.ejc.api.context;
 
 import lombok.Getter;
 
-import java.lang.ref.WeakReference;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -90,8 +89,8 @@ public class ApplicationContextInitializer {
                 .peek(provider -> provider.onSingletonCreated(o))
                 .filter(SingletonProvider::isSatisfied)
                 .collect(Collectors.toSet());
+        singletonConstructors.removeAll(invocableConstructors);
         invocableConstructors.stream()
-                .peek(singletonConstructors::remove)
                 .map(SingletonConstructor::create)
                 .forEach(this::onSingletonCreated);
     }
@@ -115,12 +114,14 @@ public class ApplicationContextInitializer {
             fields.forEach(field -> field.injectConfigValue(o));
     }
 
-    public static void main(String[] args) {
-        Integer i = 1;
-        List<WeakReference<Integer>> list = new ArrayList<>();
-        list.add(new WeakReference<>(i));
-        i = null;
-        System.out.println(list.get(0).get());
+    static class Xyz {
+        Xyz(String s) {
+
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        System.out.println(Class.forName("com.ejc.api.context.ApplicationContextInitializer.Xyz"));
 
     }
 }

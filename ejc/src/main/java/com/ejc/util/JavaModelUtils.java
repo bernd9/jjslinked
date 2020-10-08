@@ -10,14 +10,41 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleAnnotationValueVisitor9;
 import javax.lang.model.util.SimpleTypeVisitor9;
 import java.lang.annotation.Annotation;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class JavaModelUtils {
+
+    public static String getClassName(TypeElement element) {
+        List<Element> parts = new ArrayList<>();
+        Element e = element;
+        while (e != null) {
+            parts.add(e);
+            e = e.getEnclosingElement();
+        }
+        Collections.reverse(parts);
+        StringBuilder s = new StringBuilder();
+        Iterator<Element> elementIterator = parts.iterator();
+        while (elementIterator.hasNext()) {
+            Element part = elementIterator.next();
+            if (part.getKind() == ElementKind.PACKAGE) {
+                PackageElement packageElement = (PackageElement) part;
+                s.append(packageElement.getQualifiedName());
+                if (elementIterator.hasNext()) {
+                    s.append(".");
+                }
+            }
+            if (part.getKind() == ElementKind.CLASS || part.getKind() == ElementKind.INTERFACE) {
+                s.append(part.getSimpleName());
+                if (elementIterator.hasNext()) {
+                    s.append("$");
+                }
+            }
+        }
+        return s.toString();
+
+    }
 
 
     // TODO share these methods with GenericMethodAnnotationProcessor:

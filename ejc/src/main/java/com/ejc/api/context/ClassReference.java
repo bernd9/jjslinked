@@ -10,11 +10,9 @@ import java.util.Optional;
 
 
 public class ClassReference {
+
     private static Map<String, ClassReference> references = new HashMap<>();
 
-    // TODO Check if class references free memory after initialization
-    private Map<Object, Boolean> isInstance = new HashMap<>();
-    private Map<ClassReference, Boolean> isTypeOf = new HashMap<>();
     private Class<?> clazz;
 
     @Getter

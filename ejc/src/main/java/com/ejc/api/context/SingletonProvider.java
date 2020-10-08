@@ -29,7 +29,8 @@ public abstract class SingletonProvider {
 
     public boolean onSingletonCreated(Object o) {
         return parameters.stream()
-                .noneMatch(param -> !param.onSingletonCreated(o));
+                .filter(param -> param.onSingletonCreated(o))
+                .count() == parameters.size();
     }
 
     public Object invoke() {
@@ -38,7 +39,7 @@ public abstract class SingletonProvider {
 
     protected abstract Object create();
 
-    private void addParameter(ClassReference parameterType) {
+    protected void addParameter(ClassReference parameterType) {
         if (Collections.class.isAssignableFrom(parameterType.getReferencedClass())) {
             parameters.add(new CollectionParameter(parameterType));
         } else {

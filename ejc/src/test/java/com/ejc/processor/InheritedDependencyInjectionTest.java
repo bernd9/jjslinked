@@ -41,9 +41,6 @@ class InheritedDependencyInjectionTest {
         ModuleFactory factory = factoryClass.getConstructor().newInstance();
         Module module = factory.getModule();
 
-        assertThat(module.getSingletonConstructors().size()).isEqualTo(2);
-        assertThat(module.getDependencyFields().size()).isEqualTo(1);
-
         ClassReference reference1 = ClassReference.getRef("com.ejc.processor.Singleton3");
         ClassReference reference2 = ClassReference.getRef("com.ejc.processor.Singleton4");
 

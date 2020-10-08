@@ -37,7 +37,7 @@ public class ModuleProcessor extends ProcessorBase {
     private String appClassQualifiedName;
 
     private static final Set<String> NON_SINGLETON_ANNOTATIONS = Stream.of(Inject.class, InjectAll.class, Init.class, Implementation.class,
-            Value.class, Application.class, Configuration.class, Bean.class).map(Class::getName).collect(Collectors.toSet());
+            Value.class, Configuration.class, Bean.class).map(Class::getName).collect(Collectors.toSet());
     private Set<String> singletonAnnotations;
 
     @Override
@@ -46,6 +46,7 @@ public class ModuleProcessor extends ProcessorBase {
         singletonAnnotations.add(Singleton.class.getName());
         singletonAnnotations.add(Configuration.class.getName());
         singletonAnnotations.add(Implementation.class.getName());
+        singletonAnnotations.add(Application.class.getName());
         singletonAnnotations.addAll(CustomSingletonAnnotationLoader.load());
         Set<String> types = new HashSet<>();
         types.addAll(singletonAnnotations);

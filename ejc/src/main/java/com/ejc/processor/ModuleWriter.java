@@ -128,26 +128,30 @@ public class ModuleWriter extends JavaWriter {
 
     private static String ref(TypeElement e) {
         return CodeBlock.builder()
-                .add("$T.getRef(\"$L\")", ClassReference.class, e)
+                .add("$T.getRef(\"$L\")", ClassReference.class, JavaModelUtils.getClassName(e))
                 .build().toString();
     }
 
-    private static String ref(TypeMirror e) {
+    private String ref(TypeMirror e) {
+        TypeElement typeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(e);
+        return ref(typeElement);
+    }
+
+    private String ref(TypeMirror e, TypeMirror genericType) {
+        TypeElement typeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(e);
+        TypeElement genTypeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(genericType);
+        return ref(typeElement, genTypeElement);
+    }
+
+    private String ref(TypeElement e, TypeElement genericType) {
         return CodeBlock.builder()
-                .add("$T.getRef(\"$L\")", ClassReference.class, e)
+                .add("$T.getRef(\"$L\", \"$L\")", ClassReference.class, JavaModelUtils.getClassName(e), JavaModelUtils.getClassName(genericType))
                 .build().toString();
     }
 
-    private static String ref(TypeMirror e, TypeMirror genericType) {
-        return CodeBlock.builder()
-                .add("$T.getRef(\"$L\", \"$L\")", ClassReference.class, e, genericType)
-                .build().toString();
-    }
-
-    private static String ref(String e) {
-        return CodeBlock.builder()
-                .add("$T.getRef(\"$L\")", ClassReference.class, e)
-                .build().toString();
+    private String ref(String e) {
+        TypeElement typeElement = processingEnvironment.getElementUtils().getTypeElement(e);
+        return ref(typeElement);
     }
 
     private static String getConfigFieldDefault(VariableElement e) {
