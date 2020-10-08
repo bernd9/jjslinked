@@ -10,9 +10,9 @@ import java.util.stream.Stream;
 public class ApplicationContextInitializer {
 
     private final Collection<SingletonConstructor> singletonConstructors = new HashSet<>();
-    private final Map<ClassReference, Collection<BeanMethod>> beanMethods = new HashMap<>();
     private final Map<ClassReference, Collection<InitMethodInvoker>> initInvokers = new HashMap<>();
     private final SimpleDependencyInjection simpleDependencyInjection = new SimpleDependencyInjection(this);
+    private final BeanMethodInvocation beanMethodInvocation = new BeanMethodInvocation(this);
     private final Collection<CollectionDependencyField> collectionDependencyFields = new HashSet<>();
     private final Map<ClassReference, Collection<ConfigValueField>> configFields = new HashMap<>();
     private final Set<ClassReference> classesToReplace = new HashSet<>();
@@ -29,17 +29,18 @@ public class ApplicationContextInitializer {
 
     public void addModule(Module module) {
         singletonConstructors.addAll(module.getSingletonConstructors());
-        beanMethods.putAll(module.getBeanMethods());
+        beanMethodInvocation.addBeanMethods(module.getBeanMethods());
         initInvokers.putAll(module.getInitInvokers());
         collectionDependencyFields.addAll(module.getCollectionDependencyFields().values().stream().flatMap(Collection::stream).collect(Collectors.toSet())); // TODO  remove map in module
         configFields.putAll(module.getConfigFields());
         simpleDependencyInjection.addFields(module.getDependencyFields());
-
     }
 
     public void initialize() {
         doReplacement();
+        long t0 = System.currentTimeMillis();
         Set<ClassReference> allSingletonTypes = getExpectedSingletonTypes();
+        System.out.println("list all types took " + (System.currentTimeMillis() - t0));
         publishExpectedSingletonTypes(allSingletonTypes);
         runConstructorInstantiation();
     }
@@ -60,7 +61,7 @@ public class ApplicationContextInitializer {
 
     private void doReplacement() {
         classesToReplace.forEach(type -> {
-            beanMethods.remove(type);
+            beanMethodInvocation.remove(type);
             initInvokers.remove(type);
             configFields.remove(type);
             simpleDependencyInjection.removeType(type);
@@ -69,7 +70,7 @@ public class ApplicationContextInitializer {
     }
 
     private Set<ClassReference> getExpectedSingletonTypes() {
-        return Stream.concat(singletonConstructors.stream(), beanMethods.values().stream().flatMap(Collection::stream))
+        return Stream.concat(singletonConstructors.stream(), beanMethodInvocation.getAllBeanMethods())
                 .map(SingletonProvider::getSingletonTypes)
                 .flatMap(Set::stream)
                 .collect(Collectors.toSet());
@@ -78,7 +79,7 @@ public class ApplicationContextInitializer {
     public void onSingletonCreated(Object o) {
         injectConfigFields(o);
         constructorsOnSingletonCreated(o);
-        beanMethodsOnSingletonCreated(o);
+        beanMethodInvocation.onSingletonCreated(o);
         simpleDependencyInjection.onSingletonCreated(o);
         singletons.add(o);
     }
@@ -95,26 +96,9 @@ public class ApplicationContextInitializer {
                 .forEach(this::onSingletonCreated);
     }
 
-    private void beanMethodsOnSingletonCreated(Object o) {
-        beanMethods.values().stream()
-                .flatMap(Collection::stream)
-                .forEach(method -> method.onSingletonCreated(o));
-    }
-
-
     public void onDependencyFieldsComplete(Object o) {
         invokeInitMethods(o);
-        invokeBeanMethods(o);
-
-    }
-
-    private void invokeBeanMethods(Object o) {
-        ClassReference reference = ClassReference.getRef(o.getClass().getName());
-        Collection<BeanMethod> invokeMethods = beanMethods.getOrDefault(reference, Collections.emptySet()).stream()
-                .peek(method -> method.onSingletonCreated(o))
-                .filter(BeanMethod::isSatisfied).collect(Collectors.toSet());
-        beanMethods.getOrDefault(reference, Collections.emptySet()).removeAll(invokeMethods);
-        invokeMethods.stream().map(BeanMethod::invoke).forEach(this::onSingletonCreated);
+        beanMethodInvocation.onDependenciesInjected(o);
     }
 
     private void invokeInitMethods(Object o) {

@@ -11,13 +11,18 @@ class SimpleParameter implements Parameter {
     private Object value;
 
     @Override
-    public void onSingletonCreated(Object o) {
+    public boolean onSingletonCreated(Object o) {
+        if (value != null) {
+            return true;
+        }
         if (parameterType.isInstance(o)) {
             if (value != null) {
                 // TODO Exception
             }
             value = o;
+            return true;
         }
+        return false;
     }
 
     @Override

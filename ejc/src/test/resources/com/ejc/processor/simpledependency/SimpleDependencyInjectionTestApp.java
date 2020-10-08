@@ -1,4 +1,4 @@
-package com.ejc.processor;
+package com.ejc.processor.simpledependency;
 
 import com.ejc.Application;
 import com.ejc.ApplicationRunner;
@@ -15,13 +15,13 @@ class SimpleDependencyInjectionTestApp {
 
 
 @Singleton
-class Singleton1 {
+class SimpleDependencySingleton1 {
     @Inject
-    private Singleton2 singleton2;
+    private SimpleDependencySingleton2 singleton2;
 
 }
 
 @Singleton
-class Singleton2 {
+class SimpleDependencySingleton2 {
 
 }

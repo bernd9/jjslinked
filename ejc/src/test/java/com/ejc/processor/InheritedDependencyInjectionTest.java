@@ -25,6 +25,7 @@ class InheritedDependencyInjectionTest {
 
     @BeforeEach
     void init() {
+        ClassReference.flush();
         compiler = javac().withProcessors(new ModuleProcessor());
         files = ProcessorTestUtil.javaFileObjects(DIRECTORY, "InheritedDependencyInjectionTestApp.java");
     }

@@ -35,6 +35,11 @@ public class ClassReference {
         this.genericType = Optional.empty();
     }
 
+
+    public static void flush() {
+        references.clear();
+    }
+
     ClassReference(String className, String genericType) {
         this.className = className;
         this.genericType = Optional.of(getRef(genericType));

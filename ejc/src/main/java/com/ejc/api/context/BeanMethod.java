@@ -11,6 +11,8 @@ class BeanMethod extends SingletonProvider {
     private ClassReference owner;
     private String name;
     private Object configuration;
+    private boolean ownerFieldsInjected;
+    private boolean parametersCompleted;
 
     public BeanMethod(@NonNull ClassReference owner, @NonNull String name, @NonNull ClassReference returnType, @NonNull List<ClassReference> parameterTypes) {
         super(returnType, parameterTypes);
@@ -19,16 +21,22 @@ class BeanMethod extends SingletonProvider {
     }
 
     @Override
-    public void onSingletonCreated(Object o) {
+    public boolean onSingletonCreated(Object o) {
         if (owner.isInstance(o)) {
             configuration = o;
         }
-        super.onSingletonCreated(o);
+        parametersCompleted = super.onSingletonCreated(o);
+        return configuration != null && parametersCompleted && ownerFieldsInjected;
+    }
+
+    boolean setOwnerFieldsInjected() {
+        ownerFieldsInjected = true;
+        return configuration != null && parametersCompleted;
     }
 
     @Override
     public boolean isSatisfied() {
-        return configuration != null && super.isSatisfied();
+        return configuration != null && parametersCompleted && ownerFieldsInjected;
     }
 
     @Override

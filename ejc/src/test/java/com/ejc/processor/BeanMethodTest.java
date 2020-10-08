@@ -1,12 +1,19 @@
 package com.ejc.processor;
 
 import com.ejc.api.context.ApplicationContextInitializer;
+import com.ejc.api.context.ClassReference;
 import com.ejc.util.FieldUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class BeanMethodTest {
+
+    @BeforeEach
+    void init() {
+        ClassReference.flush();
+    }
 
     @Test
     void test() throws Exception {

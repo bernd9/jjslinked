@@ -22,8 +22,8 @@ class CollectionParameter implements Parameter {
     }
 
     @Override
-    public void onSingletonCreated(Object o) {
-
+    public boolean onSingletonCreated(Object o) {
+        return false;// TODO
     }
 
     @Override

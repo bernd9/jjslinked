@@ -21,7 +21,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class SimpleDependencyInjectionTest {
 
-    private static final String DIRECTORY = "com/ejc/processor";
+    private static final String DIRECTORY = "com/ejc/processor/simpledependency";
 
 
     private Compiler compiler;
@@ -29,6 +29,7 @@ class SimpleDependencyInjectionTest {
 
     @BeforeEach
     void init() {
+        ClassReference.flush();
         compiler = javac().withProcessors(new ModuleProcessor());
         files = ProcessorTestUtil.javaFileObjects(DIRECTORY, "SimpleDependencyInjectionTestApp.java");
     }
@@ -38,7 +39,7 @@ class SimpleDependencyInjectionTest {
         Compilation compilation = compiler.compile(files);
         ProcessorTestUtil.assertSuccess(compilation);
 
-        String moduleFactoryName = ModuleFactory.getQualifiedName("com.ejc.processor.SimpleDependencyInjectionTestApp");
+        String moduleFactoryName = ModuleFactory.getQualifiedName("com.ejc.processor.simpledependency.SimpleDependencyInjectionTestApp");
         FileObjectClassLoader classLoader = bindClassLoader(Thread.currentThread(), compilation);
         Class<? extends ModuleFactory> factoryClass = (Class<? extends ModuleFactory>) classLoader.findClass(moduleFactoryName);
         ModuleFactory factory = factoryClass.getConstructor().newInstance();
@@ -47,8 +48,8 @@ class SimpleDependencyInjectionTest {
         assertThat(module.getSingletonConstructors().size()).isEqualTo(2);
         assertThat(module.getDependencyFields().size()).isEqualTo(1);
 
-        ClassReference reference1 = ClassReference.getRef("com.ejc.processor.Singleton1");
-        ClassReference reference2 = ClassReference.getRef("com.ejc.processor.Singleton2");
+        ClassReference reference1 = ClassReference.getRef("com.ejc.processor.simpledependency.SimpleDependencySingleton1");
+        ClassReference reference2 = ClassReference.getRef("com.ejc.processor.simpledependency.SimpleDependencySingleton2");
 
         SingletonProvider provider1 = module.getSingletonConstructors().stream()
                 .filter(constructor -> constructor.getType().equals(reference1))
@@ -71,9 +72,9 @@ class SimpleDependencyInjectionTest {
         initializer.initialize();
 
         Map<String, Object> beansByName = initializer.getSingletons().stream().collect(Collectors.toMap(o -> o.getClass().getName(), Functions.identity()));
-        Object singleton1 = beansByName.get("com.ejc.processor.Singleton1");
+        Object singleton1 = beansByName.get("com.ejc.processor.simpledependency.SimpleDependencySingleton1");
 
-        assertThat(FieldUtils.getFieldValue(singleton1, "singleton2").getClass().getName()).isEqualTo("com.ejc.processor.Singleton2");
+        assertThat(FieldUtils.getFieldValue(singleton1, "singleton2").getClass().getName()).isEqualTo("com.ejc.processor.simpledependency.SimpleDependencySingleton2");
     }
 
 
