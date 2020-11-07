@@ -2,7 +2,7 @@ package com.ejc.processor;
 
 import com.ejc.*;
 import com.ejc.api.context.ModuleFactory;
-import com.ejc.api.context.UndefinedClass;
+import com.ejc.context2.UndefinedClass;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.IOUtils;
 import com.google.auto.service.AutoService;
