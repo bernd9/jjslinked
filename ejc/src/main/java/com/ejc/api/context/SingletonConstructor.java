@@ -1,5 +1,7 @@
 package com.ejc.api.context;
 
+import com.ejc.context2.ClassReference;
+
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;

@@ -1,6 +1,5 @@
 package com.ejc.context2;
 
-import com.ejc.api.context.ClassReference;
 import lombok.NonNull;
 
 import java.lang.reflect.Method;
@@ -11,7 +10,7 @@ class BeanMethod extends SingletonProvider {
 
     private String name;
 
-    public BeanMethod(@NonNull ClassReference owner, @NonNull String name, @NonNull ClassReference returnType, @NonNull List<ClassReference> parameterTypes) {
+    public BeanMethod(@NonNull String name, @NonNull ClassReference returnType, @NonNull List<ClassReference> parameterTypes) {
         super(returnType, parameterTypes);
         this.name = name;
     }

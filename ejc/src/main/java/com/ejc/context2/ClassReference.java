@@ -1,5 +1,6 @@
-package com.ejc.api.context;
+package com.ejc.context2;
 
+import com.ejc.api.context.UsedInGeneratedCode;
 import com.ejc.processor.ModuleWriter;
 import com.ejc.util.ClassUtils;
 import lombok.Getter;

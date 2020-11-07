@@ -1,7 +1,5 @@
 package com.ejc.context2;
 
-import com.ejc.api.context.ClassReference;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;

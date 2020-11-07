@@ -1,6 +1,5 @@
 package com.ejc.context2;
 
-import com.ejc.api.context.ClassReference;
 import lombok.Data;
 
 import java.util.Collection;
@@ -11,18 +10,18 @@ import java.util.stream.Collectors;
 class SingletonObject implements SingletonCreationListener {
 
     private final ClassReference type;
-    private final SingletonEvents singletonEvents;
-    private final SingletonProviders singletonProviders;
     private final Collection<InitMethod> initMethods = new HashSet<>();
     private final Collection<ConfigField> configFields = new HashSet<>();
     private final Collection<BeanMethod> beanMethods = new HashSet<>();
     private final Collection<SimpleDependencyField> simpleDependencyFields = new HashSet<>();
     private final Collection<CollectionDependencyField> collectionDependencyFields = new HashSet<>();
+
+    private SingletonProviders singletonProviders;
     private Object singleton;
     private boolean processed;
 
     @Override
-    public void onSingletonCreated(Object o) {
+    public void onSingletonCreated(Object o, SingletonEvents events) {
         if (type.isInstance(o)) {
             if (singleton != null) {
                 throw new IllegalStateException();
@@ -34,20 +33,20 @@ class SingletonObject implements SingletonCreationListener {
         simpleDependencyFields.forEach(field -> field.onSingletonCreated(o));
         collectionDependencyFields.forEach(method -> method.onSingletonCreated(o));
         if (singleton != null) {
-            singletonCreatedPostAction();
+            singletonCreatedPostAction(events);
         }
     }
 
-    private void singletonCreatedPostAction() {
+    private void singletonCreatedPostAction(SingletonEvents events) {
         setSimpleDependencies();
         setCollectionDependencies();
         if (dependenciesSet()) {
             invokeInitMethods();
-            invokeBeanMethods();
+            invokeBeanMethods(events);
         }
         if (processed()) {
             processed = true;
-            singletonEvents.removeListener(this);
+            events.removeListener(this);
         }
     }
 
@@ -56,7 +55,7 @@ class SingletonObject implements SingletonCreationListener {
         initMethods.clear();
     }
 
-    private void invokeBeanMethods() {
+    private void invokeBeanMethods(SingletonEvents singletonEvents) {
         Collection<BeanMethod> executableBeanMethods = beanMethods.stream()
                 .filter(beanMethod -> beanMethod.isSatisfied(singletonProviders))
                 .collect(Collectors.toSet());

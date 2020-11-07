@@ -2,6 +2,7 @@ package com.ejc.processor;
 
 import com.ejc.api.context.Module;
 import com.ejc.api.context.*;
+import com.ejc.context2.ClassReference;
 import com.ejc.util.CollectionUtils;
 import com.ejc.util.CollectorUtils;
 import com.google.testing.compile.Compilation;

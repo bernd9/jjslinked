@@ -2,6 +2,7 @@ package com.ejc.processor;
 
 import com.ejc.api.context.Module;
 import com.ejc.api.context.*;
+import com.ejc.context2.ClassReference;
 import com.ejc.util.CollectionUtils;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.FieldUtils;
@@ -58,7 +59,7 @@ class SimpleDependencyInjectionTest {
         SingletonProvider provider2 = module.getSingletonConstructors().stream()
                 .filter(constructor -> constructor.getType().equals(reference2))
                 .collect(CollectorUtils.toOnlyElement());
-        
+
 
         SimpleDependencyField dependencyField = CollectionUtils.getOnlyElement(module.getDependencyFields());
         assertThat(dependencyField.getDeclaringType()).isEqualTo(reference1);

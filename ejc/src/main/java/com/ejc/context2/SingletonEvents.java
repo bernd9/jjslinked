@@ -4,17 +4,17 @@ import java.util.HashSet;
 import java.util.Set;
 
 class SingletonEvents {
-    private Set<SingletonCreationListener> listeners = new HashSet<>();
+    private Set<SingletonCreationListener> singletonCreationListeners = new HashSet<>();
 
-    void addListener(SingletonCreationListener listener) {
-        listeners.add(listener);
+    void addSingletonCreationListener(SingletonCreationListener listener) {
+        singletonCreationListeners.add(listener);
     }
 
     void removeListener(SingletonCreationListener listener) {
-        listeners.remove(listener);
+        singletonCreationListeners.remove(listener);
     }
 
     void onSingletonCreated(Object o) {
-        listeners.forEach(listener -> listener.onSingletonCreated(o));
+        singletonCreationListeners.forEach(listener -> listener.onSingletonCreated(o, this));
     }
 }

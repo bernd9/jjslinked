@@ -2,8 +2,8 @@ package com.ejc.processor;
 
 import com.ejc.Singleton;
 import com.ejc.Value;
-import com.ejc.api.context.ClassReference;
 import com.ejc.api.context.ModuleFactory;
+import com.ejc.context2.ClassReference;
 import com.ejc.javapoet.JavaWriter;
 import com.ejc.util.JavaModelUtils;
 import com.squareup.javapoet.CodeBlock;

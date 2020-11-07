@@ -1,7 +1,6 @@
 package com.ejc.context2;
 
 import com.ejc.api.config.Config;
-import com.ejc.api.context.ClassReference;
 import com.ejc.util.FieldUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

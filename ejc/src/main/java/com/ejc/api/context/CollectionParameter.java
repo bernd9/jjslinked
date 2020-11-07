@@ -1,5 +1,6 @@
 package com.ejc.api.context;
 
+import com.ejc.context2.ClassReference;
 import com.ejc.util.TypeUtils;
 
 import java.util.Collection;

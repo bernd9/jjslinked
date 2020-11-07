@@ -1,5 +1,6 @@
 package com.ejc.api.context;
 
+import com.ejc.context2.ClassReference;
 import com.ejc.processor.ModuleWriter;
 import com.ejc.util.ClassUtils;
 import lombok.Getter;

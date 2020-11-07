@@ -1,7 +1,6 @@
 package com.ejc.context2;
 
 import com.ejc.ApplicationContext;
-import com.ejc.api.context.ClassReference;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;
@@ -13,7 +12,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ApplicationContextFactory {
     private final Class<?> applicationClass;
-    private final SingletonCreationContext context = new SingletonCreationContext();
+    private final SingletonEvents singletonEvents = new SingletonEvents();
     private final SingletonProviders singletonProviders = new SingletonProviders();
     private final Set<Object> singletons = new HashSet<>();
 
@@ -22,11 +21,14 @@ public class ApplicationContextFactory {
 
     public void init() {
         ModuleComposer moduleComposer = new ModuleComposer(loadModules(), applicationClass);
+        moduleComposer.composeModules();
         singletonObjectMap = moduleComposer.getSingletonObjectMap();
         singletonConstructors = moduleComposer.getSingletonConstructors();
         singletonProviders.addProviders(singletonConstructors);
         singletonProviders.addProviders(extractBeanMethods(singletonObjectMap.values()));
-        context.getSingletonEvents().addListener(singletons::add);
+        singletonEvents.addSingletonCreationListener((singleton, events) -> singletons.add(singleton));
+        singletonConstructors.forEach(singletonEvents::addSingletonCreationListener);
+        singletonObjectMap.values().forEach(singletonEvents::addSingletonCreationListener);
     }
 
     public ApplicationContext createApplicationContext() {
@@ -44,13 +46,12 @@ public class ApplicationContextFactory {
             // TODO throw exception. Because Configuration-Constructors are included, there must be at least one executable.
         }
         singletonConstructors.removeAll(executableConstructors);
-        executableConstructors.forEach(SingletonConstructor::invoke);
+        executableConstructors.forEach(constructor -> constructor.invoke(singletonEvents));
     }
 
     private Set<Module> loadModules() {
         ModuleFactoryLoader loader = new ModuleFactoryLoader();
         return loader.load().stream()
-                .peek(factory -> factory.setContext(context))
                 .peek(ModuleFactory::init)
                 .map(ModuleFactory::getModule)
                 .collect(Collectors.toSet());

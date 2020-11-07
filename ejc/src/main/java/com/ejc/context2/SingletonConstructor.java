@@ -1,7 +1,5 @@
 package com.ejc.context2;
 
-import com.ejc.api.context.ClassReference;
-
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,32 +8,28 @@ import java.util.List;
 class SingletonConstructor extends SingletonProvider implements SingletonCreationListener {
 
     private final List<Parameter> parameters = new ArrayList<>();
+    private SingletonProviders singletonProviders;
 
-    private final SingletonEvents singletonEvents;
-    private final SingletonProviders singletonProviders;
-
-    public SingletonConstructor(ClassReference type, List<ClassReference> parameterTypes, SingletonEvents singletonEvents, SingletonProviders singletonProviders) {
+    public SingletonConstructor(ClassReference type, List<ClassReference> parameterTypes) {
         super(type, parameterTypes);
-        this.singletonEvents = singletonEvents;
-        this.singletonProviders = singletonProviders;
     }
 
-    void invoke() {
-        singletonEvents.removeListener(this);
+    void invoke(SingletonEvents events) {
+        events.removeListener(this);
         try {
             Constructor<?> constructor = getType().getReferencedClass().getDeclaredConstructor(parameterTypes());
             constructor.setAccessible(true);
             Object singleton = constructor.newInstance(parameters());
-            singletonEvents.onSingletonCreated(singleton);
+            events.onSingletonCreated(singleton);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     @Override
-    public void onSingletonCreated(Object o) {
+    public void onSingletonCreated(Object o, SingletonEvents events) {
         if (updateParameters(o)) {
-            invoke();
+            invoke(events);
         }
     }
 
