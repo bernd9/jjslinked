@@ -1,53 +1,29 @@
 package com.ejc.api.context;
 
-import com.ejc.context2.ClassReference;
 import com.ejc.util.FieldUtils;
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
-@Data
-public class SimpleDependencyField {
+@RequiredArgsConstructor
+class SimpleDependencyField {
+
     private final String name;
-    private final ClassReference declaringType;
     private final ClassReference fieldType;
-    private Object fieldValue;
-    private Object owner;
+    private Object value;
 
-    public boolean isSatisfied() {
-        return owner != null && fieldValue != null;
-    }
-
-    boolean setOwner(Object owner) {
-        this.owner = owner;
-        if (isSatisfied()) {
-            injectFieldValue();
-            return true;
+    public void onSingletonCreated(Object o) {
+        if (fieldType.isInstance(o)) {
+            if (value != null) {
+                // TODO throw exception
+            }
+            value = o;
         }
-        return false;
     }
 
-    boolean setFieldValue(Object value) {
-        this.fieldValue = value;
-        if (isSatisfied()) {
-            injectFieldValue();
-            return true;
-        }
-        return false;
+    void setFieldValue(Object owner) {
+        FieldUtils.setFieldValue(owner, name, value);
     }
 
-    private void injectFieldValue() {
-        FieldUtils.setFieldValue(owner, name, fieldValue);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return o.hashCode() == hashCode();
-    }
-
-    @Override
-    public int hashCode() {
-        int result = name != null ? name.hashCode() : 0;
-        result = 31 * result + (declaringType != null ? declaringType.hashCode() : 0);
-        result = 31 * result + (fieldType != null ? fieldType.hashCode() : 0);
-        return result;
+    boolean isSatisfied() {
+        return value != null;
     }
 }

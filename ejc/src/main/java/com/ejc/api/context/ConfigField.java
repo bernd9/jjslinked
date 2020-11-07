@@ -1,7 +1,6 @@
 package com.ejc.api.context;
 
 import com.ejc.api.config.Config;
-import com.ejc.context2.ClassReference;
 import com.ejc.util.FieldUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -10,7 +9,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @EqualsAndHashCode
 @RequiredArgsConstructor
-public class ConfigValueField {
+public class ConfigField {
     private final ClassReference declaringClass;
     private final String fieldName;
     private final Class<?> fieldType;

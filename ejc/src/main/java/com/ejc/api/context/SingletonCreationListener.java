@@ -1,4 +1,4 @@
-package com.ejc.context2;
+package com.ejc.api.context;
 
 interface SingletonCreationListener {
     void onSingletonCreated(Object o, SingletonEvents events);

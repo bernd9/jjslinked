@@ -1,6 +1,6 @@
 package com.ejc.processor;
 
-import com.ejc.context2.UndefinedClass;
+import com.ejc.api.context.UndefinedClass;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

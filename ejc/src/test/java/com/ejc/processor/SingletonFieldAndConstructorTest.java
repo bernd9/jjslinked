@@ -1,7 +1,7 @@
 package com.ejc.processor;
 
 import com.ejc.api.context.ApplicationContextInitializer;
-import com.ejc.context2.ClassReference;
+import com.ejc.api.context.ClassReference;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.FieldUtils;
 import org.junit.jupiter.api.BeforeEach;

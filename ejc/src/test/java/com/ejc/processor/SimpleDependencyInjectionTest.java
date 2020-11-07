@@ -1,8 +1,9 @@
 package com.ejc.processor;
 
-import com.ejc.api.context.Module;
-import com.ejc.api.context.*;
-import com.ejc.context2.ClassReference;
+import com.ejc.api.context.ClassReference;
+import com.ejc.api.context.ModuleFactory;
+import com.ejc.api.context.SimpleDependencyField;
+import com.ejc.api.context.SingletonProvider;
 import com.ejc.util.CollectionUtils;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.FieldUtils;

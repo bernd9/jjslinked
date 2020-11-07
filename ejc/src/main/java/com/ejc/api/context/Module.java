@@ -1,17 +1,17 @@
 package com.ejc.api.context;
 
-import com.ejc.context2.ClassReference;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 @Getter
-public class Module {
-    private final Collection<SingletonConstructor> singletonConstructors = new HashSet<>();
-    private final Map<ClassReference, Collection<BeanMethod>> beanMethods = new HashMap<>();
-    private final Map<ClassReference, Collection<InitMethodInvoker>> initInvokers = new HashMap<>();
-    private final Collection<SimpleDependencyField> dependencyFields = new HashSet<>();
-    private final Map<ClassReference, Collection<CollectionDependencyField>> collectionDependencyFields = new HashMap<>();
-    private final Map<ClassReference, Collection<ConfigValueField>> configFields = new HashMap<>();
-    private final Set<ClassReference> classesToReplace = new HashSet<>();
+@RequiredArgsConstructor
+class Module {
+    private final Class<?> applicationClass;
+    private final Collection<SingletonConstructor> singletonConstructors;
+    private final Map<ClassReference, SingletonObject> singletonObjects;
+    private final Set<ClassReference> classesToReplace;
 }

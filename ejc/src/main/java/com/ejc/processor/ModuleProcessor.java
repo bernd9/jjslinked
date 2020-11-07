@@ -2,7 +2,7 @@ package com.ejc.processor;
 
 import com.ejc.*;
 import com.ejc.api.context.ModuleFactory;
-import com.ejc.context2.UndefinedClass;
+import com.ejc.api.context.UndefinedClass;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.IOUtils;
 import com.google.auto.service.AutoService;
@@ -156,7 +156,7 @@ public class ModuleProcessor extends ProcessorBase {
         configFields.forEach((name, fields) -> mapper.putConfigFields(typeForName(name), fields));
         implementations.forEach(mapper::putImplementation);
         singletons.forEach(type -> mapper.putConstructor(type, getConstructor(type)));
-        return mapper.getSingletonWriterModel();
+        return mapper.getSingletonWriterModel(appClassQualifiedName);
     }
 
     private TypeElement typeForName(Name name) {
@@ -236,12 +236,12 @@ public class ModuleProcessor extends ProcessorBase {
         TypeElement appClass;
         switch (classes.size()) {
             case 0:
-                return;
+                throw new IllegalStateException("No @Application-annotations");
             case 1:
                 appClass = classes.iterator().next();
                 break;
             default:
-                throw new IllegalStateException("Multiple Application-annotations");
+                throw new IllegalStateException("Multiple @Application-annotations");
         }
         appClassQualifiedName = appClass.getQualifiedName().toString();
     }

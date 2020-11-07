@@ -1,4 +1,4 @@
-package com.ejc.context2;
+package com.ejc.api.context;
 
 import com.ejc.ApplicationContext;
 import lombok.Getter;
@@ -15,7 +15,7 @@ public class ApplicationContextImpl extends ApplicationContext {
 
     @Getter
     private final Set<Object> beans;
-    
+
     public <T> void replaceBean(Class<T> t, T bean) {
         try {
             T old = getBean(t);

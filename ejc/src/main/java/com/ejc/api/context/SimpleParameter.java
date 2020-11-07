@@ -1,33 +1,30 @@
 package com.ejc.api.context;
 
-import com.ejc.context2.ClassReference;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import java.util.Collection;
 
 @RequiredArgsConstructor
 class SimpleParameter implements Parameter {
-    private final ClassReference parameterType;
 
-    @Getter
+    private final ClassReference parameterType;
     private Object value;
 
     @Override
-    public void onSingletonCreated(Object o) {
-        if (value != null) {
-            return;
-        }
-        if (parameterType.isInstance(o)) {
-            if (value != null) {
-                // TODO Exception
-            }
-            value = o;
-        }
+    public boolean isSatisfied(SingletonProviders providers) {
+        return value != null;
     }
 
     @Override
-    public boolean isSatisfied(Collection<SingletonProvider> providers) {
-        return value != null;
+    public Object getValue() {
+        return value;
+    }
+
+    @Override
+    public void onSingletonCreated(Object o) {
+        if (parameterType.isInstance(o)) {
+            if (value != null) {
+                // TODO throw exception
+            }
+            value = o;
+        }
     }
 }

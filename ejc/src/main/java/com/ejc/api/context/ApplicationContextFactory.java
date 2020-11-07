@@ -1,4 +1,4 @@
-package com.ejc.context2;
+package com.ejc.api.context;
 
 import com.ejc.ApplicationContext;
 import lombok.RequiredArgsConstructor;

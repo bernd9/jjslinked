@@ -1,47 +1,34 @@
 package com.ejc.api.context;
 
-import com.ejc.context2.ClassReference;
 import com.ejc.util.TypeUtils;
 
 import java.util.Collection;
-import java.util.Set;
 
-class CollectionParameter implements Parameter {
+class CollectionParameter extends SingletonCollection implements Parameter {
 
+    private final ClassReference parameterType;
     private final Collection<Object> values;
-    private int expectedElementCount;
-    private Class<?> elementType;
-
 
     CollectionParameter(ClassReference collectionType) {
-        this((Class<Collection<Object>>) collectionType.getReferencedClass());
-    }
-
-    CollectionParameter(Class<? extends Collection<?>> collectionType) {
-        values = (Collection<Object>) TypeUtils.emptyCollection(collectionType);
-        elementType = TypeUtils.getGenericType(collectionType);
+        super((Class<? extends Collection<Object>>) collectionType.getReferencedClass());
+        values = TypeUtils.emptyCollection((Class<? extends Collection<Object>>) collectionType.getReferencedClass());
+        this.parameterType = collectionType;
     }
 
     @Override
-    public void onSingletonCreated(Object o) {
-        if (elementType.isInstance(o)) {
-            values.add(o);
-        }
-    }
-
-    @Override
-    public boolean isSatisfied(Collection<SingletonProvider> providers) {
-        return providers.stream().noneMatch(provider -> provider.getType().matches(elementType));
+    public boolean isSatisfied(SingletonProviders providers) {
+        return !providers.hasMatchingSourceFor(getElementType());
     }
 
     @Override
     public Object getValue() {
-        return null;
+        return values;
     }
 
-    void registerSingletonTypes(Set<ClassReference> types) {
-        expectedElementCount = (int) types.stream()
-                .filter(type -> type.getReferencedClass().isAssignableFrom(elementType))
-                .count();
+    @Override
+    public void onSingletonCreated(Object o) {
+        if (getElementType().isInstance(o)) {
+            values.add(o);
+        }
     }
 }

@@ -1,6 +1,6 @@
 package com.ejc;
 
-import com.ejc.context2.ApplicationContextFactory;
+import com.ejc.api.context.ApplicationContextFactory;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor

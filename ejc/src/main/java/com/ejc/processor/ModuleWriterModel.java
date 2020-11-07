@@ -11,4 +11,5 @@ import java.util.Set;
 class ModuleWriterModel {
 
     private final Set<SingletonElement> singletonElements;
+    private final String applicationClass;
 }

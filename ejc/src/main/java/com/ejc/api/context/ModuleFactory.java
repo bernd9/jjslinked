@@ -1,19 +1,23 @@
 package com.ejc.api.context;
 
-import com.ejc.context2.ClassReference;
-import com.ejc.context2.UsedInGeneratedCode;
 import com.ejc.processor.ModuleWriter;
 import com.ejc.util.ClassUtils;
-import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
+import java.util.*;
 
-public class ModuleFactory {
+@RequiredArgsConstructor
+public abstract class ModuleFactory {
 
-    @Getter
-    private Module module = new Module();
+    private final ClassReference applicationClass;
+
+    private final Set<SingletonConstructor> constructors = new HashSet<>();
+    private final Map<ClassReference, SingletonObject> singletonObjectMap = new HashMap<>();
+    private final Set<ClassReference> classesToReplace = new HashSet<>();
+
+    Module getModule() {
+        return new Module(applicationClass.getReferencedClass(), constructors, singletonObjectMap, classesToReplace);
+    }
 
     public static Optional<String> getPackageName(String appClassQualifiedName) {
         return ClassUtils.getPackageName(appClassQualifiedName);
@@ -25,43 +29,45 @@ public class ModuleFactory {
 
     @UsedInGeneratedCode(ModuleWriter.class)
     public void addInitMethod(ClassReference owner, String name) {
-        module.getInitInvokers().computeIfAbsent(owner, type -> new HashSet<>()).add(new InitMethodInvoker(owner, name));
+        getSingleton(owner).addInitMethod(new InitMethod(name));
     }
 
     @UsedInGeneratedCode(ModuleWriter.class)
     public void addBeanMethod(ClassReference owner, String name, ClassReference returnType, ClassReference... parameterTypes) {
-        module.getBeanMethods().computeIfAbsent(owner, type -> new HashSet<>())
-                .add(new BeanMethod(owner, name, returnType, Arrays.asList(parameterTypes)));
+        getSingleton(owner).addBeanMethod(new BeanMethod(name, returnType, Arrays.asList(parameterTypes)));
     }
 
     @UsedInGeneratedCode(ModuleWriter.class)
     public void addConfigField(ClassReference owner, String name, Class<?> fieldType, String key, String defaultValue, boolean mandatory) {
-        module.getConfigFields().computeIfAbsent(owner, type -> new HashSet<>()).add(new ConfigValueField(owner, name, fieldType, key, defaultValue));
+        getSingleton(owner).addConfigField(new ConfigField(owner, name, fieldType, key, defaultValue));
     }
 
     @UsedInGeneratedCode(ModuleWriter.class)
     public void addDependencyField(ClassReference owner, String name, ClassReference fieldType) {
-        module.getDependencyFields().add(new SimpleDependencyField(name, owner, fieldType));
+        getSingleton(owner).addSimpleDependencyField(new SimpleDependencyField(name, fieldType));
     }
 
     @UsedInGeneratedCode(ModuleWriter.class) // TODO support arrays in new class ArrayDependencyField
     public void addCollectionDependencyField(ClassReference owner, String name, ClassReference fieldType) {
-        module.getCollectionDependencyFields().computeIfAbsent(owner, type -> new HashSet<>()).add(new CollectionDependencyField(name, owner, fieldType));
+        getSingleton(owner).addCollectionDependencyField(new CollectionDependencyField(name, owner, fieldType));
     }
 
     @UsedInGeneratedCode(ModuleWriter.class)
     public void addConstructor(ClassReference owner, ClassReference... parameterTypes) {
-        module.getSingletonConstructors().add(new SingletonConstructor(owner, Arrays.asList(parameterTypes)));
+        constructors.add(new SingletonConstructor(owner, Arrays.asList(parameterTypes)));
     }
 
     @UsedInGeneratedCode(ModuleWriter.class)
     public void addClassToReplace(ClassReference type) {
-        module.getClassesToReplace().add(type);
+        classesToReplace.add(type);
     }
 
     public static String getQualifiedName(String appClassQualifiedName) {
         return getPackageName(appClassQualifiedName).map(name -> name + ".").orElse("") + getSimpleName(appClassQualifiedName);
     }
 
+    private SingletonObject getSingleton(ClassReference type) {
+        return singletonObjectMap.computeIfAbsent(type, t -> new SingletonObject(type));
+    }
 
 }
