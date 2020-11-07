@@ -52,7 +52,6 @@ public class ApplicationContextFactory {
     private Set<Module> loadModules() {
         ModuleFactoryLoader loader = new ModuleFactoryLoader();
         return loader.load().stream()
-                .peek(ModuleFactory::init)
                 .map(ModuleFactory::getModule)
                 .collect(Collectors.toSet());
     }
