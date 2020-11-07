@@ -1,9 +1,9 @@
 package com.ejc.processor;
 
-import com.ejc.ApplicationContextFactory;
-import com.ejc.api.context.ApplicationContextInitializer;
-import com.ejc.api.context.Module;
+import com.ejc.ApplicationContext;
+import com.ejc.api.context.ApplicationContextFactory;
 import com.ejc.api.context.ModuleFactory;
+import com.ejc.util.ClassUtils;
 import com.ejc.util.CollectorUtils;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.Compiler;
@@ -29,27 +29,22 @@ import static com.google.testing.compile.Compiler.javac;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ProcessorTestUtil {
 
-    public static Object getSingletonBySimpleClassName(String simpleClassName, ApplicationContextInitializer initializer) {
-        return initializer.getSingletons().stream().filter(o -> o.getClass().getSimpleName().equals(simpleClassName)).collect(CollectorUtils.toOnlyElement());
+    public static Object getSingletonBySimpleClassName(String name, ApplicationContext context) {
+        return context.getBeans().stream().filter(o -> o.getClass().getName().equals(name)).collect(CollectorUtils.toOnlyElement());
     }
 
-    public static ApplicationContextInitializer compileContext(String appName) throws Exception {
+    public static ApplicationContext compileContext(String appName) throws Exception {
         Compiler compiler = javac().withProcessors(new ModuleProcessor());
         JavaFileObject fileObject = JavaFileObjects.forResource(appName.replace(".", "/") + ".java");
         Compilation compilation = compiler.compile(fileObject);
         ProcessorTestUtil.assertSuccess(compilation);
 
         String moduleFactoryName = ModuleFactory.getQualifiedName(appName);
-        FileObjectClassLoader classLoader = bindClassLoader(Thread.currentThread(), compilation);
-        Class<? extends ModuleFactory> factoryClass = (Class<? extends ModuleFactory>) classLoader.findClass(moduleFactoryName);
-        ModuleFactory factory = factoryClass.getConstructor().newInstance();
-        Module module = factory.getModule();
+        bindClassLoader(Thread.currentThread(), compilation);
 
-        ApplicationContextInitializer initializer = new ApplicationContextInitializer();
-        initializer.addModule(module);
-
-        initializer.initialize();
-        return initializer;
+        ApplicationContextFactory factory = new ApplicationContextFactory(ClassUtils.classForName(appName));
+        factory.init();
+        return factory.createApplicationContext();
     }
 
 
