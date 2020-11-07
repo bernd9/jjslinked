@@ -3,6 +3,8 @@ package com.ejc.api.context;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Collection;
+
 @RequiredArgsConstructor
 class SimpleParameter implements Parameter {
     private final ClassReference parameterType;
@@ -11,22 +13,20 @@ class SimpleParameter implements Parameter {
     private Object value;
 
     @Override
-    public boolean onSingletonCreated(Object o) {
+    public void onSingletonCreated(Object o) {
         if (value != null) {
-            return true;
+            return;
         }
         if (parameterType.isInstance(o)) {
             if (value != null) {
                 // TODO Exception
             }
             value = o;
-            return true;
         }
-        return false;
     }
 
     @Override
-    public boolean isSatisfied() {
+    public boolean isSatisfied(Collection<SingletonProvider> providers) {
         return value != null;
     }
 }

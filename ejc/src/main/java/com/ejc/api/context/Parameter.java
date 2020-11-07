@@ -1,10 +1,12 @@
 package com.ejc.api.context;
 
+import java.util.Collection;
+
 interface Parameter {
 
-    boolean onSingletonCreated(Object o);
+    void onSingletonCreated(Object o);
 
-    boolean isSatisfied();
+    boolean isSatisfied(Collection<SingletonProvider> providers);
 
     Object getValue();
 }

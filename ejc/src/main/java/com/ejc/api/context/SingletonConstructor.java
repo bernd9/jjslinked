@@ -27,10 +27,4 @@ public class SingletonConstructor extends SingletonProvider {
             throw new RuntimeException(e);
         }
     }
-
-    @Override
-    protected Class<?>[] parameterTypes() {
-
-        return super.parameterTypes();
-    }
 }

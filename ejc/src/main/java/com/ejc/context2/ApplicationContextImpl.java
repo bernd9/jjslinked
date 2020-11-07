@@ -1,19 +1,21 @@
-package com.ejc.processor;
+package com.ejc.context2;
 
 import com.ejc.ApplicationContext;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+@RequiredArgsConstructor
 public class ApplicationContextImpl extends ApplicationContext {
 
     @Getter
-    private final Set<Object> beans = new HashSet<>();
-
-    public ApplicationContextImpl() {
-    }
-
+    private final Set<Object> beans;
+    
     public <T> void replaceBean(Class<T> t, T bean) {
         try {
             T old = getBean(t);

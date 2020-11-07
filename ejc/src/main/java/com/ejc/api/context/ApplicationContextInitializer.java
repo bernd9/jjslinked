@@ -39,7 +39,7 @@ public class ApplicationContextInitializer {
         doReplacement();
         long t0 = System.currentTimeMillis();
         Set<ClassReference> allSingletonTypes = getExpectedSingletonTypes();
-        System.out.println("list all types took " + (System.currentTimeMillis() - t0));
+        System.out.println("listing all types took " + (System.currentTimeMillis() - t0));
         publishExpectedSingletonTypes(allSingletonTypes);
         runConstructorInstantiation();
     }

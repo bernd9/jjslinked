@@ -1,8 +1,11 @@
-package com.ejc.api.context;
+package com.ejc.context2;
 
+import com.ejc.api.context.ClassReference;
 import lombok.Data;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Data
 public abstract class SingletonProvider {
@@ -17,22 +20,10 @@ public abstract class SingletonProvider {
         parameterTypes.forEach(this::addParameter);
     }
 
-    public void registerSingletonTypes(Set<ClassReference> types) {
-        parameters.stream()
-                .filter(CollectionParameter.class::isInstance)
-                .map(CollectionParameter.class::cast)
-                .forEach(parameter -> parameter.registerSingletonTypes(types));
-    }
 
     public void onSingletonCreated(Object o) {
         parameters.forEach(param -> param.onSingletonCreated(o));
     }
-
-    public Object invoke() {
-        return create();
-    }
-
-    protected abstract Object create();
 
     protected void addParameter(ClassReference parameterType) {
         if (Collections.class.isAssignableFrom(parameterType.getReferencedClass())) {
@@ -42,7 +33,7 @@ public abstract class SingletonProvider {
         }
     }
 
-    public boolean isSatisfied(Collection<SingletonProvider> providers) {
+    public boolean isSatisfied(SingletonProviders providers) {
         return parameters.stream()
                 .noneMatch(parameter -> !parameter.isSatisfied(providers));
     }
@@ -53,10 +44,6 @@ public abstract class SingletonProvider {
 
     protected Object[] parameters() {
         return parameters.stream().map(Parameter::getValue).toArray(Object[]::new);
-    }
-
-    public Set<ClassReference> getSingletonTypes() {
-        return Collections.singleton(type);
     }
 
 

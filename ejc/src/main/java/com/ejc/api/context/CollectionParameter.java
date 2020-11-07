@@ -7,7 +7,7 @@ import java.util.Set;
 
 class CollectionParameter implements Parameter {
 
-    private final Collection<?> values;
+    private final Collection<Object> values;
     private int expectedElementCount;
     private Class<?> elementType;
 
@@ -17,18 +17,20 @@ class CollectionParameter implements Parameter {
     }
 
     CollectionParameter(Class<? extends Collection<?>> collectionType) {
-        values = TypeUtils.emptyCollection(collectionType);
+        values = (Collection<Object>) TypeUtils.emptyCollection(collectionType);
         elementType = TypeUtils.getGenericType(collectionType);
     }
 
     @Override
-    public boolean onSingletonCreated(Object o) {
-        return false;// TODO
+    public void onSingletonCreated(Object o) {
+        if (elementType.isInstance(o)) {
+            values.add(o);
+        }
     }
 
     @Override
-    public boolean isSatisfied() {
-        return false;
+    public boolean isSatisfied(Collection<SingletonProvider> providers) {
+        return providers.stream().noneMatch(provider -> provider.getType().matches(elementType));
     }
 
     @Override

@@ -1,22 +1,19 @@
-package com.ejc.api.context;
+package com.ejc.context2;
 
+import com.ejc.api.context.ClassReference;
 import com.ejc.util.FieldUtils;
 import com.ejc.util.TypeUtils;
 import lombok.Getter;
 
 import java.util.Collection;
-import java.util.Set;
 
 @Getter
-public class CollectionDependencyField extends SingletonCollection {
+public class CollectionDependencyField extends SingletonCollection implements SingletonCreationListener {
 
     private final String name;
     private final ClassReference declaringType;
     private final ClassReference fieldType;
-    private int expectedElementCount;
     private Collection<Object> fieldValues;
-    private Object owner;
-
 
     public CollectionDependencyField(String name, ClassReference declaringType, ClassReference fieldType) {
         super(fieldType.getGenericType().orElseThrow());
@@ -25,23 +22,15 @@ public class CollectionDependencyField extends SingletonCollection {
         this.fieldType = fieldType;
         this.fieldValues = TypeUtils.emptyCollection((Class<? extends Collection>) fieldType.getReferencedClass());
     }
-
-    public void registerSingletonTypes(Set<ClassReference> types) {
-        // TODO remove this
-        expectedElementCount = (int) types.stream()
-                // .filter(type -> type.isOfType(elementType))
-                .count();
-    }
-
-    boolean isSatisfied() {
-        return owner != null && fieldValues.size() >= expectedElementCount;
-    }
-
-    void addFieldValue(Object o) {
-        fieldValues.add(o);
-    }
-
-    void injectFieldValue() {
+    
+    public void setFieldValue(Object owner) {
         FieldUtils.setFieldValue(owner, name, fieldValues);
+    }
+
+    @Override
+    public void onSingletonCreated(Object o) {
+        if (getElementType().isInstance(o)) {
+            fieldValues.add(o);
+        }
     }
 }

@@ -19,11 +19,15 @@ class BeanMethodInvocation {
     }
 
     void onSingletonCreated(Object o) {
-        ClassReference reference = ClassReference.getRef(o.getClass().getName());
-        Collection<BeanMethod> methodsToInvoke = getAllBeanMethods()
-                .filter(method -> method.onSingletonCreated(o))
+        beanMethods.keySet().forEach(ownerClass -> onSingletonCreated(ownerClass, o));
+    }
+
+    private void onSingletonCreated(ClassReference ownerClass, Object o) {
+        Collection<BeanMethod> methodsToInvoke = beanMethods.getOrDefault(ownerClass, Collections.emptySet()).stream()
+                .peek(beanMethod -> beanMethod.onSingletonCreated(o))
+                .filter(BeanMethod::isSatisfied)
                 .collect(Collectors.toSet());
-        invokeBeanMethods(reference, methodsToInvoke);
+        invokeBeanMethods(ownerClass, methodsToInvoke);
     }
 
     void onDependenciesInjected(Object o) {

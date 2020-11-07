@@ -86,4 +86,8 @@ public class ClassReference {
                 "className='" + className + '\'' +
                 '}';
     }
+
+    public boolean matches(Class<?> elementType) {
+        return elementType.isAssignableFrom(getReferencedClass());
+    }
 }
