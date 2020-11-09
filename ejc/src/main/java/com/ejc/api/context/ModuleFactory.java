@@ -15,7 +15,7 @@ public abstract class ModuleFactory {
     private final Map<ClassReference, SingletonObject> singletonObjectMap = new HashMap<>();
     private final Set<ClassReference> classesToReplace = new HashSet<>();
 
-    Module getModule() {
+    public Module getModule() {
         return new Module(applicationClass.getReferencedClass(), constructors, singletonObjectMap, classesToReplace);
     }
 

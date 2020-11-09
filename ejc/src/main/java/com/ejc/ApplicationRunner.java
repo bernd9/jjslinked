@@ -19,7 +19,6 @@ public class ApplicationRunner {
 
     private static void createContext(Class<?> applicationClass) {
         ApplicationContextFactory factory = new ApplicationContextFactory(applicationClass);
-        factory.init();
         factory.createApplicationContext();
     }
 }

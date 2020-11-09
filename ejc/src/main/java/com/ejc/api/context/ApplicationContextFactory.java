@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 public class ApplicationContextFactory {
-    private final Class<?> applicationClass;
     private final SingletonEvents singletonEvents = new SingletonEvents();
     private final SingletonProviders singletonProviders = new SingletonProviders();
     private final Set<Object> singletons = new HashSet<>();
@@ -19,11 +18,21 @@ public class ApplicationContextFactory {
     private Map<ClassReference, SingletonObject> singletonObjectMap;
     private Collection<SingletonConstructor> singletonConstructors;
 
-    public void init() {
+    public ApplicationContextFactory(Class<?> applicationClass) {
         ModuleComposer moduleComposer = new ModuleComposer(loadModules(), applicationClass);
         moduleComposer.composeModules();
         singletonObjectMap = moduleComposer.getSingletonObjectMap();
         singletonConstructors = moduleComposer.getSingletonConstructors();
+        init();
+    }
+
+    public ApplicationContextFactory(Module module) {
+        singletonObjectMap = module.getSingletonObjects();
+        singletonConstructors = module.getSingletonConstructors();
+        init();
+    }
+
+    private void init() {
         singletonProviders.addProviders(singletonConstructors);
         singletonProviders.addProviders(extractBeanMethods(singletonObjectMap.values()));
         singletonEvents.addSingletonCreationListener((singleton, events) -> singletons.add(singleton));

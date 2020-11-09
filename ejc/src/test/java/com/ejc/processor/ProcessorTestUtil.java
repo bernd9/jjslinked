@@ -33,18 +33,19 @@ public class ProcessorTestUtil {
         return context.getBeans().stream().filter(o -> o.getClass().getName().equals(name)).collect(CollectorUtils.toOnlyElement());
     }
 
+
     public static ApplicationContext compileContext(String appName) throws Exception {
         Compiler compiler = javac().withProcessors(new ModuleProcessor());
-        JavaFileObject fileObject = JavaFileObjects.forResource(appName.replace(".", "/") + ".java");
+        String applicationClassName = appName.replace(".", "/");
+        JavaFileObject fileObject = JavaFileObjects.forResource(applicationClassName + ".java");
         Compilation compilation = compiler.compile(fileObject);
         ProcessorTestUtil.assertSuccess(compilation);
-
         String moduleFactoryName = ModuleFactory.getQualifiedName(appName);
-        bindClassLoader(Thread.currentThread(), compilation);
-
-        ApplicationContextFactory factory = new ApplicationContextFactory(ClassUtils.classForName(appName));
-        factory.init();
-        return factory.createApplicationContext();
+        FileObjectClassLoader classLoader = bindClassLoader(Thread.currentThread(), compilation);
+        Class<ModuleFactory> moduleFactoryClass = (Class<ModuleFactory>) classLoader.findClass(moduleFactoryName);
+        ModuleFactory factory = ClassUtils.createInstance(moduleFactoryClass);
+        ApplicationContextFactory applicationContextFactory = new ApplicationContextFactory(factory.getModule());
+        return applicationContextFactory.createApplicationContext();
     }
 
 
@@ -114,8 +115,8 @@ public class ProcessorTestUtil {
     public static String getContextFactoryDefaultName() {
         return new StringBuilder()
                 //.append(ApplicationContextFactoryProcessor.PACKAGE)
-                .append(".")
-                .append(ApplicationContextFactory.IMPLEMENTATION_SIMPLE_NAME).toString();
+                .append(".").toString();
+        //.append(ApplicationContextFactory.IMPLEMENTATION_SIMPLE_NAME).toString();
 
     }
 

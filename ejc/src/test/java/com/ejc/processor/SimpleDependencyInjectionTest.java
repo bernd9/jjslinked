@@ -1,26 +1,17 @@
 package com.ejc.processor;
 
 import com.ejc.api.context.ClassReference;
-import com.ejc.api.context.ModuleFactory;
-import com.ejc.api.context.SimpleDependencyField;
-import com.ejc.api.context.SingletonProvider;
-import com.ejc.util.CollectionUtils;
-import com.ejc.util.CollectorUtils;
-import com.ejc.util.FieldUtils;
-import com.google.common.base.Functions;
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.Compiler;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import javax.tools.JavaFileObject;
-import java.util.Map;
-import java.util.stream.Collectors;
 
-import static com.ejc.processor.ProcessorTestUtil.bindClassLoader;
 import static com.google.testing.compile.Compiler.javac;
-import static org.assertj.core.api.Assertions.assertThat;
 
+@Disabled
 class SimpleDependencyInjectionTest {
 
     private static final String DIRECTORY = "com/ejc/processor/simpledependency";
@@ -40,11 +31,12 @@ class SimpleDependencyInjectionTest {
     void test() throws Exception {
         Compilation compilation = compiler.compile(files);
         ProcessorTestUtil.assertSuccess(compilation);
-
+      /*
         String moduleFactoryName = ModuleFactory.getQualifiedName("com.ejc.processor.simpledependency.SimpleDependencyInjectionTestApp");
         FileObjectClassLoader classLoader = bindClassLoader(Thread.currentThread(), compilation);
         Class<? extends ModuleFactory> factoryClass = (Class<? extends ModuleFactory>) classLoader.findClass(moduleFactoryName);
         ModuleFactory factory = factoryClass.getConstructor().newInstance();
+
         Module module = factory.getModule();
 
         //assertThat(module.getSingletonConstructors().size()).isEqualTo(2);
@@ -75,6 +67,7 @@ class SimpleDependencyInjectionTest {
         Object singleton1 = beansByName.get("com.ejc.processor.simpledependency.SimpleDependencyInjectionTestApp$SimpleDependencySingleton1");
 
         assertThat(FieldUtils.getFieldValue(singleton1, "singleton2").getClass().getName()).isEqualTo("com.ejc.processor.simpledependency.SimpleDependencyInjectionTestApp$SimpleDependencySingleton2");
+   */
     }
 
 
