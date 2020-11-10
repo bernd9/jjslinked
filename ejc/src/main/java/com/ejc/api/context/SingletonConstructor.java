@@ -16,10 +16,7 @@ class SingletonConstructor extends SingletonProvider implements SingletonCreatio
         super(type, parameterTypes);
     }
 
-    void invoke(SingletonEvents events) {
-        if (disabled) {
-            return;
-        }
+    private void doInvoke(SingletonEvents events) {
         disabled = true;
         try {
             Constructor<?> constructor = getType().getReferencedClass().getDeclaredConstructor(parameterTypes());
@@ -31,10 +28,16 @@ class SingletonConstructor extends SingletonProvider implements SingletonCreatio
         }
     }
 
+    void invoke(SingletonEvents events) {
+        if (!disabled) {
+            doInvoke(events);
+        }
+    }
+
     @Override
     public void onSingletonCreated(Object o, SingletonEvents events) {
         if (!disabled && updateParameters(o)) {
-            invoke(events);
+            doInvoke(events);
         }
     }
 

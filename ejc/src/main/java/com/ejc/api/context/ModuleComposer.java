@@ -40,6 +40,7 @@ class ModuleComposer {
         loadedModules.stream()
                 .map(Module::getSingletonObjects)
                 .forEach(singletons::putAll);
+        singletons.putAll(currentModule.getSingletonObjects());
         Set<ClassReference> classesToReplace = loadedModules.stream()
                 .map(Module::getClassesToReplace)
                 .flatMap(Collection::stream)
@@ -55,10 +56,13 @@ class ModuleComposer {
     }
 
     private Collection<SingletonConstructor> cleanedSingletonConstructors(Collection<ClassReference> singletonTypes) {
-        return loadedModules.stream()
+        Collection<SingletonConstructor> constructors = new HashSet<>();
+        constructors.addAll(currentModule.getSingletonConstructors());
+        constructors.addAll(loadedModules.stream()
                 .map(Module::getSingletonConstructors)
                 .flatMap(Collection::stream)
-                .filter(constructor -> singletonTypes.contains(constructor.getType()))
+                .collect(Collectors.toSet()));
+        return constructors.stream().filter(constructor -> singletonTypes.contains(constructor.getType()))
                 .collect(Collectors.toSet());
     }
 

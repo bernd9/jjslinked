@@ -232,6 +232,7 @@ public class ModuleProcessor extends ProcessorBase {
     }
 
     private void processApplication(QueryResult result) {
+        if (appClassQualifiedName != null) return;
         Set<TypeElement> classes = result.getElements(Application.class, TypeElement.class);
         TypeElement appClass;
         switch (classes.size()) {
