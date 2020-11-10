@@ -1,14 +1,14 @@
 package test;
 
 import com.ejc.Init;
-import com.ejc.Inject;
 import com.ejc.Singleton;
 
 
 @Singleton
 public class CalculatorService {
 
-    @Inject
+   // @Inject
+    // TODO
     private TestApp testApp;
 
     int square(Integer i) {

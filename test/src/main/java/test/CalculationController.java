@@ -1,9 +1,9 @@
 package test;
 
-import com.ejc.http.Get;
-import com.ejc.http.RestController;
+//import com.ejc.http.Get;
+//import com.ejc.http.RestController;
 
-@RestController
+//@RestController
 public class CalculationController {
 
 
@@ -19,7 +19,7 @@ public class CalculationController {
         private final String value;
     }
 
-    @Get("/greeting")
+    //@Get("/greeting")
     Greeting greeting() {
         return new Greeting("Huhu !");
     }

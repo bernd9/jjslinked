@@ -3,25 +3,25 @@ package test;
 import com.ejc.Inject;
 import com.ejc.Singleton;
 import com.ejc.SystemProperty;
+import lombok.RequiredArgsConstructor;
 
 @Singleton
+@RequiredArgsConstructor
 public class TestBean1 {
 
     void test() {
 
     }
 
+
+    private final TestBean2 testBean2;
+
+    private final TestBean3 testBean3;
+
+    private final TestBean4 testBean4;
+
     @Inject
     private TestBean1 testBean1;
-
-    @Inject
-    private TestBean2 testBean2;
-
-    @Inject
-    private TestBean3 testBean3;
-
-    @Inject
-    private TestBean4 testBean4;
 
     @Inject
     private TestBean5 testBean5;
