@@ -19,9 +19,8 @@ public abstract class SingletonProvider {
         parameterTypes.forEach(this::addParameter);
     }
 
-
-    public void onSingletonCreated(Object o) {
-        parameters.forEach(param -> param.onSingletonCreated(o));
+    void onSingletonCreated(Object o) {
+        parameters.forEach(parameter -> parameter.onSingletonCreated(o));
     }
 
     protected void addParameter(ClassReference parameterType) {

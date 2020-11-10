@@ -30,7 +30,7 @@ import static com.google.testing.compile.Compiler.javac;
 public class ProcessorTestUtil {
 
     public static Object getSingletonBySimpleClassName(String name, ApplicationContext context) {
-        return context.getBeans().stream().filter(o -> o.getClass().getName().equals(name)).collect(CollectorUtils.toOnlyElement());
+        return context.getBeans().stream().filter(o -> o.getClass().getSimpleName().equals(name)).collect(CollectorUtils.toOnlyElement());
     }
 
 

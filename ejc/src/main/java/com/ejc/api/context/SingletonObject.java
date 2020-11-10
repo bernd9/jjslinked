@@ -46,7 +46,7 @@ class SingletonObject implements SingletonCreationListener {
         }
         if (processed()) {
             processed = true;
-            events.removeListener(this);
+            events.disableListener(this);
         }
     }
 

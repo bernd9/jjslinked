@@ -1,13 +1,11 @@
 package com.ejc.api.context;
 
 import java.lang.reflect.Constructor;
-import java.util.ArrayList;
 import java.util.List;
 
 
 class SingletonConstructor extends SingletonProvider implements SingletonCreationListener {
 
-    private final List<Parameter> parameters = new ArrayList<>();
     private SingletonProviders singletonProviders;
 
     public SingletonConstructor(ClassReference type, List<ClassReference> parameterTypes) {
@@ -15,7 +13,7 @@ class SingletonConstructor extends SingletonProvider implements SingletonCreatio
     }
 
     void invoke(SingletonEvents events) {
-        events.removeListener(this);
+        events.disableListener(this);
         try {
             Constructor<?> constructor = getType().getReferencedClass().getDeclaredConstructor(parameterTypes());
             constructor.setAccessible(true);
@@ -34,8 +32,8 @@ class SingletonConstructor extends SingletonProvider implements SingletonCreatio
     }
 
     private boolean updateParameters(Object o) {
-        parameters.forEach(parameter -> parameter.onSingletonCreated(o));
-        return parameters.stream()
+        getParameters().forEach(parameter -> parameter.onSingletonCreated(o));
+        return getParameters().stream()
                 .noneMatch(parameter -> !parameter.isSatisfied(singletonProviders));
     }
 }
