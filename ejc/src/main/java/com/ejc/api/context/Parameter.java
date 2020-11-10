@@ -6,5 +6,7 @@ interface Parameter {
 
     Object getValue();
 
+    ClassReference getParameterType();
+
     void onSingletonCreated(Object o);
 }

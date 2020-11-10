@@ -1,5 +1,7 @@
 package com.ejc.api.context;
 
+import lombok.Getter;
+
 import java.lang.reflect.Constructor;
 import java.util.List;
 
@@ -7,13 +9,18 @@ import java.util.List;
 class SingletonConstructor extends SingletonProvider implements SingletonCreationListener {
 
     private SingletonProviders singletonProviders;
+    @Getter
+    private boolean disabled;
 
     public SingletonConstructor(ClassReference type, List<ClassReference> parameterTypes) {
         super(type, parameterTypes);
     }
 
     void invoke(SingletonEvents events) {
-        events.disableListener(this);
+        if (disabled) {
+            return;
+        }
+        disabled = true;
         try {
             Constructor<?> constructor = getType().getReferencedClass().getDeclaredConstructor(parameterTypes());
             constructor.setAccessible(true);
@@ -26,7 +33,7 @@ class SingletonConstructor extends SingletonProvider implements SingletonCreatio
 
     @Override
     public void onSingletonCreated(Object o, SingletonEvents events) {
-        if (updateParameters(o)) {
+        if (!disabled && updateParameters(o)) {
             invoke(events);
         }
     }

@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-public class ApplicationContextFactory {
+public class ApplicationContextFactory implements SingletonCreationListener {
     private final SingletonEvents singletonEvents = new SingletonEvents();
     private final SingletonProviders singletonProviders = new SingletonProviders();
     private final Set<Object> singletons = new HashSet<>();
@@ -35,9 +35,10 @@ public class ApplicationContextFactory {
     private void init() {
         singletonProviders.addProviders(singletonConstructors);
         singletonProviders.addProviders(extractBeanMethods(singletonObjectMap.values()));
-        singletonEvents.addSingletonCreationListener((singleton, events) -> singletons.add(singleton));
+        singletonEvents.addSingletonCreationListener(this);
         singletonConstructors.forEach(singletonEvents::addSingletonCreationListener);
         singletonObjectMap.values().forEach(singletonEvents::addSingletonCreationListener);
+        singletonEvents.addSingletonCreationListener(new UniqueBeanValidator(singletonProviders, extractSimpleDependencyFields(singletonObjectMap.values())));
     }
 
     public ApplicationContext createApplicationContext() {
@@ -55,7 +56,9 @@ public class ApplicationContextFactory {
             // TODO throw exception. Because Configuration-Constructors are included, there must be at least one executable.
         }
         singletonConstructors.removeAll(executableConstructors);
-        executableConstructors.forEach(constructor -> constructor.invoke(singletonEvents));
+        executableConstructors
+                .stream()
+                .forEach(constructor -> constructor.invoke(singletonEvents));
     }
 
     private Set<Module> loadModules() {
@@ -72,4 +75,20 @@ public class ApplicationContextFactory {
                 .collect(Collectors.toSet());
     }
 
+    private static Set<SimpleDependencyField> extractSimpleDependencyFields(Collection<SingletonObject> singletonObjects) {
+        return singletonObjects.stream()
+                .map(SingletonObject::getSimpleDependencyFields)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    public void onSingletonCreated(Object o, SingletonEvents events) {
+        singletons.add(o);
+    }
+
+    @Override
+    public boolean isDisabled() {
+        return false;
+    }
 }

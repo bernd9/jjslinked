@@ -1,6 +1,7 @@
 package com.ejc.api.context;
 
 import lombok.Data;
+import lombok.Getter;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -18,10 +19,15 @@ class SingletonObject implements SingletonCreationListener {
 
     private SingletonProviders singletonProviders;
     private Object singleton;
-    private boolean processed;
+
+    @Getter
+    private boolean disabled;
 
     @Override
     public void onSingletonCreated(Object o, SingletonEvents events) {
+        if (disabled) {
+            return;
+        }
         if (type.isInstance(o)) {
             if (singleton != null) {
                 throw new IllegalStateException();
@@ -41,12 +47,9 @@ class SingletonObject implements SingletonCreationListener {
         setSimpleDependencies();
         setCollectionDependencies();
         if (dependenciesSet()) {
+            this.disabled = true;
             invokeInitMethods();
             invokeBeanMethods(events);
-        }
-        if (processed()) {
-            processed = true;
-            events.disableListener(this);
         }
     }
 
@@ -85,14 +88,6 @@ class SingletonObject implements SingletonCreationListener {
 
     private boolean dependenciesSet() {
         return simpleDependencyFields.isEmpty() && collectionDependencyFields.isEmpty();
-    }
-
-    private boolean processed() {
-        return simpleDependencyFields.isEmpty()
-                && collectionDependencyFields.isEmpty()
-                && configFields.isEmpty()
-                && initMethods.isEmpty()
-                && beanMethods.isEmpty();
     }
 
     public void addConfigField(ConfigField configField) {

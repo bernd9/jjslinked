@@ -1,11 +1,13 @@
 package com.ejc.api.context;
 
 import com.ejc.util.TypeUtils;
+import lombok.Getter;
 
 import java.util.Collection;
 
 class CollectionParameter extends SingletonCollection implements Parameter {
 
+    @Getter
     private final ClassReference parameterType;
     private final Collection<Object> values;
 

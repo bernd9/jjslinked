@@ -10,12 +10,10 @@ import java.util.List;
 public abstract class SingletonProvider {
 
     private final ClassReference type;
-    private final List<ClassReference> parameterTypes;
     private final List<Parameter> parameters = new ArrayList<>();
 
     public SingletonProvider(ClassReference type, List<ClassReference> parameterTypes) {
         this.type = type;
-        this.parameterTypes = parameterTypes;
         parameterTypes.forEach(this::addParameter);
     }
 
@@ -37,7 +35,9 @@ public abstract class SingletonProvider {
     }
 
     protected Class<?>[] parameterTypes() {
-        return parameterTypes.stream().map(ClassReference::getReferencedClass).toArray(Class<?>[]::new);
+        return parameters.stream()
+                .map(Parameter::getParameterType)
+                .map(ClassReference::getReferencedClass).toArray(Class<?>[]::new);
     }
 
     protected Object[] parameters() {

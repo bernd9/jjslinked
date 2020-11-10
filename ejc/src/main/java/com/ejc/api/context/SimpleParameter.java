@@ -1,7 +1,9 @@
 package com.ejc.api.context;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+@Getter
 @RequiredArgsConstructor
 class SimpleParameter implements Parameter {
 
@@ -11,11 +13,6 @@ class SimpleParameter implements Parameter {
     @Override
     public boolean isSatisfied(SingletonProviders providers) {
         return value != null;
-    }
-
-    @Override
-    public Object getValue() {
-        return value;
     }
 
     @Override

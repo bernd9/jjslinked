@@ -1,12 +1,15 @@
 package com.ejc.api.context;
 
 import com.ejc.util.FieldUtils;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 class SimpleDependencyField {
 
     private final String name;
+
+    @Getter
     private final ClassReference fieldType;
     private Object value;
 
