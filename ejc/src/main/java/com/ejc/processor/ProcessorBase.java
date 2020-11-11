@@ -27,7 +27,7 @@ public abstract class ProcessorBase extends AbstractProcessor {
     }
 
     protected void process(TypeElement annotationClass, RoundEnvironment roundEnvironment, QueryResult result) {
-        String name = annotationClass.getQualifiedName().toString();
+        var name = annotationClass.getQualifiedName().toString();
         result.computeIfAbsent(name, n -> new HashSet<>())
                 .addAll(roundEnvironment.getElementsAnnotatedWith(annotationClass).stream().collect(Collectors.toSet()));
     }

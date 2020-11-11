@@ -37,7 +37,7 @@ public class ModuleProcessor extends ProcessorBase {
 
     private Set<String> appClassQualifiedNames = new HashSet<>();
 
-    private static final Set<String> NON_SINGLETON_ANNOTATIONS = Stream.of(Inject.class, InjectAll.class, Init.class, Implementation.class,
+    private static final Set<String> NON_SINGLETON_ANNOTATIONS = Stream.of(Inject.class, Init.class, Implementation.class,
             Value.class, Configuration.class, Bean.class).map(Class::getName).collect(Collectors.toSet());
     private Set<String> singletonAnnotations;
 
@@ -90,7 +90,7 @@ public class ModuleProcessor extends ProcessorBase {
     }
 
     private void processInjectFields(QueryResult result) {
-        Set<VariableElement> fields = result.getElements(Inject.class, VariableElement.class);
+        var fields = result.getElements(Inject.class, VariableElement.class);
         fields.stream().filter(isCollection()).forEach(this::processInjectCollectionField);
         fields.stream().filter(isCollection().negate()).forEach(this::processInjectField);
     }

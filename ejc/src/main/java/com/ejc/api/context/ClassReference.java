@@ -70,7 +70,7 @@ public class ClassReference {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        ClassReference that = (ClassReference) o;
+        var that = (ClassReference) o;
 
         return className.equals(that.className);
     }
