@@ -41,11 +41,14 @@ public class ProcessorTestUtil {
         Compilation compilation = compiler.compile(fileObject);
         ProcessorTestUtil.assertSuccess(compilation);
         String moduleFactoryName = ModuleFactory.getQualifiedName(appName);
+        //ClassLoader threadContextClassLoader = Thread.currentThread().getContextClassLoader();
         FileObjectClassLoader classLoader = bindClassLoader(Thread.currentThread(), compilation);
         Class<ModuleFactory> moduleFactoryClass = (Class<ModuleFactory>) classLoader.findClass(moduleFactoryName);
         ModuleFactory factory = ClassUtils.createInstance(moduleFactoryClass);
         ApplicationContextFactory applicationContextFactory = new ApplicationContextFactory(factory.getModule());
-        return applicationContextFactory.createApplicationContext();
+        ApplicationContext applicationContext = applicationContextFactory.createApplicationContext();
+        //Thread.currentThread().setContextClassLoader(threadContextClassLoader);
+        return applicationContext;
     }
 
 
@@ -55,18 +58,16 @@ public class ProcessorTestUtil {
     }
 
     public static FileObjectClassLoader bindClassLoader(Thread thread, Compilation compilation) {
-        FileObjectClassLoader classLoader = new FileObjectClassLoader(Thread.currentThread().getContextClassLoader(), compilation.generatedFiles());
-        thread.setContextClassLoader(classLoader);
-        return classLoader;
-    }
-
-    public static <T> Class<T> getCompiledClass(Compilation compilation, String name) {
-        FileObjectClassLoader classLoader = new FileObjectClassLoader(Thread.currentThread().getContextClassLoader(), compilation.generatedFiles());
-        try {
-            return (Class<T>) classLoader.findClass(name);
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
+        ClassLoader threadClassLoader = Thread.currentThread().getContextClassLoader();
+        FileObjectClassLoader fileObjectClassLoader;
+        if (FileObjectClassLoader.class.isInstance(threadClassLoader)) {
+            fileObjectClassLoader = (FileObjectClassLoader) threadClassLoader;
+        } else {
+            fileObjectClassLoader = new FileObjectClassLoader(Thread.currentThread().getContextClassLoader());
         }
+        fileObjectClassLoader.setJavaFileObjects(compilation.generatedFiles());
+        thread.setContextClassLoader(fileObjectClassLoader);
+        return fileObjectClassLoader;
     }
 
     public static List<JavaFileObject> javaFileObjectList(String directory, String... javaFileNames) {

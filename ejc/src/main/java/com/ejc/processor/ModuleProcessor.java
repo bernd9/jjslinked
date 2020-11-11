@@ -3,6 +3,7 @@ package com.ejc.processor;
 import com.ejc.*;
 import com.ejc.api.context.ModuleFactory;
 import com.ejc.api.context.UndefinedClass;
+import com.ejc.util.CollectionUtils;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.IOUtils;
 import com.google.auto.service.AutoService;
@@ -34,7 +35,7 @@ public class ModuleProcessor extends ProcessorBase {
     private Set<TypeElement> singletons = new HashSet<>();
     private Map<TypeElement, TypeElement> implementations = new HashMap<>();
 
-    private String appClassQualifiedName;
+    private Set<String> appClassQualifiedNames = new HashSet<>();
 
     private static final Set<String> NON_SINGLETON_ANNOTATIONS = Stream.of(Inject.class, InjectAll.class, Init.class, Implementation.class,
             Value.class, Configuration.class, Bean.class).map(Class::getName).collect(Collectors.toSet());
@@ -156,7 +157,17 @@ public class ModuleProcessor extends ProcessorBase {
         configFields.forEach((name, fields) -> mapper.putConfigFields(typeForName(name), fields));
         implementations.forEach(mapper::putImplementation);
         singletons.forEach(type -> mapper.putConstructor(type, getConstructor(type)));
-        return mapper.getSingletonWriterModel(appClassQualifiedName);
+        String appClassName = null;
+        switch (appClassQualifiedNames.size()) {
+            case 0:
+                throw new IllegalStateException("No @Application-annotations");
+            case 1:
+                appClassName = CollectionUtils.getOnlyElement(appClassQualifiedNames);
+                break;
+            default:
+                throw new IllegalStateException("Multiple @Application-annotations");
+        }
+        return mapper.getSingletonWriterModel(appClassName);
     }
 
     private TypeElement typeForName(Name name) {
@@ -165,15 +176,16 @@ public class ModuleProcessor extends ProcessorBase {
 
     @Override
     protected void processingOver() {
-        writeSingletons(createWriterModel());
-        writeContextFile();
+        ModuleWriterModel model = createWriterModel();
+        writeSingletons(model);
+        writeContextFile(model);
     }
 
     private void writeSingletons(ModuleWriterModel model) {
         ModuleWriter writer = ModuleWriter.builder()
                 .model(model)
-                .packageName(ModuleFactory.getPackageName(appClassQualifiedName))
-                .simpleName(ModuleFactory.getSimpleName(appClassQualifiedName))
+                .packageName(ModuleFactory.getPackageName(model.getApplicationClass()))
+                .simpleName(ModuleFactory.getSimpleName(model.getApplicationClass()))
                 .processingEnvironment(processingEnv)
                 .build();
         try {
@@ -232,22 +244,14 @@ public class ModuleProcessor extends ProcessorBase {
     }
 
     private void processApplication(QueryResult result) {
-        if (appClassQualifiedName != null) return;
-        Set<TypeElement> classes = result.getElements(Application.class, TypeElement.class);
-        TypeElement appClass;
-        switch (classes.size()) {
-            case 0:
-                throw new IllegalStateException("No @Application-annotations");
-            case 1:
-                appClass = classes.iterator().next();
-                break;
-            default:
-                throw new IllegalStateException("Multiple @Application-annotations");
-        }
-        appClassQualifiedName = appClass.getQualifiedName().toString();
+        appClassQualifiedNames.addAll(result.getElements(Application.class, TypeElement.class).stream()
+                .map(TypeElement::getQualifiedName)
+                .map(Name::toString).collect(Collectors.toSet()));
+
+
     }
 
-    private void writeContextFile() {
-        IOUtils.write(Collections.singletonList(ModuleFactory.getQualifiedName(appClassQualifiedName)), processingEnv.getFiler(), "META-INF/services/" + ModuleFactory.class.getName());
+    private void writeContextFile(ModuleWriterModel model) {
+        IOUtils.write(Collections.singletonList(ModuleFactory.getQualifiedName(model.getApplicationClass())), processingEnv.getFiler(), "META-INF/services/" + ModuleFactory.class.getName());
     }
 }

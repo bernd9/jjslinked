@@ -16,7 +16,7 @@ public class CollectionUtils {
         }
         T rv = iter.next();
         if (iter.hasNext()) {
-            throw new NoSuchElementException("expected exactly one element, but there are more ones");
+            throw new IllegalStateException("expected exactly one element, but there are more ones");
         }
         return rv;
     }

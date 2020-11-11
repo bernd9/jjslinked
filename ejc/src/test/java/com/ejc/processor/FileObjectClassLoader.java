@@ -10,26 +10,30 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class FileObjectClassLoader extends ClassLoader {
-    private Collection<JavaFileObject> javaFileObjects;
     private Map<String, Class<?>> classes = new HashMap<>();
     private Map<String, byte[]> bytesByName = new HashMap<>();
 
-    public FileObjectClassLoader(ClassLoader classLoader, Collection<JavaFileObject> javaFileObjects) {
+    public FileObjectClassLoader(ClassLoader classLoader) {
         super(classLoader);
-        this.javaFileObjects = javaFileObjects;
-        init();
     }
 
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
+        if (classes.containsKey(name)) {
+            return classes.get(name);
+        }
         if (bytesByName.containsKey(name)) {
-            return defineClass(name, bytesByName.get(name), 0, bytesByName.get(name).length);
+            Class<?> c = defineClass(name, bytesByName.get(name), 0, bytesByName.get(name).length);
+            classes.put(name, c);
+            return c;
         }
         return Class.forName(name);
     }
 
 
-    private void init() {
+    void setJavaFileObjects(Collection<JavaFileObject> javaFileObjects) {
+        classes.clear();
+        bytesByName.clear();
         javaFileObjects.stream()
                 .filter(o -> o.getKind() == JavaFileObject.Kind.CLASS)
                 .forEach(this::addClass);
