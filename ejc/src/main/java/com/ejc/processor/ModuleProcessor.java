@@ -70,6 +70,7 @@ public class ModuleProcessor extends ProcessorBase {
         singletons.addAll(singletonAnnotations.stream()
                 .map(name -> result.getElements(name, TypeElement.class))
                 .flatMap(Collection::stream)
+                .filter(e -> e.getKind() != ElementKind.ANNOTATION_TYPE)
                 .collect(Collectors.toSet()));
     }
 
