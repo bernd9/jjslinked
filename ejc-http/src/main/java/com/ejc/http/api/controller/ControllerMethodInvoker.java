@@ -2,7 +2,6 @@ package com.ejc.http.api.controller;
 
 import com.ejc.ApplicationContext;
 import com.ejc.Inject;
-import com.ejc.InjectAll;
 import com.ejc.Singleton;
 import com.ejc.http.api.HttpResponder;
 import com.ejc.http.exception.ExceptionController;
@@ -25,7 +24,7 @@ public class ControllerMethodInvoker {
     @Inject
     private HttpResponder responder;
 
-    @InjectAll
+    @Inject
     private List<ControllerMethod> controllerMethods;
 
     public void invoke(HttpServletRequest request, HttpServletResponse response) {
