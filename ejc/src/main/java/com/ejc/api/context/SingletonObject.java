@@ -20,23 +20,25 @@ class SingletonObject {
     private boolean satisfied;
 
     void onSingletonCreated(Object o, SingletonProviders singletonProviders) {
-        simpleDependencyFields.forEach(field -> field.onSingletonCreated(o));
-        collectionDependencyFields.forEach(field -> field.onSingletonCreated(o));
-        if (type.isInstance(o)) {
-            if (singleton != null) {
-                throw new IllegalStateException(); // TODO special exception, more info
+        if (!satisfied) {
+            simpleDependencyFields.forEach(field -> field.onSingletonCreated(o));
+            collectionDependencyFields.forEach(field -> field.onSingletonCreated(o));
+            if (type.equalClass(o)) {
+                if (singleton != null) {
+                    throw new IllegalStateException(); // TODO special exception, more info
+                }
+                singleton = o;
+                configFields.forEach(field -> field.injectConfigValue(singleton));
+                collectionDependencyFields.forEach(field -> field.setFieldValue(singleton));
             }
-            singleton = o;
-            configFields.forEach(field -> field.injectConfigValue(singleton));
-            collectionDependencyFields.forEach(field -> field.setFieldValue(singleton));
-        }
-        if (singleton != null) {
-            setSimpleDependencies(singleton);
-            clearSatisfiedCollectionDependencies(singletonProviders);
-        }
-        if (dependenciesSet()) {
-            invokeInitMethods();
-            satisfied = true;
+            if (singleton != null) {
+                setSimpleDependencies(singleton);
+                clearSatisfiedCollectionDependencies(singletonProviders);
+                if (dependenciesSet()) {
+                    invokeInitMethods();
+                    satisfied = true;
+                }
+            }
         }
     }
 

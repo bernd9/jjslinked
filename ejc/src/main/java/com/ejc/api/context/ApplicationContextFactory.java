@@ -17,6 +17,7 @@ public class ApplicationContextFactory {
     private Map<ClassReference, SingletonObject> singletonObjectMap;
     private Collection<SingletonConstructor> singletonConstructors;
     private UniqueBeanValidator uniqueBeanValidator;
+    private Set<SingletonObject> singletonObjects;
 
     public ApplicationContextFactory(Class<?> applicationClass) {
         ModuleComposer moduleComposer = new ModuleComposer(loadModules(), applicationClass);
@@ -33,9 +34,11 @@ public class ApplicationContextFactory {
     }
 
     private void init() {
+        long t0 = System.currentTimeMillis();
         uniqueBeanValidator = new UniqueBeanValidator(singletonProviders, extractSimpleDependencyFields(singletonObjectMap.values()));
         singletonProviders.addProviders(singletonConstructors);
         singletonProviders.addProviders(extractBeanMethods(singletonObjectMap.values()));
+        singletonObjects = new HashSet<>(singletonObjectMap.values());
     }
 
     public ApplicationContext createApplicationContext() {
@@ -47,7 +50,6 @@ public class ApplicationContextFactory {
 
 
     private void runInstantiation() {
-        Set<SingletonObject> singletonObjects = new HashSet<>(singletonObjectMap.values());
         while (!singletonProviders.getProviders().isEmpty()) {
             Set<SingletonProvider> invocableProviders = singletonProviders.getProviders().stream()
                     .filter(provider -> provider.isSatisfied(singletonProviders))

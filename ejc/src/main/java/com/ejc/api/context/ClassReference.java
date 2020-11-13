@@ -71,6 +71,10 @@ public class ClassReference {
         //return isInstance.computeIfAbsent(o, getReferencedClass()::isInstance);
     }
 
+    public boolean equalClass(Object o) {
+        return className.equals(o.getClass().getName());
+    }
+
     public boolean isOfType(ClassReference classReference) {
         return classReference.getReferencedClass().isAssignableFrom(getReferencedClass());
         //return isTypeOf.computeIfAbsent(classReference, ref -> ref.getReferencedClass().isAssignableFrom(getReferencedClass()));
