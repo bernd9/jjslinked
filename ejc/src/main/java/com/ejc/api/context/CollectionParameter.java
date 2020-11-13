@@ -11,8 +11,8 @@ class CollectionParameter extends SingletonCollection implements Parameter {
     private final ClassReference parameterType;
     private final Collection<Object> values;
 
-    CollectionParameter(ClassReference collectionType) {
-        super((Class<? extends Collection<Object>>) collectionType.getReferencedClass());
+    CollectionParameter(ClassReference collectionType, ClassReference elementType) {
+        super(elementType);
         values = TypeUtils.emptyCollection((Class<? extends Collection<Object>>) collectionType.getReferencedClass());
         this.parameterType = collectionType;
     }

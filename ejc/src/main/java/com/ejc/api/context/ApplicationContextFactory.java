@@ -10,13 +10,13 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-public class ApplicationContextFactory implements SingletonCreationListener {
-    private final SingletonEvents singletonEvents = new SingletonEvents();
+public class ApplicationContextFactory {
     private final SingletonProviders singletonProviders = new SingletonProviders();
     private final Set<Object> singletons = new HashSet<>();
 
     private Map<ClassReference, SingletonObject> singletonObjectMap;
     private Collection<SingletonConstructor> singletonConstructors;
+    private UniqueBeanValidator uniqueBeanValidator;
 
     public ApplicationContextFactory(Class<?> applicationClass) {
         ModuleComposer moduleComposer = new ModuleComposer(loadModules(), applicationClass);
@@ -33,32 +33,38 @@ public class ApplicationContextFactory implements SingletonCreationListener {
     }
 
     private void init() {
+        uniqueBeanValidator = new UniqueBeanValidator(singletonProviders, extractSimpleDependencyFields(singletonObjectMap.values()));
         singletonProviders.addProviders(singletonConstructors);
         singletonProviders.addProviders(extractBeanMethods(singletonObjectMap.values()));
-        singletonEvents.addSingletonCreationListener(this);
-        singletonConstructors.forEach(singletonEvents::addSingletonCreationListener);
-        singletonObjectMap.values().forEach(singletonEvents::addSingletonCreationListener);
-        singletonEvents.addSingletonCreationListener(new UniqueBeanValidator(singletonProviders, extractSimpleDependencyFields(singletonObjectMap.values())));
     }
 
     public ApplicationContext createApplicationContext() {
-        startInstantiation();
+        runInstantiation();
         ApplicationContext applicationContext = new ApplicationContextImpl(singletons);
         singletons.add(applicationContext);
         return applicationContext;
     }
 
-    private void startInstantiation() {
-        Collection<SingletonConstructor> executableConstructors = singletonConstructors.stream()
-                .filter(singletonConstructor -> singletonConstructor.isSatisfied(singletonProviders))
-                .collect(Collectors.toSet());
-        if (executableConstructors.isEmpty()) {
-            // TODO throw exception. Because Configuration-Constructors are included, there must be at least one executable.
+
+    private void runInstantiation() {
+        Set<SingletonObject> singletonObjects = new HashSet<>(singletonObjectMap.values());
+        while (!singletonProviders.getProviders().isEmpty()) {
+            Set<SingletonProvider> invocableProviders = singletonProviders.getProviders().stream()
+                    .filter(provider -> provider.isSatisfied(singletonProviders))
+                    .collect(Collectors.toSet());
+            if (invocableProviders.isEmpty()) {
+                // TODO Exception
+                break;
+            }
+            singletonProviders.remove(invocableProviders);
+            invocableProviders.stream()
+                    .map(SingletonProvider::invoke)
+                    .peek(uniqueBeanValidator::onSingletonCreated)
+                    .peek(singletonProviders::onSingletonCreated)
+                    .peek(o -> singletonObjects.forEach(singletonObject -> singletonObject.onSingletonCreated(o, singletonProviders)))
+                    .forEach(singletons::add);
+
         }
-        singletonConstructors.removeAll(executableConstructors);
-        executableConstructors
-                .stream()
-                .forEach(constructor -> constructor.invoke(singletonEvents));
     }
 
     private Set<Module> loadModules() {
@@ -80,15 +86,5 @@ public class ApplicationContextFactory implements SingletonCreationListener {
                 .map(SingletonObject::getSimpleDependencyFields)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
-    }
-
-    @Override
-    public void onSingletonCreated(Object o, SingletonEvents events) {
-        singletons.add(o);
-    }
-
-    @Override
-    public boolean isDisabled() {
-        return false;
     }
 }

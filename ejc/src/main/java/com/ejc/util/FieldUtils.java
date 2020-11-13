@@ -24,6 +24,10 @@ public class FieldUtils {
         }
     }
 
+    public static <T> T getFieldValue(Object o, String fieldName, Class<T> fieldType) {
+        return fieldType.cast(getFieldValue(o, fieldName));
+    }
+
     public static void setFieldValue(Object bean, Field field, Object value) {
         field.setAccessible(true);
         try {

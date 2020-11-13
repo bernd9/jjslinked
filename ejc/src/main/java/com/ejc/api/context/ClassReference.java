@@ -4,14 +4,15 @@ import com.ejc.processor.ModuleWriter;
 import com.ejc.util.ClassUtils;
 import lombok.Getter;
 
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public class ClassReference {
 
-    private static Map<String, ClassReference> references = new HashMap<>();
+    private static Map<String, ClassReference> references = new ConcurrentHashMap<>();
 
     private Class<?> clazz;
 
@@ -50,8 +51,18 @@ public class ClassReference {
         return clazz;
     }
 
+    @UsedInGeneratedCode(ModuleWriter.class)
     public static ClassReference getRef(String className) {
         return references.computeIfAbsent(className, ClassReference::new);
+    }
+
+    @UsedInGeneratedCode(ModuleWriter.class)
+    public static ClassReference getRef(Class<? extends Collection> collectionClass, String className) {
+        StringBuilder name = new StringBuilder(collectionClass.getName());
+        name.append("<");
+        name.append(className);
+        name.append(">");
+        return references.computeIfAbsent(name.toString(), n -> new ClassReference(collectionClass.getName(), className));
     }
 
     public boolean isInstance(Object o) {

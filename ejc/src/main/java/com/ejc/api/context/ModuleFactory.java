@@ -34,7 +34,8 @@ public abstract class ModuleFactory {
 
     @UsedInGeneratedCode(ModuleWriter.class)
     public void addBeanMethod(ClassReference owner, String name, ClassReference returnType, ClassReference... parameterTypes) {
-        getSingleton(owner).addBeanMethod(new BeanMethod(name, returnType, Arrays.asList(parameterTypes)));
+        SingletonObject singletonObject = getSingleton(owner);
+        getSingleton(owner).addBeanMethod(new BeanMethod(singletonObject, name, returnType, Arrays.asList(parameterTypes)));
     }
 
     @UsedInGeneratedCode(ModuleWriter.class)

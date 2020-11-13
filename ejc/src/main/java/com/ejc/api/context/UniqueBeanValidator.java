@@ -3,7 +3,7 @@ package com.ejc.api.context;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class UniqueBeanValidator implements SingletonCreationListener {
+public class UniqueBeanValidator {
 
     private Map<ClassReference, Set<Object>> uniqueBaseTypes = new HashMap();
     private Set<ClassReference> createdTypes = new HashSet<>();
@@ -11,7 +11,7 @@ public class UniqueBeanValidator implements SingletonCreationListener {
     // TODO Map also fields and parameters for better exception messages
 
     UniqueBeanValidator(SingletonProviders singletonProviders, Collection<SimpleDependencyField> simpleDependencyFields) {
-        singletonProviders.getSingletonProviders().stream()
+        singletonProviders.getProviders().stream()
                 .map(SingletonProvider::getParameters)
                 .flatMap(Collection::stream)
                 .filter(SimpleParameter.class::isInstance)
@@ -23,8 +23,7 @@ public class UniqueBeanValidator implements SingletonCreationListener {
                 .forEach(classReference -> uniqueBaseTypes.put(classReference, null));
     }
 
-    @Override
-    public void onSingletonCreated(Object o, SingletonEvents events) {
+    void onSingletonCreated(Object o) {
         uniqueBaseTypes.entrySet().stream()
                 .filter(e -> e.getKey().isInstance(o))
                 .forEach(e -> {
@@ -41,8 +40,4 @@ public class UniqueBeanValidator implements SingletonCreationListener {
         createdTypes.add(type);
     }
 
-    @Override
-    public boolean isDisabled() {
-        return false;
-    }
 }

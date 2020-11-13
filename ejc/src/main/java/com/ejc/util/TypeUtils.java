@@ -21,15 +21,11 @@ public class TypeUtils {
             return (C) new ArrayList<T>();
         }
         if (collectionType.equals(Set.class)) {
-            return (C) new ArrayList<T>();
+            return (C) new HashSet<T>();
         }
         if (collectionType.equals(Vector.class)) {
             return (C) new Vector<T>();
         }
-        if (collectionType.equals(Iterable.class)) {
-            return (C) new HashSet<T>();
-        }
-
         throw new IllegalArgumentException("unsupported collection type ");
 
     }

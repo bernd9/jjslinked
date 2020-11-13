@@ -7,14 +7,31 @@ import java.util.Objects;
 
 class BeanMethod extends SingletonProvider {
 
-    private String name;
+    private final String name;
+    private final SingletonObject singletonObject;
 
-    public BeanMethod(@NonNull String name, @NonNull ClassReference returnType, @NonNull List<ClassReference> parameterTypes) {
+    public BeanMethod(SingletonObject singletonObject, @NonNull String name, @NonNull ClassReference returnType, @NonNull List<ClassReference> parameterTypes) {
         super(returnType, parameterTypes);
+        this.singletonObject = singletonObject;
         this.name = name;
     }
 
-    public Object invoke(Object configuration) {
+    @Override
+    Object invoke() {
+        return invoke(singletonObject.getSingleton());
+    }
+
+    @Override
+    public boolean isSatisfied(SingletonProviders providers) {
+        return super.isSatisfied(providers) && singletonObject.isSatisfied();
+    }
+
+    @Override
+    void onSingletonCreated(Object o) {
+        super.onSingletonCreated(o);
+    }
+
+    private Object invoke(Object configuration) {
         try {
             var method = configuration.getClass().getDeclaredMethod(name, parameterTypes());
             method.setAccessible(true);

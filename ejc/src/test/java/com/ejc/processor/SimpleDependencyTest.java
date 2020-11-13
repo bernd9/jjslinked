@@ -9,7 +9,7 @@ import org.junit.jupiter.api.TestInstance;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-class SimpleDependencyInjectionTest {
+class SimpleDependencyTest {
 
     private ApplicationContext context;
 

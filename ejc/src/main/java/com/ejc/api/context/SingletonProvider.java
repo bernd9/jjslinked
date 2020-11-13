@@ -3,7 +3,7 @@ package com.ejc.api.context;
 import lombok.Data;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
 
 @Data
@@ -21,9 +21,13 @@ public abstract class SingletonProvider {
         parameters.forEach(parameter -> parameter.onSingletonCreated(o));
     }
 
+    abstract Object invoke();
+
     protected void addParameter(ClassReference parameterType) {
-        if (Collections.class.isAssignableFrom(parameterType.getReferencedClass())) {
-            parameters.add(new CollectionParameter(parameterType));
+        if (Collection.class.isAssignableFrom(parameterType.getReferencedClass())) {
+            // TODO field in exception-message
+            // TODO ExceptionType ?
+            parameters.add(new CollectionParameter(parameterType, parameterType.getGenericType().orElseThrow(() -> new IllegalStateException("parameter must have generic type "))));
         } else {
             parameters.add(new SimpleParameter(parameterType));
         }
@@ -43,6 +47,4 @@ public abstract class SingletonProvider {
     protected Object[] parameters() {
         return parameters.stream().map(Parameter::getValue).toArray(Object[]::new);
     }
-
-
 }

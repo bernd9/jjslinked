@@ -1,14 +1,13 @@
 package com.ejc.api.context;
 
 import lombok.Data;
-import lombok.Getter;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 
 @Data
-class SingletonObject implements SingletonCreationListener {
+class SingletonObject {
 
     private final ClassReference type;
     private final Collection<InitMethod> initMethods = new HashSet<>();
@@ -17,39 +16,27 @@ class SingletonObject implements SingletonCreationListener {
     private final Collection<SimpleDependencyField> simpleDependencyFields = new HashSet<>();
     private final Collection<CollectionDependencyField> collectionDependencyFields = new HashSet<>();
 
-    private SingletonProviders singletonProviders;
     private Object singleton;
+    private boolean satisfied;
 
-    @Getter
-    private boolean disabled;
-
-    @Override
-    public void onSingletonCreated(Object o, SingletonEvents events) {
-        if (disabled) {
-            return;
-        }
+    void onSingletonCreated(Object o, SingletonProviders singletonProviders) {
+        simpleDependencyFields.forEach(field -> field.onSingletonCreated(o));
+        collectionDependencyFields.forEach(field -> field.onSingletonCreated(o));
         if (type.isInstance(o)) {
             if (singleton != null) {
-                throw new IllegalStateException();
+                throw new IllegalStateException(); // TODO special exception, more info
             }
             singleton = o;
             configFields.forEach(field -> field.injectConfigValue(singleton));
+            collectionDependencyFields.forEach(field -> field.setFieldValue(singleton));
         }
-        beanMethods.forEach(method -> method.onSingletonCreated(o));
-        simpleDependencyFields.forEach(field -> field.onSingletonCreated(o));
-        collectionDependencyFields.forEach(method -> method.onSingletonCreated(o));
         if (singleton != null) {
-            singletonCreatedPostAction(events);
+            setSimpleDependencies(singleton);
+            clearSatisfiedCollectionDependencies(singletonProviders);
         }
-    }
-
-    private void singletonCreatedPostAction(SingletonEvents events) {
-        setSimpleDependencies();
-        setCollectionDependencies();
         if (dependenciesSet()) {
-            this.disabled = true;
             invokeInitMethods();
-            invokeBeanMethods(events);
+            satisfied = true;
         }
     }
 
@@ -58,18 +45,7 @@ class SingletonObject implements SingletonCreationListener {
         initMethods.clear();
     }
 
-    private void invokeBeanMethods(SingletonEvents singletonEvents) {
-        Collection<BeanMethod> executableBeanMethods = beanMethods.stream()
-                .filter(beanMethod -> beanMethod.isSatisfied(singletonProviders))
-                .collect(Collectors.toSet());
-        beanMethods.removeAll(executableBeanMethods);
-        executableBeanMethods.stream()
-                .map(method -> method.invoke(singleton))
-                .forEach(singletonEvents::onSingletonCreated);
-    }
-
-
-    private void setSimpleDependencies() {
+    private void setSimpleDependencies(Object singleton) {
         Collection<SimpleDependencyField> satisfiedFields = simpleDependencyFields.stream()
                 .filter(SimpleDependencyField::isSatisfied)
                 .collect(Collectors.toSet());
@@ -77,13 +53,11 @@ class SingletonObject implements SingletonCreationListener {
         satisfiedFields.forEach(field -> field.setFieldValue(singleton));
     }
 
-    private void setCollectionDependencies() {
+    private void clearSatisfiedCollectionDependencies(SingletonProviders singletonProviders) {
         Collection<CollectionDependencyField> satisfiedFields = collectionDependencyFields.stream()
                 .filter(field -> field.isSatisfied(singletonProviders))
                 .collect(Collectors.toSet());
         collectionDependencyFields.removeAll(satisfiedFields);
-        satisfiedFields.forEach(field -> field.setFieldValue(singleton));
-
     }
 
     private boolean dependenciesSet() {

@@ -138,15 +138,15 @@ public class ModuleWriter extends JavaWriter {
         return ref(typeElement);
     }
 
-    private String ref(TypeMirror e, TypeMirror genericType) {
-        TypeElement typeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(e);
+    private String ref(TypeMirror collectionType, TypeMirror genericType) {
+        TypeElement typeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(collectionType);
         TypeElement genTypeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(genericType);
         return ref(typeElement, genTypeElement);
     }
 
-    private String ref(TypeElement e, TypeElement genericType) {
+    private String ref(TypeElement collectionType, TypeElement genericType) {
         return CodeBlock.builder()
-                .add("$T.getRef(\"$L\", \"$L\")", ClassReference.class, JavaModelUtils.getClassName(e), JavaModelUtils.getClassName(genericType))
+                .add("$T.getRef($L.class, \"$L\")", ClassReference.class, JavaModelUtils.getClassName(collectionType), JavaModelUtils.getClassName(genericType))
                 .build().toString();
     }
 

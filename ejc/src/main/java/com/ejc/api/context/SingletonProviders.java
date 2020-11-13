@@ -8,13 +8,22 @@ import java.util.Set;
 
 class SingletonProviders {
     @Getter
-    private final Set<SingletonProvider> singletonProviders = new HashSet<>();
+    private final Set<SingletonProvider> providers = new HashSet<>();
 
     void addProviders(Collection<? extends SingletonProvider> providers) {
-        singletonProviders.addAll(providers);
+        this.providers.addAll(providers);
     }
 
     boolean hasMatchingSourceFor(ClassReference classReference) {
-        return singletonProviders.stream().anyMatch(provider -> classReference.isOfType(provider.getType()));
+        return providers.stream()
+                .anyMatch(provider -> provider.getType().isOfType(classReference));
+    }
+
+    void remove(Collection<SingletonProvider> provider) {
+        providers.removeAll(provider);
+    }
+
+    void onSingletonCreated(Object o) {
+        providers.forEach(provider -> provider.onSingletonCreated(o));
     }
 }
