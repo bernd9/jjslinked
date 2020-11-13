@@ -1,6 +1,6 @@
 package com.ejc.processor;
 
-import com.ejc.ApplicationContext;
+import com.ejc.api.context.ApplicationContext;
 import com.ejc.util.FieldUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;

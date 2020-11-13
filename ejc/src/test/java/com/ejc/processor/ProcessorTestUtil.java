@@ -1,6 +1,6 @@
 package com.ejc.processor;
 
-import com.ejc.ApplicationContext;
+import com.ejc.api.context.ApplicationContext;
 import com.ejc.api.context.ApplicationContextFactory;
 import com.ejc.api.context.ModuleFactory;
 import com.ejc.util.ClassUtils;

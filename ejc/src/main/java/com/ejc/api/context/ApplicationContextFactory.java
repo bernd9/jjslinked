@@ -1,6 +1,5 @@
 package com.ejc.api.context;
 
-import com.ejc.ApplicationContext;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;
@@ -45,6 +44,7 @@ public class ApplicationContextFactory {
         runInstantiation();
         ApplicationContext applicationContext = new ApplicationContextImpl(singletons);
         singletons.add(applicationContext);
+        ApplicationContext.instance = applicationContext;
         return applicationContext;
     }
 

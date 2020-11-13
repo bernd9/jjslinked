@@ -1,6 +1,6 @@
 package com.ejc.processor;
 
-import com.ejc.ApplicationContext;
+import com.ejc.api.context.ApplicationContext;
 import com.ejc.util.JavaModelUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;

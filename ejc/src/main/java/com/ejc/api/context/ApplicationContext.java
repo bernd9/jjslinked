@@ -1,4 +1,4 @@
-package com.ejc;
+package com.ejc.api.context;
 
 import lombok.Getter;
 
@@ -7,7 +7,7 @@ import java.util.Set;
 public abstract class ApplicationContext {
 
     @Getter
-    public static ApplicationContext instance;
+    static ApplicationContext instance;
 
     public abstract <T> T getBean(Class<T> c);
 
