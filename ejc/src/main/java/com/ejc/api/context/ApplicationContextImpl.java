@@ -1,7 +1,8 @@
 package com.ejc.api.context;
 
+import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -9,11 +10,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
-public class ApplicationContextImpl extends ApplicationContext {
+class ApplicationContextImpl extends ApplicationContext {
 
     @Getter
-    private final Set<Object> beans;
+    @Setter(AccessLevel.PACKAGE)
+    private Set<Object> beans;
 
     public <T> void replaceBean(Class<T> t, T bean) {
         try {

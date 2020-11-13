@@ -26,4 +26,8 @@ class SingletonProviders {
     void onSingletonCreated(Object o) {
         providers.forEach(provider -> provider.onSingletonCreated(o));
     }
+
+    public void addProvider(SingletonProvider provider) {
+        providers.add(provider);
+    }
 }

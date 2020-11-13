@@ -1,5 +1,6 @@
 package com.ejc.api.context;
 
+import com.ejc.util.ClassUtils;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;
@@ -17,12 +18,14 @@ public class ApplicationContextFactory {
     private Collection<SingletonConstructor> singletonConstructors;
     private UniqueBeanValidator uniqueBeanValidator;
     private Set<SingletonObject> singletonObjects;
+    private ApplicationContextImpl applicationContext = new ApplicationContextImpl();
 
     public ApplicationContextFactory(Class<?> applicationClass) {
         ModuleComposer moduleComposer = new ModuleComposer(loadModules(), applicationClass);
         moduleComposer.composeModules();
         singletonObjectMap = moduleComposer.getSingletonObjectMap();
         singletonConstructors = moduleComposer.getSingletonConstructors();
+        singletonProviders.addProvider(new SimpleSingletonProvider(ClassUtils.createInstance(applicationClass)));
         init();
     }
 
@@ -33,17 +36,16 @@ public class ApplicationContextFactory {
     }
 
     private void init() {
-        long t0 = System.currentTimeMillis();
         uniqueBeanValidator = new UniqueBeanValidator(singletonProviders, extractSimpleDependencyFields(singletonObjectMap.values()));
         singletonProviders.addProviders(singletonConstructors);
         singletonProviders.addProviders(extractBeanMethods(singletonObjectMap.values()));
+        singletonProviders.addProvider(new SimpleSingletonProvider(applicationContext));
         singletonObjects = new HashSet<>(singletonObjectMap.values());
     }
 
     public ApplicationContext createApplicationContext() {
         runInstantiation();
-        ApplicationContext applicationContext = new ApplicationContextImpl(singletons);
-        singletons.add(applicationContext);
+        applicationContext.setBeans(singletons);
         ApplicationContext.instance = applicationContext;
         return applicationContext;
     }
