@@ -10,6 +10,7 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -19,7 +20,7 @@ import java.util.UUID;
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class CustomSingletonAnnotationProcessor extends AbstractProcessor {
 
-    private static final String PROVIDER_CLASS_PACKAGE = "com.ejc.provider";
+    private static final String PROVIDER_CLASS_PACKAGE = CustomSingletonAnnotationProvider.class.getPackageName();
 
     private Set<String> providerClasses = new HashSet<>();
 
@@ -51,7 +52,11 @@ public class CustomSingletonAnnotationProcessor extends AbstractProcessor {
                 .providerClassPackageName(PROVIDER_CLASS_PACKAGE)
                 .providerClassSimpleName(providerClassSimpleName)
                 .build();
-        writer.write();
+        try {
+            writer.write();
+        } catch (IOException e) {
+            log("failed to write provider ", e);
+        }
 
     }
 

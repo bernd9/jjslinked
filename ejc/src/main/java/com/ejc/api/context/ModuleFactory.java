@@ -55,6 +55,7 @@ public abstract class ModuleFactory {
 
     @UsedInGeneratedCode(ModuleWriter.class)
     public void addConstructor(ClassReference owner, ClassReference... parameterTypes) {
+        getSingleton(owner);// Important !
         constructors.add(new SingletonConstructor(owner, Arrays.asList(parameterTypes)));
     }
 
