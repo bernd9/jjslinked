@@ -22,7 +22,7 @@ class CustomAnnotationProviderWriter extends JavaWriter {
     @Override
     protected void writeConstructor(MethodSpec.Builder constructorBuilder) {
         constructorBuilder.addModifiers(Modifier.PUBLIC)
-                .addStatement("setAnnotationClass(\"$T\")", annotationClass)
+                .addStatement("setAnnotationClass(\"$L\")", annotationClass.getQualifiedName())
                 .build();
     }
 

@@ -19,11 +19,15 @@ public abstract class ProcessorBase extends AbstractProcessor {
         } else {
             QueryResult result = new QueryResult();
             getSupportedAnnotationTypes().stream()
-                    .map(name -> processingEnv.getElementUtils().getTypeElement(name))
+                    .map(this::asTypeElement)
                     .forEach(annotation -> process(annotation, roundEnv, result));
             process(result);
         }
         return false;
+    }
+
+    private TypeElement asTypeElement(String name) {
+        return processingEnv.getElementUtils().getTypeElement(name);
     }
 
     protected void process(TypeElement annotationClass, RoundEnvironment roundEnvironment, QueryResult result) {
