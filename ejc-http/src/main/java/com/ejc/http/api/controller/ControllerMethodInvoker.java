@@ -42,6 +42,7 @@ public class ControllerMethodInvoker {
                 throw new ControllerMethodMappingException(request, "no mapping");
             case 1:
                 doInvocation(methods.get(0), request, response);
+                break;
             default:
                 throw new ControllerMethodMappingException(request, "ambiguous mapping");
         }
