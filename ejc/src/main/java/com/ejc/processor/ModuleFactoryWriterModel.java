@@ -8,7 +8,7 @@ import java.util.Set;
 
 @Getter
 @RequiredArgsConstructor
-class ModuleWriterModel {
+class ModuleFactoryWriterModel {
 
     private final Set<SingletonElement> singletonElements;
     private final String applicationClass;

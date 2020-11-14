@@ -21,12 +21,12 @@ import java.util.Objects;
 import java.util.Optional;
 
 
-public class ModuleWriter extends JavaWriter {
+public class ModuleFactoryWriter extends JavaWriter {
 
-    private ModuleWriterModel model;
+    private ModuleFactoryWriterModel model;
 
     @Builder
-    public ModuleWriter(ModuleWriterModel model, String simpleName, Optional<String> packageName, ProcessingEnvironment processingEnvironment) {
+    public ModuleFactoryWriter(ModuleFactoryWriterModel model, String simpleName, Optional<String> packageName, ProcessingEnvironment processingEnvironment) {
         super(simpleName, packageName, Optional.of(ModuleFactory.class), processingEnvironment);
         this.model = model;
     }

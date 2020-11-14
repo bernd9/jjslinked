@@ -1,6 +1,6 @@
 package test;
 
-import com.ejc.InjectAll;
+import com.ejc.Inject;
 import com.ejc.Singleton;
 
 import java.util.Set;
@@ -8,9 +8,9 @@ import java.util.Set;
 @Singleton
 public class InjectAllTest {
 
-    @InjectAll
+    @Inject
     private Set<CalculatorService> calculatorServices;
 
-    @InjectAll
+    @Inject
     private Set<Object> objects;
 }

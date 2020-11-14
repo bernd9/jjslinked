@@ -1,6 +1,6 @@
 package com.ejc.http.api;
 
-import com.ejc.ApplicationContext;
+import com.ejc.api.context.ApplicationContext;
 import com.ejc.http.api.controller.ControllerMethodInvoker;
 import com.ejc.util.InstrumentationHook;
 

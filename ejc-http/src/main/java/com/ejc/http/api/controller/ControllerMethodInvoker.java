@@ -1,8 +1,8 @@
 package com.ejc.http.api.controller;
 
-import com.ejc.ApplicationContext;
 import com.ejc.Inject;
 import com.ejc.Singleton;
+import com.ejc.api.context.ApplicationContext;
 import com.ejc.http.api.HttpResponder;
 import com.ejc.http.exception.ExceptionController;
 

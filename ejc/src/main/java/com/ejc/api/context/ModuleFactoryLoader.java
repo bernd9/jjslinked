@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 @Getter
 @RequiredArgsConstructor
-class ModuleFactoryLoader {
+public class ModuleFactoryLoader {
     public Set<ModuleFactory> load() {
         ServiceLoader<ModuleFactory> loader = ServiceLoader.load(ModuleFactory.class);
         return loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toSet());

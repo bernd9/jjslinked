@@ -73,7 +73,6 @@ public class ModuleProcessor extends ProcessorBase {
                 .collect(Collectors.toSet()));
     }
 
-
     private void processImplementations(QueryResult result) {
         implementations.putAll(result.getElements(Implementation.class, TypeElement.class).stream()
                 .collect(Collectors.toMap(Functions.identity(), this::getSuperClassToOverride)));
@@ -146,7 +145,7 @@ public class ModuleProcessor extends ProcessorBase {
         return processingEnv.getTypeUtils().isAssignable(candidate, superType);
     }
 
-    private ModuleWriterModel createWriterModel() {
+    private ModuleFactoryWriterModel createWriterModel() {
         Map<TypeElement, List<TypeElement>> hierarchy = singletons.stream()
                 .collect(Collectors.toMap(Functions.identity(), this::getClassHierarchy));
         SingletonElementMapper mapper = new SingletonElementMapper(hierarchy);
@@ -157,16 +156,7 @@ public class ModuleProcessor extends ProcessorBase {
         configFields.forEach((name, fields) -> mapper.putConfigFields(typeForName(name), fields));
         implementations.forEach(mapper::putImplementation);
         singletons.forEach(type -> mapper.putConstructor(type, getConstructor(type)));
-        String appClassName = null;
-        switch (appClassQualifiedNames.size()) {
-            case 0:
-                throw new IllegalStateException("No @Application-annotations");
-            case 1:
-                appClassName = CollectionUtils.getOnlyElement(appClassQualifiedNames);
-                break;
-            default:
-                throw new IllegalStateException("Multiple @Application-annotations");
-        }
+        String appClassName = CollectionUtils.getOnlyElement(appClassQualifiedNames, "Classes annotated with @Application");
         return mapper.getSingletonWriterModel(appClassName);
     }
 
@@ -176,13 +166,13 @@ public class ModuleProcessor extends ProcessorBase {
 
     @Override
     protected void processingOver() {
-        ModuleWriterModel model = createWriterModel();
+        ModuleFactoryWriterModel model = createWriterModel();
         writeSingletons(model);
         writeContextFile(model);
     }
 
-    private void writeSingletons(ModuleWriterModel model) {
-        ModuleWriter writer = ModuleWriter.builder()
+    private void writeSingletons(ModuleFactoryWriterModel model) {
+        ModuleFactoryWriter writer = ModuleFactoryWriter.builder()
                 .model(model)
                 .packageName(ModuleFactory.getPackageName(model.getApplicationClass()))
                 .simpleName(ModuleFactory.getSimpleName(model.getApplicationClass()))
@@ -221,7 +211,7 @@ public class ModuleProcessor extends ProcessorBase {
         return Optional.ofNullable(getAnnotationValue(annotationMirror, "forClass"))
                 .filter(Objects::nonNull)
                 .map(AnnotationValue::getValue)
-                .map(Class.class::cast) // TODO Test
+                .map(Class.class::cast)
                 .filter(c -> !c.equals(UndefinedClass.class))
                 .map(Class::getName)
                 .map(processingEnv.getElementUtils()::getTypeElement);
@@ -251,7 +241,7 @@ public class ModuleProcessor extends ProcessorBase {
 
     }
 
-    private void writeContextFile(ModuleWriterModel model) {
+    private void writeContextFile(ModuleFactoryWriterModel model) {
         IOUtils.write(Collections.singletonList(ModuleFactory.getQualifiedName(model.getApplicationClass())), processingEnv.getFiler(), "META-INF/services/" + ModuleFactory.class.getName());
     }
 }

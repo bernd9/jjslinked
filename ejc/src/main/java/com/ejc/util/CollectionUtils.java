@@ -21,4 +21,16 @@ public class CollectionUtils {
         return rv;
     }
 
+    public <T> T getOnlyElement(Collection<T> coll, String descriptionForException) {
+        Iterator<T> iter = coll.iterator();
+        if (!iter.hasNext()) {
+            throw new NoSuchElementException(descriptionForException + ": there must be exactly one, bot none was found");
+        }
+        T rv = iter.next();
+        if (iter.hasNext()) {
+            throw new IllegalStateException(descriptionForException + ": there must be exactly one, bot there are more");
+        }
+        return rv;
+    }
+
 }

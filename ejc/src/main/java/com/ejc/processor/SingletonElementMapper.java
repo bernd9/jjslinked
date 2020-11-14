@@ -10,8 +10,8 @@ class SingletonElementMapper {
 
     private Set<SingletonElement> singletonElements = new HashSet<>();
 
-    ModuleWriterModel getSingletonWriterModel(String applicationClass) {
-        return new ModuleWriterModel(singletonElements, applicationClass);
+    ModuleFactoryWriterModel getSingletonWriterModel(String applicationClass) {
+        return new ModuleFactoryWriterModel(singletonElements, applicationClass);
     }
 
     SingletonElementMapper(Map<TypeElement, List<TypeElement>> hierarchy) {

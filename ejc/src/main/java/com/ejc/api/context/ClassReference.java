@@ -1,6 +1,6 @@
 package com.ejc.api.context;
 
-import com.ejc.processor.ModuleWriter;
+import com.ejc.processor.ModuleFactoryWriter;
 import com.ejc.util.ClassUtils;
 import lombok.Getter;
 
@@ -22,7 +22,7 @@ public class ClassReference {
     @Getter
     private final Optional<ClassReference> genericType;
 
-    @UsedInGeneratedCode(ModuleWriter.class)
+    @UsedInGeneratedCode(ModuleFactoryWriter.class)
     ClassReference(Class<?> c) {
         this.clazz = c;
         this.className = c.getName();
@@ -51,12 +51,12 @@ public class ClassReference {
         return clazz;
     }
 
-    @UsedInGeneratedCode(ModuleWriter.class)
+    @UsedInGeneratedCode(ModuleFactoryWriter.class)
     public static ClassReference getRef(String className) {
         return references.computeIfAbsent(className, ClassReference::new);
     }
 
-    @UsedInGeneratedCode(ModuleWriter.class)
+    @UsedInGeneratedCode(ModuleFactoryWriter.class)
     public static ClassReference getRef(Class<? extends Collection> collectionClass, String className) {
         StringBuilder name = new StringBuilder(collectionClass.getName());
         name.append("<");
