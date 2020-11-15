@@ -17,7 +17,7 @@ class BeanMethod extends SingletonProvider {
     }
 
     @Override
-    Object invoke() {
+    Object provide() {
         return invoke(singletonObject.getSingleton());
     }
 

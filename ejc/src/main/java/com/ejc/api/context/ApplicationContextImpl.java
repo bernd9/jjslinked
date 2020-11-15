@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -15,24 +14,6 @@ class ApplicationContextImpl extends ApplicationContext {
     @Getter
     @Setter(AccessLevel.PACKAGE)
     private Set<Object> beans;
-
-    public <T> void replaceBean(Class<T> t, T bean) {
-        try {
-            T old = getBean(t);
-            beans.remove(old);
-            beans.add(bean);
-        } catch (IllegalArgumentException e) {
-            // We accept bean is not found
-        }
-    }
-
-    void addBean(Object bean) {
-        beans.add(bean);
-    }
-
-    public void addBeans(Collection<Object> beanToAdd) {
-        this.beans.addAll(beanToAdd);
-    }
 
     @Override
     public <T> T getBean(Class<T> c) {

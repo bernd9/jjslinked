@@ -21,13 +21,14 @@ public abstract class SingletonProvider {
         parameters.forEach(parameter -> parameter.onSingletonCreated(o));
     }
 
-    abstract Object invoke();
+    abstract Object provide();
 
     protected void addParameter(ClassReference parameterType) {
         if (Collection.class.isAssignableFrom(parameterType.getReferencedClass())) {
+            ClassReference genericType = parameterType.getGenericType().orElseThrow(() -> new IllegalStateException("collection-parameter must have generic type "));
             // TODO field in exception-message
             // TODO ExceptionType ?
-            parameters.add(new CollectionParameter(parameterType, parameterType.getGenericType().orElseThrow(() -> new IllegalStateException("parameter must have generic type "))));
+            parameters.add(new CollectionParameter(parameterType, genericType));
         } else {
             parameters.add(new SimpleParameter(parameterType));
         }

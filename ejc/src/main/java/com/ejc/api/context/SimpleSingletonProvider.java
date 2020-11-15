@@ -12,7 +12,7 @@ class SimpleSingletonProvider extends SingletonProvider {
     }
 
     @Override
-    Object invoke() {
+    Object provide() {
         return singleton;
     }
 }

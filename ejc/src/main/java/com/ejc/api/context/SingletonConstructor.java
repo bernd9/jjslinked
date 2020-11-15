@@ -17,7 +17,7 @@ class SingletonConstructor extends SingletonProvider {
     }
 
     @Override
-    Object invoke() {
+    Object provide() {
         try {
             Constructor<?> constructor = getType().getReferencedClass().getDeclaredConstructor(parameterTypes());
             constructor.setAccessible(true);
