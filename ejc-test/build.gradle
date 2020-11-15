@@ -1,0 +1,39 @@
+plugins {
+    id 'java'
+}
+
+group 'com.ejc'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 11
+targetCompatibility = 11
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
+    //annotationProcessor files('../jjslinked-api/build/libs/jjslinked-api-1.0-SNAPSHOT.jar')
+
+    annotationProcessor(group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7')
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
+
+    implementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.6.2'
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.6.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.2")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.6.2")
+
+    // https://mvnrepository.com/artifact/org.assertj/assertj-core
+    testCompile group: 'org.assertj', name: 'assertj-core', version: '3.16.1'
+
+
+}
+
+jar {
+// TODO do not pack core here !
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
