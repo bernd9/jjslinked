@@ -21,7 +21,7 @@ import static com.ejc.util.JavaModelUtils.*;
 /**
  * Creates an implementation as a subclass or implementation of classes annotated by an annotation
  * demanding an advice (annotated with @{@link com.ejc.AdviceClass}). The result is a singleton,
- * but getting annotated with @{@link Implementation}.This marks this class to have to replace an
+ * annotated with @{@link Implementation}.This marks this class to have to replace an
  * singleton (if exists) an will get a singleton itself.
  */
 @AutoService(Processor.class)
@@ -31,7 +31,7 @@ public class AdviceAnnotationProcessor extends AbstractProcessor {
 
     @Override
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-        Collection<AdviceMapping> adviceTargetDescriptions = adviceTargetDescriptions(roundEnv);
+        Collection<MethodAdviceMapping> adviceTargetDescriptions = adviceTargetDescriptions(roundEnv);
         Collection<ImplementationData> originalClasses = originalClasses(adviceTargetDescriptions);
         originalClasses.forEach(this::writeImplementation);
         return false;
@@ -46,9 +46,9 @@ public class AdviceAnnotationProcessor extends AbstractProcessor {
         }
     }
 
-    private Collection<ImplementationData> originalClasses(Collection<AdviceMapping> adviceMappings) {
+    private Collection<ImplementationData> originalClasses(Collection<MethodAdviceMapping> methodAdviceMappings) {
         Map<String, ImplementationData> originalClasses = new HashMap<>();
-        adviceMappings.stream()
+        methodAdviceMappings.stream()
                 .forEach(mapping -> {
                     String qualifiedName = mapping.getDeclaringClass();
                     ImplementationData implementationData = originalClasses.computeIfAbsent(qualifiedName, ImplementationData::new);
@@ -58,7 +58,7 @@ public class AdviceAnnotationProcessor extends AbstractProcessor {
     }
 
 
-    private Collection<AdviceMapping> adviceTargetDescriptions(RoundEnvironment roundEnv) {
+    private Collection<MethodAdviceMapping> adviceTargetDescriptions(RoundEnvironment roundEnv) {
         return roundEnv.getElementsAnnotatedWith(Advice.class)
                 .stream().map(TypeElement.class::cast)
                 .map(AdviceReflection::new)
@@ -85,7 +85,7 @@ public class AdviceAnnotationProcessor extends AbstractProcessor {
         private final TypeElement advice;
 
         @Getter
-        private Set<AdviceMapping> targets = new HashSet<>();
+        private Set<MethodAdviceMapping> targets = new HashSet<>();
 
         void doReflection() {
             AnnotationMirror adviceMirror = getAnnotationMirror(advice, Advice.class);
@@ -98,14 +98,14 @@ public class AdviceAnnotationProcessor extends AbstractProcessor {
             Map<String, String> annotationValues = getAnnotationValues(adviceTarget);
             String declaringClass = annotationValues.get("declaringClass").replace(".class", "");
             String signature = annotationValues.get("signature");
-            targets.add(new AdviceMapping(declaringClass, signature, advice));
+            targets.add(new MethodAdviceMapping(declaringClass, signature, advice));
 
         }
     }
 
     @Getter
     @RequiredArgsConstructor
-    class AdviceMapping {
+    class MethodAdviceMapping {
         private final String declaringClass;
         private final String signature;
         private final TypeElement advice;

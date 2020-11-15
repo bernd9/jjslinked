@@ -18,10 +18,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.google.testing.compile.Compiler.javac;
@@ -33,19 +30,24 @@ public class ProcessorTestUtil {
         return context.getBeans().stream().filter(o -> o.getClass().getSimpleName().equals(name)).collect(CollectorUtils.toOnlyElement());
     }
 
+    public static Optional<Object> getOptionalSingletonBySimpleClassName(String name, ApplicationContext context) {
+        return context.getBeans().stream().filter(o -> o.getClass().getSimpleName().equals(name)).collect(CollectorUtils.toOnlyOptional());
+    }
 
-    public static ApplicationContext compileContext(String appName) throws Exception {
+
+    public static ApplicationContext compileContext(String applicationClassName) throws Exception {
         Compiler compiler = javac().withProcessors(new ModuleProcessor());
-        String applicationClassName = appName.replace(".", "/");
-        JavaFileObject fileObject = JavaFileObjects.forResource(applicationClassName + ".java");
+        String applicationClassFilePath = applicationClassName.replace(".", "/");
+        JavaFileObject fileObject = JavaFileObjects.forResource(applicationClassFilePath + ".java");
         Compilation compilation = compiler.compile(fileObject);
         ProcessorTestUtil.assertSuccess(compilation);
-        String moduleFactoryName = ModuleFactory.getQualifiedName(appName);
+        String moduleFactoryName = ModuleFactory.getQualifiedName(applicationClassName);
         //ClassLoader threadContextClassLoader = Thread.currentThread().getContextClassLoader();
         FileObjectClassLoader classLoader = bindClassLoader(Thread.currentThread(), compilation);
         Class<ModuleFactory> moduleFactoryClass = (Class<ModuleFactory>) classLoader.findClass(moduleFactoryName);
+        Class<?> applicationClass = classLoader.findClass(applicationClassName);
         ModuleFactory factory = ClassUtils.createInstance(moduleFactoryClass);
-        ApplicationContextFactory applicationContextFactory = new ApplicationContextFactory(factory.getModule());
+        ApplicationContextFactory applicationContextFactory = new ApplicationContextFactory(applicationClass, factory.getModule());
         ApplicationContext applicationContext = applicationContextFactory.createApplicationContext();
         //Thread.currentThread().setContextClassLoader(threadContextClassLoader);
         return applicationContext;

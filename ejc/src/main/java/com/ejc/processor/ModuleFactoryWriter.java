@@ -1,6 +1,5 @@
 package com.ejc.processor;
 
-import com.ejc.Singleton;
 import com.ejc.Value;
 import com.ejc.api.context.ClassReference;
 import com.ejc.api.context.ModuleFactory;
@@ -11,13 +10,12 @@ import com.squareup.javapoet.MethodSpec;
 import lombok.Builder;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import java.util.Iterator;
-import java.util.Objects;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -35,11 +33,11 @@ public class ModuleFactoryWriter extends JavaWriter {
     protected void writeConstructor(MethodSpec.Builder constructorBuilder) {
         constructorBuilder.addStatement("super($L)", ref(model.getApplicationClass()));
         model.getSingletonElements().forEach(singleton -> writeSingleton(singleton, constructorBuilder));
+        writeReplacements(model.getClassReplacements(), constructorBuilder);
     }
 
     private void writeSingleton(SingletonElement model, MethodSpec.Builder constructorBuilder) {
         writeSetConstructor(model, constructorBuilder);
-        writeReplacement(model, constructorBuilder);
         model.getInitMethods().forEach(method -> constructorBuilder.addStatement("addInitMethod($L, \"$L\")", ref(model.getSingleton()), method.getSimpleName()));
         model.getBeanMethods().forEach(method -> writeBeanMethod(model.getSingleton(), method, constructorBuilder));
         model.getConfigFields().forEach(field -> writeConfigField(model.getSingleton(), field, constructorBuilder));
@@ -47,13 +45,8 @@ public class ModuleFactoryWriter extends JavaWriter {
         model.getCollectionDependencyFields().forEach(field -> writeDependencyCollectionField(model.getSingleton(), field, constructorBuilder));
     }
 
-    private void writeReplacement(SingletonElement model, MethodSpec.Builder constructorBuilder) {
-        Optional<String> replace = getReplacementAttribute(model.getSingleton());
-        if (replace.isPresent()) {
-            constructorBuilder.addStatement("addClassToReplace($L)", ref(replace.get()));
-        } else if (model.getImplementation() != null) {
-            constructorBuilder.addStatement("addClassToReplace($L)", ref(model.getSingleton()));
-        }
+    private void writeReplacements(Map<TypeElement, TypeElement> replacements, MethodSpec.Builder constructorBuilder) {
+        replacements.forEach((type, replacement) -> constructorBuilder.addStatement("addClassReplacement($L, $L)", ref(type), ref(replacement)));
     }
 
     private void writeBeanMethod(TypeElement singleton, ExecutableElement method, MethodSpec.Builder constructorBuilder) {
@@ -119,13 +112,6 @@ public class ModuleFactoryWriter extends JavaWriter {
         }
     }
 
-    private Optional<String> getReplacementAttribute(TypeElement annotatedElement) {
-        return JavaModelUtils.getAnnotationMirrorOptional(annotatedElement, Singleton.class)
-                .map(annotation -> JavaModelUtils.getAnnotationValue(annotation, "replace"))
-                .filter(Objects::nonNull)
-                .map(AnnotationValue::getValue)
-                .map(Object::toString);
-    }
 
     private static String ref(TypeElement e) {
         return CodeBlock.builder()

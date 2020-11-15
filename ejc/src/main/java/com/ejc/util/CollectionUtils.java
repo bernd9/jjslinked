@@ -5,6 +5,7 @@ import lombok.experimental.UtilityClass;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 
 @UtilityClass
 public class CollectionUtils {
@@ -33,4 +34,11 @@ public class CollectionUtils {
         return rv;
     }
 
+    public <T> T getFirstOrThrow(Collection<T> coll) {
+        return coll.iterator().next();
+    }
+
+    public <T> Optional<T> getFirst(Collection<T> coll) {
+        return coll.isEmpty() ? Optional.empty() : Optional.of(coll.iterator().next());
+    }
 }

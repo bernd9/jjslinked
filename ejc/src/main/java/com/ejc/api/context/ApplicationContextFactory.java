@@ -3,10 +3,7 @@ package com.ejc.api.context;
 import com.ejc.util.ClassUtils;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -21,25 +18,22 @@ public class ApplicationContextFactory {
     private ApplicationContextImpl applicationContext = new ApplicationContextImpl();
 
     public ApplicationContextFactory(Class<?> applicationClass) {
-        ModuleComposer moduleComposer = new ModuleComposer(loadModules(), applicationClass);
+        init(applicationClass, new ModuleComposer(loadModules(), applicationClass));
+    }
+
+    public ApplicationContextFactory(Class<?> applicationClass, Module module) {
+        init(applicationClass, new ModuleComposer(Collections.singleton(module), applicationClass));
+    }
+
+    private void init(Class<?> applicationClass, ModuleComposer moduleComposer) {
         moduleComposer.composeModules();
         singletonObjectMap = moduleComposer.getSingletonObjectMap();
         singletonConstructors = moduleComposer.getSingletonConstructors();
-        singletonProviders.addProvider(new SimpleSingletonProvider(ClassUtils.createInstance(applicationClass)));
-        init();
-    }
-
-    public ApplicationContextFactory(Module module) {
-        singletonObjectMap = module.getSingletonObjects();
-        singletonConstructors = module.getSingletonConstructors();
-        init();
-    }
-
-    private void init() {
         uniqueBeanValidator = new UniqueBeanValidator(singletonProviders, extractSimpleDependencyFields(singletonObjectMap.values()));
         singletonProviders.addProviders(singletonConstructors);
         singletonProviders.addProviders(extractBeanMethods(singletonObjectMap.values()));
         singletonProviders.addProvider(new SimpleSingletonProvider(applicationContext));
+        singletonProviders.addProvider(new SimpleSingletonProvider(ClassUtils.createInstance(applicationClass)));
         singletonObjects = new HashSet<>(singletonObjectMap.values());
     }
 

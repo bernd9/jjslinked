@@ -13,10 +13,10 @@ public abstract class ModuleFactory {
 
     private final Set<SingletonConstructor> constructors = new HashSet<>();
     private final Map<ClassReference, SingletonObject> singletonObjectMap = new HashMap<>();
-    private final Set<ClassReference> classesToReplace = new HashSet<>();
+    private final Map<ClassReference, ClassReference> classReplacements = new HashMap<>();
 
     public Module getModule() {
-        return new Module(applicationClass.getReferencedClass(), constructors, singletonObjectMap, classesToReplace);
+        return new Module(applicationClass.getReferencedClass(), constructors, singletonObjectMap, classReplacements);
     }
 
     public static Optional<String> getPackageName(String appClassQualifiedName) {
@@ -60,8 +60,8 @@ public abstract class ModuleFactory {
     }
 
     @UsedInGeneratedCode(ModuleFactoryWriter.class)
-    public void addClassToReplace(ClassReference type) {
-        classesToReplace.add(type);
+    public void addClassReplacement(ClassReference type, ClassReference replacement) {
+        classReplacements.put(type, replacement);
     }
 
     public static String getQualifiedName(String appClassQualifiedName) {
@@ -69,7 +69,7 @@ public abstract class ModuleFactory {
     }
 
     private SingletonObject getSingleton(ClassReference type) {
-        return singletonObjectMap.computeIfAbsent(type, t -> new SingletonObject(type));
+        return singletonObjectMap.computeIfAbsent(type, SingletonObject::new);
     }
 
 }

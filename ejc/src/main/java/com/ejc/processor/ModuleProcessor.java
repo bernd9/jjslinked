@@ -6,6 +6,7 @@ import com.ejc.api.context.UndefinedClass;
 import com.ejc.util.CollectionUtils;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.IOUtils;
+import com.ejc.util.JavaModelUtils;
 import com.google.auto.service.AutoService;
 import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
@@ -33,7 +34,7 @@ public class ModuleProcessor extends ProcessorBase {
     private Map<Name, Collection<VariableElement>> collectionDependencyFields = new HashMap<>();
     private Map<Name, Collection<VariableElement>> configFields = new HashMap<>();
     private Set<TypeElement> singletons = new HashSet<>();
-    private Map<TypeElement, TypeElement> implementations = new HashMap<>();
+    private Map<TypeElement, TypeElement> replacements = new HashMap<>();
 
     private Set<String> appClassQualifiedNames = new HashSet<>();
 
@@ -70,12 +71,19 @@ public class ModuleProcessor extends ProcessorBase {
                 .map(name -> result.getElements(name, TypeElement.class))
                 .flatMap(Collection::stream)
                 .filter(e -> e.getKind() != ElementKind.ANNOTATION_TYPE)
+                .peek(this::addReplacement)
                 .collect(Collectors.toSet()));
     }
 
+    private void addReplacement(TypeElement typeElement) {
+        getSingletonReplacementAttribute(typeElement)
+                .ifPresent(replacingType -> replacements.put(processingEnv.getElementUtils().getTypeElement(replacingType), typeElement));
+    }
+
     private void processImplementations(QueryResult result) {
-        implementations.putAll(result.getElements(Implementation.class, TypeElement.class).stream()
-                .collect(Collectors.toMap(Functions.identity(), this::getSuperClassToOverride)));
+        Set<TypeElement> implementations = result.getElements(Implementation.class, TypeElement.class);
+        singletons.addAll(implementations);
+        replacements.putAll(implementations.stream().collect(Collectors.toMap(this::getSuperClassToOverride, Functions.identity())));
     }
 
     private void processValueFields(QueryResult result) {
@@ -154,10 +162,9 @@ public class ModuleProcessor extends ProcessorBase {
         dependencyFields.forEach((name, fields) -> mapper.putDependencyFields(typeForName(name), fields));
         collectionDependencyFields.forEach((name, fields) -> mapper.putCollectionDependencyFields(typeForName(name), fields));
         configFields.forEach((name, fields) -> mapper.putConfigFields(typeForName(name), fields));
-        implementations.forEach(mapper::putImplementation);
         singletons.forEach(type -> mapper.putConstructor(type, getConstructor(type)));
         String appClassName = CollectionUtils.getOnlyElement(appClassQualifiedNames, "Classes annotated with @Application");
-        return mapper.getSingletonWriterModel(appClassName);
+        return mapper.getSingletonWriterModel(appClassName, replacements);
     }
 
     private TypeElement typeForName(Name name) {
@@ -211,9 +218,8 @@ public class ModuleProcessor extends ProcessorBase {
         return Optional.ofNullable(getAnnotationValue(annotationMirror, "forClass"))
                 .filter(Objects::nonNull)
                 .map(AnnotationValue::getValue)
-                .map(Class.class::cast)
-                .filter(c -> !c.equals(UndefinedClass.class))
-                .map(Class::getName)
+                .map(Object::toString)
+                .filter(c -> !c.equals(UndefinedClass.class.getName()))
                 .map(processingEnv.getElementUtils()::getTypeElement);
     }
 
@@ -237,11 +243,17 @@ public class ModuleProcessor extends ProcessorBase {
         appClassQualifiedNames.addAll(result.getElements(Application.class, TypeElement.class).stream()
                 .map(TypeElement::getQualifiedName)
                 .map(Name::toString).collect(Collectors.toSet()));
-
-
     }
 
     private void writeContextFile(ModuleFactoryWriterModel model) {
         IOUtils.write(Collections.singletonList(ModuleFactory.getQualifiedName(model.getApplicationClass())), processingEnv.getFiler(), "META-INF/services/" + ModuleFactory.class.getName());
+    }
+
+    private Optional<String> getSingletonReplacementAttribute(TypeElement annotatedElement) {
+        return JavaModelUtils.getAnnotationMirrorOptional(annotatedElement, Singleton.class)
+                .map(annotation -> JavaModelUtils.getAnnotationValue(annotation, "replace"))
+                .filter(Objects::nonNull)
+                .map(AnnotationValue::getValue)
+                .map(Object::toString);
     }
 }
