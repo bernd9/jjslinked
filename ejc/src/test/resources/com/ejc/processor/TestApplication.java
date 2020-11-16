@@ -18,7 +18,7 @@ class TestApplication {
 class TestSingleton1 {
     private final TestSingleton4 singleton4;
 
-    @Value(key = "port", defaultValue = "80")
+    @Value(value = "port", defaultValue = "80")
     private int port;
 
     @Inject

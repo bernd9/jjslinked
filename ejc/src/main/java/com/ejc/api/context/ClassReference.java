@@ -2,6 +2,7 @@ package com.ejc.api.context;
 
 import com.ejc.processor.ModuleFactoryWriter;
 import com.ejc.util.ClassUtils;
+import com.ejc.util.TypeUtils;
 import lombok.Getter;
 
 import java.util.Collection;
@@ -46,7 +47,11 @@ public class ClassReference {
 
     public Class<?> getReferencedClass() {
         if (clazz == null) {
-            clazz = ClassUtils.classForName(className);
+            try {
+                clazz = ClassUtils.classForName(className);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
         return clazz;
     }
@@ -63,6 +68,11 @@ public class ClassReference {
         name.append(className);
         name.append(">");
         return references.computeIfAbsent(name.toString(), n -> new ClassReference(collectionClass.getName(), className));
+    }
+
+    @UsedInGeneratedCode(ModuleFactoryWriter.class)
+    public static ClassReference getRefPrimitive(String className) {
+        return references.computeIfAbsent(className, name -> new ClassReference(TypeUtils.getPrimitiveClass(className).orElseThrow()));
     }
 
     public boolean isInstance(Object o) {

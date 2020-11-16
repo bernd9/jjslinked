@@ -6,7 +6,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Profile {
 
-    static final String KEY = "profile";
+    static final String KEY = "ejc-profile";
     public static final String DEFAULT_PROFILE = "default";
     private static String currentProfile;
 
@@ -23,6 +23,9 @@ public class Profile {
         return currentProfile;
     }
 
+    public static void unload() {
+        currentProfile = null;
+    }
 
     public static void main(String[] args) {
         System.out.println(getCurrentProfile());

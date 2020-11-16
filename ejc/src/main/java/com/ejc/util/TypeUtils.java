@@ -13,7 +13,21 @@ import java.util.*;
 @UtilityClass
 public class TypeUtils {
 
-    public static <T, C extends Collection<? extends T>> C emptyCollection(Class<C> collectionType) {
+    public static final Map<String, Class<?>> PRIMITIVES = Map.of("byte", byte.class, //
+            "short", short.class,//
+            "int", int.class,//
+            "long", long.class, //
+            "float", float.class,//
+            "double", double.class, //
+            "boolean", boolean.class,//
+            "char", char.class);
+
+
+    public Optional<Class<?>> getPrimitiveClass(String primitive) {
+        return Optional.ofNullable(PRIMITIVES.get(primitive));
+    }
+
+    public <T, C extends Collection<? extends T>> C emptyCollection(Class<C> collectionType) {
         if (!collectionType.isInterface() && !Modifier.isAbstract(collectionType.getModifiers())) {
             return ClassUtils.createInstance(collectionType);
         }

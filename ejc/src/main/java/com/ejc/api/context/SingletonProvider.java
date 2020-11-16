@@ -36,7 +36,7 @@ public abstract class SingletonProvider {
         }
         if (executable.getParameters()[index].isAnnotationPresent(Value.class)) {
             Value valueAnnotation = executable.getParameters()[index].getAnnotation(Value.class);
-            parameters.add(new ConfigParameter(parameterType, valueAnnotation.key(), valueAnnotation.defaultValue(), valueAnnotation.mandatory()));
+            parameters.add(new ConfigParameter(parameterType, valueAnnotation.value(), valueAnnotation.defaultValue(), valueAnnotation.mandatory()));
         } else if (Collection.class.isAssignableFrom(parameterType.getReferencedClass())) {
             ClassReference genericType = parameterType.getGenericType().orElseThrow(() -> new IllegalStateException("collection-parameter must have generic type "));
             // TODO field in exception-message

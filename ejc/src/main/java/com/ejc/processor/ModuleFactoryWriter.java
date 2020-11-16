@@ -31,7 +31,7 @@ public class ModuleFactoryWriter extends JavaWriter {
 
     @Override
     protected void writeConstructor(MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("super($L)", ref(model.getApplicationClass()));
+        constructorBuilder.addStatement("super($L)", refNonPrimitive(model.getApplicationClass()));
         model.getSingletonElements().forEach(singleton -> writeSingleton(singleton, constructorBuilder));
         writeReplacements(model.getClassReplacements(), constructorBuilder);
     }
@@ -63,7 +63,7 @@ public class ModuleFactoryWriter extends JavaWriter {
     private void writeConfigField(TypeElement singleton, VariableElement field, MethodSpec.Builder constructorBuilder) {
         constructorBuilder.addStatement("addConfigField($L, \"$L\", $L.class, \"$L\", \"$L\", $L)",
                 ref(singleton), field.getSimpleName(), field.asType(), getConfigFieldKey(field),
-                getConfigFieldDefault(field), getConfigFieldMandatory(field), getConfigFieldMandatory(field));
+                getConfigFieldDefault(field), getConfigFieldMandatory(field));
     }
 
     private void writeDependencyField(TypeElement singleton, VariableElement field, MethodSpec.Builder constructorBuilder) {
@@ -120,6 +120,9 @@ public class ModuleFactoryWriter extends JavaWriter {
     }
 
     private String ref(TypeMirror e) {
+        if (e.getKind().isPrimitive()) {
+            return refPrimitive(e);
+        }
         TypeElement typeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(e);
         return ref(typeElement);
     }
@@ -136,9 +139,15 @@ public class ModuleFactoryWriter extends JavaWriter {
                 .build().toString();
     }
 
-    private String ref(String e) {
+    private String refNonPrimitive(String e) {
         TypeElement typeElement = processingEnvironment.getElementUtils().getTypeElement(e);
         return ref(typeElement);
+    }
+
+    private String refPrimitive(TypeMirror mirror) {
+        return CodeBlock.builder()
+                .add("$T.getRefPrimitive(\"$L\")", ClassReference.class, mirror.toString())
+                .build().toString();
     }
 
     private static String getConfigFieldDefault(VariableElement e) {
@@ -146,7 +155,7 @@ public class ModuleFactoryWriter extends JavaWriter {
     }
 
     private static String getConfigFieldKey(VariableElement e) {
-        return e.getAnnotation(Value.class).key();
+        return e.getAnnotation(Value.class).value();
     }
 
     private static boolean getConfigFieldMandatory(VariableElement e) {

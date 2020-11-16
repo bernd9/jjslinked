@@ -53,8 +53,9 @@ public class ApplicationContextFactory {
                     .filter(provider -> provider.isSatisfied(singletonProviders))
                     .collect(Collectors.toSet());
             if (invocableProviders.isEmpty()) {
-                // TODO Exception
-                break;
+                // TODO better Exception. Add reason to exception text
+                throw new IllegalStateException();
+
             }
             invocableProviders.forEach(this::invokeProviderOrProcessor);
         }

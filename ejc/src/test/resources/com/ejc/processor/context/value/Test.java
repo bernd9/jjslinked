@@ -8,6 +8,6 @@ import lombok.Getter;
 class Test {
 
     @Getter
-    @Value(key = "string")
+    @Value(value = "string")
     private String string;
 }

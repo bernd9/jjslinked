@@ -21,6 +21,10 @@ public class Config {
         return properties;
     }
 
+    static void unload() {
+        properties = null;
+    }
+
     private static Properties loadProperties() {
         Properties properties = loadProperties("application.properties");
         String profile = Profile.getCurrentProfile();

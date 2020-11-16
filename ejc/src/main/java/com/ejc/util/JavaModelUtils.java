@@ -60,6 +60,9 @@ public class JavaModelUtils {
     }
 
     public static boolean hasGenericType(VariableElement variableElement) {
+        if (variableElement.asType().getKind().isPrimitive()) {
+            return false; // otherwise NullPointerException
+        }
         GenericTypeVisitor visitor = new GenericTypeVisitor();
         TypeMirror typeMirror = variableElement.asType().accept(visitor, null).orElse(null);
         return typeMirror != null;
