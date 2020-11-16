@@ -4,6 +4,7 @@ import com.ejc.Value;
 import com.ejc.api.context.ClassReference;
 import com.ejc.api.context.ModuleFactory;
 import com.ejc.api.context.ParameterReference;
+import com.ejc.api.context.ValueAnnotationReference;
 import com.ejc.javapoet.JavaWriter;
 import com.ejc.util.JavaModelUtils;
 import com.squareup.javapoet.CodeBlock;
@@ -180,11 +181,11 @@ class ParameterReferences {
         Name name = variableElement.getSimpleName();
         if (JavaModelUtils.hasGenericType(variableElement)) {
             TypeMirror genericType = JavaModelUtils.getGenericType(variableElement);
-            builder.add(getCollectionParameterRef(variableElement.asType(), genericType, name));
+            builder.add(getCollectionParameterRef(variableElement, genericType, name));
         } else if (isPrimitive(variableElement)) {
-            builder.add(getPrimitiveParameterRef(variableElement.asType(), name));
+            builder.add(getPrimitiveParameterRef(variableElement, name));
         } else {
-            builder.add(getSimpleRef(variableElement.asType(), name));
+            builder.add(getSimpleRef(variableElement, name));
         }
     }
 
@@ -192,41 +193,55 @@ class ParameterReferences {
         return e.asType().getKind().isPrimitive();
     }
 
-    private String getCollectionParameterRef(TypeMirror collectionType, TypeMirror genericType, Name name) {
-        TypeElement typeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(collectionType);
-        TypeElement genTypeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(genericType);
-        return getCollectionParameterRef(typeElement, genTypeElement, name);
-    }
-
-    private String getCollectionParameterRef(TypeElement collectionType, TypeElement genericType, Name name) {
+    private String getCollectionParameterRef(VariableElement e, TypeMirror genericType, Name name) {
+        TypeElement collectionTypeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(e.asType());
+        TypeElement genericTypeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(genericType);
         return CodeBlock.builder()
-                .add("$T.getRef($T.getRef($L.class, \"$L\"), \"$L\")",
+                .add("$T.getRef($T.getRef($L.class, \"$L\"), \"$L\", $L)",
                         ParameterReference.class,
                         ClassReference.class,
-                        JavaModelUtils.getClassName(collectionType),
-                        JavaModelUtils.getClassName(genericType),
-                        name)
+                        JavaModelUtils.getClassName(collectionTypeElement),
+                        JavaModelUtils.getClassName(genericTypeElement),
+                        name,
+                        valueAnnotationReference(e))
                 .build().toString();
     }
 
-    private String getPrimitiveParameterRef(TypeMirror mirror, Name name) {
+    private String getPrimitiveParameterRef(VariableElement e, Name name) {
         return CodeBlock.builder()
-                .add("$T.getRef($T.getRefPrimitive(\"$L\"), \"$L\")",
+                .add("$T.getRef($T.getRefPrimitive(\"$L\"), \"$L\", $L)",
                         ParameterReference.class,
                         ClassReference.class,
-                        mirror.toString(),
-                        name)
+                        e.asType().toString(),
+                        name,
+                        valueAnnotationReference(e))
                 .build().toString();
     }
 
-    private String getSimpleRef(TypeMirror e, Name name) {
+    private String getSimpleRef(VariableElement e, Name name) {
         return CodeBlock.builder()
-                .add("$T.getRef($T.getRef(\"$L\"), \"$L\")",
+                .add("$T.getRef($T.getRef(\"$L\"), \"$L\", $L)",
                         ParameterReference.class,
                         ClassReference.class,
-                        e.toString(),
-                        name)
+                        e.asType().toString(),
+                        name,
+                        valueAnnotationReference(e))
                 .build().toString();
+    }
+
+    private CodeBlock valueAnnotationReference(VariableElement e) {
+        Value valueAnnotation = e.getAnnotation(Value.class);
+        if (valueAnnotation == null) {
+            return CodeBlock.builder().add("$T.empty()", Optional.class).build();
+        }
+        return CodeBlock.builder().add("$T.of(new $T(\"$L\",\"$L\",$L))",
+                Optional.class,
+                ValueAnnotationReference.class,
+                valueAnnotation.value(),
+                valueAnnotation.defaultValue(),
+                valueAnnotation.mandatory())
+                .build();
+
     }
 
 
