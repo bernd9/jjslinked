@@ -161,6 +161,12 @@ class ParameterReferences {
         }
     }
 
+    CodeBlock getRef(VariableElement variableElement) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        addParameterReference(variableElement, builder);
+        return builder.build();
+    }
+    
     private String getRef(TypeMirror e) {
         if (e.getKind().isPrimitive()) {
             return refPrimitive(e);
@@ -190,17 +196,12 @@ class ParameterReferences {
     }
 
 
-    String getRef(TypeElement collectionType, TypeElement genericType) {
+    private String getRef(TypeElement collectionType, TypeElement genericType) {
         return CodeBlock.builder()
                 .add("$T.getRef($L.class, \"$L\")", ClassReference.class, JavaModelUtils.getClassName(collectionType), JavaModelUtils.getClassName(genericType))
                 .build().toString();
     }
 
-    CodeBlock getRef(VariableElement variableElement) {
-        CodeBlock.Builder builder = CodeBlock.builder();
-        addParameterReference(variableElement, builder);
-        return builder.build();
-    }
 
 }
 
