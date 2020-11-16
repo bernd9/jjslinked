@@ -31,8 +31,8 @@ public class ModuleFactoryWriter extends JavaWriter {
     public ModuleFactoryWriter(ModuleFactoryWriterModel model, String simpleName, Optional<String> packageName, ProcessingEnvironment processingEnvironment) {
         super(simpleName, packageName, Optional.of(ModuleFactory.class), processingEnvironment);
         this.model = model;
-        this.classReferences = new ClassReferences(processingEnvironment);
-        this.parameterReferences = new ParameterReferences(processingEnvironment, classReferences);
+        this.parameterReferences = new ParameterReferences(processingEnvironment);
+        this.classReferences = new ClassReferences(processingEnvironment, parameterReferences);
     }
 
     @Override
@@ -77,8 +77,9 @@ public class ModuleFactoryWriter extends JavaWriter {
 
     private void writeDependencyCollectionField(TypeElement singleton, VariableElement field, MethodSpec.Builder constructorBuilder) {
         constructorBuilder.addStatement("addCollectionDependencyField($L, \"$L\", $L)",
-                classReferences.getRef(singleton), field.getSimpleName(), parameterReferences.getRef(field));
+                classReferences.getRef(singleton), field.getSimpleName(), classReferences.getCollectionFieldRef(field));
     }
+
 
     private void writeSetConstructor(SingletonElement model, MethodSpec.Builder constructorBuilder) {
         if (model.getConstructor().getParameters().isEmpty()) {
@@ -118,7 +119,14 @@ public class ModuleFactoryWriter extends JavaWriter {
 @RequiredArgsConstructor
 class ClassReferences {
     private final ProcessingEnvironment processingEnvironment;
+    private final ParameterReferences parameterReferences;
 
+
+    CodeBlock getCollectionFieldRef(VariableElement field) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        parameterReferences.addParameterReference(field, builder);
+        return builder.build();
+    }
 
     String getRef(TypeElement e) {
         return CodeBlock.builder()
@@ -127,9 +135,6 @@ class ClassReferences {
     }
 
     String getRef(TypeMirror e) {
-        if (e.getKind().isPrimitive()) {
-            return refPrimitive(e);
-        }
         TypeElement typeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(e);
         return getRef(typeElement);
     }
@@ -139,18 +144,12 @@ class ClassReferences {
         return getRef(typeElement);
     }
 
-    private String refPrimitive(TypeMirror mirror) {
-        return CodeBlock.builder()
-                .add("$T.getRefPrimitive(\"$L\")", ClassReference.class, mirror.toString())
-                .build().toString();
-    }
 }
 
 
 @RequiredArgsConstructor
 class ParameterReferences {
     private final ProcessingEnvironment processingEnvironment;
-    private final ClassReferences classReferences;
 
     void addParameterReference(VariableElement variableElement, CodeBlock.Builder builder) {
         if (JavaModelUtils.hasGenericType(variableElement)) {
@@ -167,21 +166,9 @@ class ParameterReferences {
         return e.asType().getKind().isPrimitive();
     }
 
-    CodeBlock getRef(VariableElement variableElement) {
-        CodeBlock.Builder builder = CodeBlock.builder();
-        addParameterReference(variableElement, builder);
-        return builder.build();
-    }
-
     private String getSimpleRef(TypeMirror e) {
         return CodeBlock.builder()
                 .add("$T.getRef(\"$L\")", ClassReference.class, e.toString())
-                .build().toString();
-    }
-
-    private String refPrimitive(TypeMirror mirror) {
-        return CodeBlock.builder()
-                .add("$T.getRefPrimitive(\"$L\")", ClassReference.class, mirror.toString())
                 .build().toString();
     }
 
@@ -190,10 +177,17 @@ class ParameterReferences {
         TypeElement genTypeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(genericType);
         return getRef(typeElement, genTypeElement);
     }
-    
+
     private String getRef(TypeElement collectionType, TypeElement genericType) {
         return CodeBlock.builder()
                 .add("$T.getRef($L.class, \"$L\")", ClassReference.class, JavaModelUtils.getClassName(collectionType), JavaModelUtils.getClassName(genericType))
+                .build().toString();
+    }
+
+
+    private String refPrimitive(TypeMirror mirror) {
+        return CodeBlock.builder()
+                .add("$T.getRefPrimitive(\"$L\")", ClassReference.class, mirror.toString())
                 .build().toString();
     }
 }
