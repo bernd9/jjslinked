@@ -36,16 +36,7 @@ public class ControllerMethodInvoker {
     }
 
     private void doInvocation(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        var methods = getMatchingMethods(request, response);
-        switch (methods.size()) {
-            case 0:
-                throw new ControllerMethodMappingException(request, "no mapping");
-            case 1:
-                doInvocation(methods.get(0), request, response);
-                break;
-            default:
-                throw new ControllerMethodMappingException(request, "ambiguous mapping");
-        }
+        doInvocation(getMatchingMethod(request), request, response);
     }
 
     private void doInvocation(ControllerMethod controllerMethod, HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -88,10 +79,17 @@ public class ControllerMethodInvoker {
                 .build();
     }
 
-    private List<ControllerMethod> getMatchingMethods(HttpServletRequest request, HttpServletResponse response) {
-        return controllerMethods.stream()
-                .filter(method -> method.httpMethodMatches(request))
-                .filter(method -> method.pathMatches(request))
-                .collect(Collectors.toList());
+    private ControllerMethod getMatchingMethod(HttpServletRequest request) {
+        ControllerMethod controllerMethod = null;
+        for (ControllerMethod method : controllerMethods) {
+            if (!method.httpMethodMatches(request)) {
+                continue;
+            }
+            if (!method.pathMatches(request)) {
+                continue;
+            }
+            return method;
+        }
+        throw new ControllerMethodMappingException(request, "no mapping");
     }
 }
