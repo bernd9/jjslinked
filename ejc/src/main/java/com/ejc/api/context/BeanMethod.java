@@ -11,8 +11,8 @@ class BeanMethod extends SingletonProvider {
     private final String name;
     private final SingletonObject singletonObject;
 
-    public BeanMethod(SingletonObject singletonObject, @NonNull String name, @NonNull ClassReference returnType, @NonNull List<ClassReference> parameterTypes) {
-        super(returnType, parameterTypes);
+    public BeanMethod(SingletonObject singletonObject, @NonNull String name, @NonNull ClassReference returnType, @NonNull List<ParameterReference> parameterReferences) {
+        super(returnType, parameterReferences);
         this.singletonObject = singletonObject;
         this.name = name;
         initParameters();

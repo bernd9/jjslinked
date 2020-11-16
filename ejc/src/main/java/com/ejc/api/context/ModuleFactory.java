@@ -33,9 +33,9 @@ public abstract class ModuleFactory {
     }
 
     @UsedInGeneratedCode(ModuleFactoryWriter.class)
-    public void addBeanMethod(ClassReference owner, String name, ClassReference returnType, ClassReference... parameterTypes) {
+    public void addBeanMethod(ClassReference owner, String name, ClassReference returnType, ParameterReference... parameterReferences) {
         SingletonObject singletonObject = getSingleton(owner);
-        getSingleton(owner).addBeanMethod(new BeanMethod(singletonObject, name, returnType, Arrays.asList(parameterTypes)));
+        getSingleton(owner).addBeanMethod(new BeanMethod(singletonObject, name, returnType, Arrays.asList(parameterReferences)));
     }
 
     @UsedInGeneratedCode(ModuleFactoryWriter.class)
@@ -54,9 +54,9 @@ public abstract class ModuleFactory {
     }
 
     @UsedInGeneratedCode(ModuleFactoryWriter.class)
-    public void addConstructor(ClassReference owner, ClassReference... parameterTypes) {
+    public void addConstructor(ClassReference owner, ParameterReference... parameterReferences) {
         getSingleton(owner);// Important !
-        constructors.add(new SingletonConstructor(owner, Arrays.asList(parameterTypes)));
+        constructors.add(new SingletonConstructor(owner, Arrays.asList(parameterReferences)));
     }
 
     @UsedInGeneratedCode(ModuleFactoryWriter.class)

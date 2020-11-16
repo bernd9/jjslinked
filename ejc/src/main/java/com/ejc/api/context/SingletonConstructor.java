@@ -6,8 +6,8 @@ import java.util.List;
 
 class SingletonConstructor extends SingletonProvider {
 
-    public SingletonConstructor(ClassReference type, List<ClassReference> parameterTypes) {
-        super(type, parameterTypes);
+    public SingletonConstructor(ClassReference type, List<ParameterReference> parameterReferences) {
+        super(type, parameterReferences);
         initParameters();
     }
 

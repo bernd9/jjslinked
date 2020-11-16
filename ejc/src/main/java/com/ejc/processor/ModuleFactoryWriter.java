@@ -3,6 +3,7 @@ package com.ejc.processor;
 import com.ejc.Value;
 import com.ejc.api.context.ClassReference;
 import com.ejc.api.context.ModuleFactory;
+import com.ejc.api.context.ParameterReference;
 import com.ejc.javapoet.JavaWriter;
 import com.ejc.util.JavaModelUtils;
 import com.squareup.javapoet.CodeBlock;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
@@ -32,7 +34,7 @@ public class ModuleFactoryWriter extends JavaWriter {
         super(simpleName, packageName, Optional.of(ModuleFactory.class), processingEnvironment);
         this.model = model;
         this.classReferences = new ClassReferences(processingEnvironment);
-        this.parameterReferences = new ParameterReferences(processingEnvironment, classReferences);
+        this.parameterReferences = new ParameterReferences(processingEnvironment);
     }
 
     @Override
@@ -58,26 +60,39 @@ public class ModuleFactoryWriter extends JavaWriter {
     private void writeBeanMethod(TypeElement singleton, ExecutableElement method, MethodSpec.Builder constructorBuilder) {
         if (method.getParameters().isEmpty()) {
             constructorBuilder.addStatement("addBeanMethod($L, \"$L\", $L)",
-                    classReferences.getSimpleRef(singleton), method.getSimpleName(), classReferences.getSimpleRef(method.getReturnType()));
+                    classReferences.getSimpleRef(singleton), method.getSimpleName(),
+                    classReferences.getSimpleRef(method.getReturnType()));
         } else {
             constructorBuilder.addStatement("addBeanMethod($L, \"$L\", $L, $L)",
-                    classReferences.getSimpleRef(singleton), method.getSimpleName(), classReferences.getSimpleRef(method.getReturnType()), parameterTypeList(method));
+                    classReferences.getSimpleRef(singleton),
+                    method.getSimpleName(),
+                    classReferences.getSimpleRef(method.getReturnType()),
+                    parameterTypeList(method));
         }
     }
 
     private void writeConfigField(TypeElement singleton, VariableElement field, MethodSpec.Builder constructorBuilder) {
         constructorBuilder.addStatement("addConfigField($L, \"$L\", $L.class, \"$L\", \"$L\", $L)",
-                classReferences.getSimpleRef(singleton), field.getSimpleName(), field.asType(), getConfigFieldKey(field),
-                getConfigFieldDefault(field), getConfigFieldMandatory(field));
+                classReferences.getSimpleRef(singleton),
+                field.getSimpleName(),
+                field.asType(),
+                getConfigFieldKey(field),
+                getConfigFieldDefault(field),
+                getConfigFieldMandatory(field));
     }
 
     private void writeDependencyField(TypeElement singleton, VariableElement field, MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("addDependencyField($L, \"$L\", $L)", classReferences.getSimpleRef(singleton), field.getSimpleName(), classReferences.getSimpleRef(field.asType()));
+        constructorBuilder.addStatement("addDependencyField($L, \"$L\", $L)",
+                classReferences.getSimpleRef(singleton),
+                field.getSimpleName(),
+                classReferences.getSimpleRef(field.asType()));
     }
 
     private void writeDependencyCollectionField(TypeElement singleton, VariableElement field, MethodSpec.Builder constructorBuilder) {
         constructorBuilder.addStatement("addCollectionDependencyField($L, \"$L\", $L)",
-                classReferences.getSimpleRef(singleton), field.getSimpleName(), parameterReferences.getCollectionFieldRef(field));
+                classReferences.getSimpleRef(singleton),
+                field.getSimpleName(),
+                classReferences.getCollectionFieldRef(field));
     }
 
 
@@ -85,7 +100,9 @@ public class ModuleFactoryWriter extends JavaWriter {
         if (model.getConstructor().getParameters().isEmpty()) {
             constructorBuilder.addStatement("addConstructor($L)", classReferences.getSimpleRef(model.getSingleton()));
         } else {
-            constructorBuilder.addStatement("addConstructor($L, $L)", classReferences.getSimpleRef(model.getSingleton()), parameterTypeList(model.getConstructor()));
+            constructorBuilder.addStatement("addConstructor($L, $L)",
+                    classReferences.getSimpleRef(model.getSingleton()),
+                    parameterTypeList(model.getConstructor()));
         }
     }
 
@@ -136,22 +153,38 @@ class ClassReferences {
         return getSimpleRef(typeElement);
     }
 
+    CodeBlock getCollectionFieldRef(VariableElement field) {
+        TypeMirror genericType = JavaModelUtils.getGenericType(field);
+        TypeElement collectionType = (TypeElement) processingEnvironment.getTypeUtils().asElement(field.asType());
+        TypeElement genTypeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(genericType);
+        return getCollectionFieldRef(collectionType, genTypeElement);
+    }
+
+    private CodeBlock getCollectionFieldRef(TypeElement collectionType, TypeElement genericType) {
+        return CodeBlock.builder()
+                .add("$T.getRef($L.class, \"$L\")",
+                        ClassReference.class,
+                        JavaModelUtils.getClassName(collectionType),
+                        JavaModelUtils.getClassName(genericType))
+                .build();
+    }
+
 }
 
 
 @RequiredArgsConstructor
 class ParameterReferences {
     private final ProcessingEnvironment processingEnvironment;
-    private final ClassReferences classReferences;
 
     void addParameterReference(VariableElement variableElement, CodeBlock.Builder builder) {
+        Name name = variableElement.getSimpleName();
         if (JavaModelUtils.hasGenericType(variableElement)) {
             TypeMirror genericType = JavaModelUtils.getGenericType(variableElement);
-            builder.add(getCollectionParameterRef(variableElement.asType(), genericType));
+            builder.add(getCollectionParameterRef(variableElement.asType(), genericType, name));
         } else if (isPrimitive(variableElement)) {
-            builder.add(getPrimitiveParameterRef(variableElement.asType()));
+            builder.add(getPrimitiveParameterRef(variableElement.asType(), name));
         } else {
-            builder.add(getSimpleRef(variableElement.asType()));
+            builder.add(getSimpleRef(variableElement.asType(), name));
         }
     }
 
@@ -159,35 +192,43 @@ class ParameterReferences {
         return e.asType().getKind().isPrimitive();
     }
 
-    private String getSimpleRef(TypeMirror e) {
-        return CodeBlock.builder()
-                .add("$T.getRef(\"$L\")", ClassReference.class, e.toString())
-                .build().toString();
-    }
-
-    private String getCollectionParameterRef(TypeMirror collectionType, TypeMirror genericType) {
+    private String getCollectionParameterRef(TypeMirror collectionType, TypeMirror genericType, Name name) {
         TypeElement typeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(collectionType);
         TypeElement genTypeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(genericType);
-        return getCollectionParameterRef(typeElement, genTypeElement);
+        return getCollectionParameterRef(typeElement, genTypeElement, name);
     }
 
-    private String getCollectionParameterRef(TypeElement collectionType, TypeElement genericType) {
+    private String getCollectionParameterRef(TypeElement collectionType, TypeElement genericType, Name name) {
         return CodeBlock.builder()
-                .add("$T.getRef($L.class, \"$L\")", ClassReference.class, JavaModelUtils.getClassName(collectionType), JavaModelUtils.getClassName(genericType))
+                .add("$T.getRef($T.getRef($L.class, \"$L\"), \"$L\")",
+                        ParameterReference.class,
+                        ClassReference.class,
+                        JavaModelUtils.getClassName(collectionType),
+                        JavaModelUtils.getClassName(genericType),
+                        name)
+                .build().toString();
+    }
+
+    private String getPrimitiveParameterRef(TypeMirror mirror, Name name) {
+        return CodeBlock.builder()
+                .add("$T.getRef($T.getRefPrimitive(\"$L\"), \"$L\")",
+                        ParameterReference.class,
+                        ClassReference.class,
+                        mirror.toString(),
+                        name)
+                .build().toString();
+    }
+
+    private String getSimpleRef(TypeMirror e, Name name) {
+        return CodeBlock.builder()
+                .add("$T.getRef($T.getRef(\"$L\"), \"$L\")",
+                        ParameterReference.class,
+                        ClassReference.class,
+                        e.toString(),
+                        name)
                 .build().toString();
     }
 
 
-    private String getPrimitiveParameterRef(TypeMirror mirror) {
-        return CodeBlock.builder()
-                .add("$T.getRefPrimitive(\"$L\")", ClassReference.class, mirror.toString())
-                .build().toString();
-    }
-
-    CodeBlock getCollectionFieldRef(VariableElement field) {
-        CodeBlock.Builder builder = CodeBlock.builder();
-        addParameterReference(field, builder);
-        return builder.build();
-    }
 }
 

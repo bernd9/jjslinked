@@ -12,13 +12,13 @@ import java.util.List;
 public abstract class SingletonProvider {
 
     private final ClassReference type;
-    private final List<ClassReference> parameterTypes;
+    private final List<ParameterReference> parameterReferences;
     private final List<Parameter> parameters = new ArrayList<>();
     private Executable executable;
 
     protected void initParameters() {
-        for (int i = 0; i < parameterTypes.size(); i++) {
-            addParameter(parameterTypes.get(i), i);
+        for (int i = 0; i < parameterReferences.size(); i++) {
+            addParameter(parameterReferences.get(i), i);
         }
     }
 
@@ -30,20 +30,20 @@ public abstract class SingletonProvider {
 
     protected abstract Executable lookupExecutable();
 
-    protected void addParameter(ClassReference parameterType, int index) {
+    protected void addParameter(ParameterReference parameterReference, int index) {
         if (executable == null) {
             executable = lookupExecutable();
         }
         if (executable.getParameters()[index].isAnnotationPresent(Value.class)) {
             Value valueAnnotation = executable.getParameters()[index].getAnnotation(Value.class);
-            parameters.add(new ConfigParameter(parameterType, valueAnnotation.value(), valueAnnotation.defaultValue(), valueAnnotation.mandatory()));
-        } else if (Collection.class.isAssignableFrom(parameterType.getReferencedClass())) {
-            ClassReference genericType = parameterType.getGenericType().orElseThrow(() -> new IllegalStateException("collection-parameter must have generic type "));
+            parameters.add(new ConfigParameter(parameterReference.getClassReference(), valueAnnotation.value(), valueAnnotation.defaultValue(), valueAnnotation.mandatory()));
+        } else if (Collection.class.isAssignableFrom(parameterReference.getClassReference().getReferencedClass())) {
+            ClassReference genericType = parameterReference.getClassReference().getGenericType().orElseThrow(() -> new IllegalStateException("collection-parameter must have generic type "));
             // TODO field in exception-message
             // TODO ExceptionType ?
-            parameters.add(new CollectionParameter(parameterType, genericType));
+            parameters.add(new CollectionParameter(parameterReference.getClassReference(), genericType));
         } else {
-            parameters.add(new SimpleParameter(parameterType));
+            parameters.add(new SimpleParameter(parameterReference.getClassReference()));
         }
     }
 
@@ -53,7 +53,8 @@ public abstract class SingletonProvider {
     }
 
     protected Class<?>[] parameterTypes() {
-        return parameterTypes.stream()
+        return parameterReferences.stream()
+                .map(ParameterReference::getClassReference)
                 .map(ClassReference::getReferencedClass).toArray(Class<?>[]::new);
     }
 
