@@ -1,9 +1,7 @@
 package com.ejc.api.context;
 
-import com.ejc.Value;
 import lombok.Data;
 
-import java.lang.reflect.Executable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -14,12 +12,11 @@ public abstract class SingletonProvider {
     private final ClassReference type;
     private final List<ParameterReference> parameterReferences;
     private final List<Parameter> parameters = new ArrayList<>();
-    private Executable executable;
 
-    protected void initParameters() {
-        for (int i = 0; i < parameterReferences.size(); i++) {
-            addParameter(parameterReferences.get(i), i);
-        }
+    public SingletonProvider(ClassReference type, List<ParameterReference> parameterReferences) {
+        this.type = type;
+        this.parameterReferences = parameterReferences;
+        this.parameterReferences.forEach(this::addParameter);
     }
 
     void onSingletonCreated(Object o) {
@@ -28,15 +25,10 @@ public abstract class SingletonProvider {
 
     abstract Object provide();
 
-    protected abstract Executable lookupExecutable();
-
-    protected void addParameter(ParameterReference parameterReference, int index) {
-        if (executable == null) {
-            executable = lookupExecutable();
-        }
-        if (executable.getParameters()[index].isAnnotationPresent(Value.class)) {
-            Value valueAnnotation = executable.getParameters()[index].getAnnotation(Value.class);
-            parameters.add(new ConfigParameter(parameterReference.getClassReference(), valueAnnotation.value(), valueAnnotation.defaultValue(), valueAnnotation.mandatory()));
+    protected void addParameter(ParameterReference parameterReference) {
+        if (parameterReference.getValueAnnotationReference().isPresent()) {
+            ValueAnnotationReference valueRef = parameterReference.getValueAnnotationReference().get();
+            parameters.add(new ConfigParameter(parameterReference.getClassReference(), valueRef.getKey(), valueRef.getDefaultValue(), valueRef.isMandatory()));
         } else if (Collection.class.isAssignableFrom(parameterReference.getClassReference().getReferencedClass())) {
             ClassReference genericType = parameterReference.getClassReference().getGenericType().orElseThrow(() -> new IllegalStateException("collection-parameter must have generic type "));
             // TODO field in exception-message

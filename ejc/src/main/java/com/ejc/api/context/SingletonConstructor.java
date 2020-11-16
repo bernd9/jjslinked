@@ -1,14 +1,12 @@
 package com.ejc.api.context;
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Executable;
 import java.util.List;
 
 class SingletonConstructor extends SingletonProvider {
 
     public SingletonConstructor(ClassReference type, List<ParameterReference> parameterReferences) {
         super(type, parameterReferences);
-        initParameters();
     }
 
     @Override
@@ -18,15 +16,6 @@ class SingletonConstructor extends SingletonProvider {
             constructor.setAccessible(true);
             return constructor.newInstance(parameters());
         } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    protected Executable lookupExecutable() {
-        try {
-            return getType().getReferencedClass().getDeclaredConstructor(parameterTypes());
-        } catch (NoSuchMethodException e) {
             throw new RuntimeException(e);
         }
     }

@@ -2,7 +2,6 @@ package com.ejc.api.context;
 
 import lombok.NonNull;
 
-import java.lang.reflect.Executable;
 import java.util.List;
 import java.util.Objects;
 
@@ -15,7 +14,6 @@ class BeanMethod extends SingletonProvider {
         super(returnType, parameterReferences);
         this.singletonObject = singletonObject;
         this.name = name;
-        initParameters();
     }
 
     @Override
@@ -26,15 +24,6 @@ class BeanMethod extends SingletonProvider {
     @Override
     public boolean isSatisfied(SingletonProviders providers) {
         return super.isSatisfied(providers) && singletonObject.isSatisfied();
-    }
-
-    @Override
-    protected Executable lookupExecutable() {
-        try {
-            return singletonObject.getType().getReferencedClass().getDeclaredMethod(name, parameterTypes());
-        } catch (NoSuchMethodException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     private Object invoke(Object configuration) {
