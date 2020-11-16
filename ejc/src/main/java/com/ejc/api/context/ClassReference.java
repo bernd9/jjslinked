@@ -22,7 +22,6 @@ public class ClassReference {
     @Getter
     private final Optional<ClassReference> genericType;
 
-    @UsedInGeneratedCode(ModuleFactoryWriter.class)
     ClassReference(Class<?> c) {
         this.clazz = c;
         this.className = c.getName();
@@ -35,13 +34,14 @@ public class ClassReference {
     }
 
 
-    public static void flush() {
-        references.clear();
-    }
-
     ClassReference(String className, String genericType) {
         this.className = className;
         this.genericType = Optional.of(getRef(genericType));
+    }
+
+
+    public static void flush() {
+        references.clear();
     }
 
     public Class<?> getReferencedClass() {

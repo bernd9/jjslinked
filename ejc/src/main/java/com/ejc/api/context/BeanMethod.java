@@ -25,12 +25,7 @@ class BeanMethod extends SingletonProvider {
     public boolean isSatisfied(SingletonProviders providers) {
         return super.isSatisfied(providers) && singletonObject.isSatisfied();
     }
-
-    @Override
-    void onSingletonCreated(Object o) {
-        super.onSingletonCreated(o);
-    }
-
+    
     private Object invoke(Object configuration) {
         try {
             var method = configuration.getClass().getDeclaredMethod(name, parameterTypes());

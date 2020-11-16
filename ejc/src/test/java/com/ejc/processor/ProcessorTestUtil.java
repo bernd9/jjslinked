@@ -36,7 +36,7 @@ public class ProcessorTestUtil {
 
 
     public static ApplicationContext compileContext(String applicationClassName) throws Exception {
-        Compiler compiler = javac().withProcessors(new ModuleProcessor());
+        Compiler compiler = javac().withProcessors(new ModuleFactoryProcessor());
         String applicationClassFilePath = applicationClassName.replace(".", "/");
         JavaFileObject fileObject = JavaFileObjects.forResource(applicationClassFilePath + ".java");
         Compilation compilation = compiler.compile(fileObject);

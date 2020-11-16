@@ -26,7 +26,7 @@ import static com.ejc.util.JavaModelUtils.getAnnotationValue;
 
 @AutoService(Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
-public class ModuleProcessor extends ProcessorBase {
+public class ModuleFactoryProcessor extends ProcessorBase {
 
     private Map<Name, Collection<ExecutableElement>> initMethods = new HashMap<>();
     private Map<Name, Collection<ExecutableElement>> beanMethods = new HashMap<>();
@@ -87,7 +87,9 @@ public class ModuleProcessor extends ProcessorBase {
     }
 
     private void processValueFields(QueryResult result) {
-        result.getElements(Value.class, VariableElement.class).forEach(this::processValueField);
+        result.getElements(Value.class, VariableElement.class)
+                .stream().filter(e -> e.getKind() == ElementKind.FIELD) // Parameters not here
+                .forEach(this::processValueField);
     }
 
     private void processValueField(VariableElement field) {
