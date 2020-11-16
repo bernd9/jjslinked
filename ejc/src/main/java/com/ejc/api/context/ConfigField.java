@@ -15,8 +15,9 @@ public class ConfigField {
     private final Class<?> fieldType;
     private final String key;
     private final String defaultValue;
+    private final boolean mandatory;
 
     public void injectConfigValue(Object bean) {
-        FieldUtils.setFieldValue(bean, fieldName, Config.getProperty(key, fieldType, defaultValue));
+        FieldUtils.setFieldValue(bean, fieldName, Config.getProperty(key, fieldType, defaultValue, mandatory));
     }
 }

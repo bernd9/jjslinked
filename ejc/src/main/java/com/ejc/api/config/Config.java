@@ -57,10 +57,10 @@ public class Config {
         }
     }
 
-    public static <T> T getProperty(String name, Class<T> type, String defaultValue) throws PropertyNotFoundException {
+    public static <T> T getProperty(String name, Class<T> type, String defaultValue, boolean mandatory) throws PropertyNotFoundException {
         String property = getProperties().getProperty(name);
         if (property == null) {
-            if (defaultValue.isEmpty())
+            if (defaultValue.isEmpty() && mandatory)
                 throw new PropertyNotFoundException(name);
             else
                 property = defaultValue;

@@ -19,8 +19,8 @@ class SingletonProviders {
                 .anyMatch(provider -> provider.getType().isOfType(classReference));
     }
 
-    void remove(Collection<SingletonProvider> provider) {
-        providers.removeAll(provider);
+    void remove(SingletonProvider provider) {
+        providers.remove(provider);
     }
 
     void onSingletonCreated(Object o) {

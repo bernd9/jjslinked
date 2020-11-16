@@ -1,5 +1,6 @@
 package com.ejc.api.context;
 
+import java.lang.reflect.Executable;
 import java.util.Collections;
 
 class SimpleSingletonProvider extends SingletonProvider {
@@ -14,5 +15,10 @@ class SimpleSingletonProvider extends SingletonProvider {
     @Override
     Object provide() {
         return singleton;
+    }
+
+    @Override
+    protected Executable lookupExecutable() {
+        throw new AbstractMethodError();
     }
 }

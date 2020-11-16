@@ -5,5 +5,5 @@ public @interface Value {
 
     String defaultValue() default "";
 
-    boolean mandatory() default true; // TODO
+    boolean mandatory() default true;
 }

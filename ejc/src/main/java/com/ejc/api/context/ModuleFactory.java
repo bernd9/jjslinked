@@ -40,7 +40,7 @@ public abstract class ModuleFactory {
 
     @UsedInGeneratedCode(ModuleFactoryWriter.class)
     public void addConfigField(ClassReference owner, String name, Class<?> fieldType, String key, String defaultValue, boolean mandatory) {
-        getSingleton(owner).addConfigField(new ConfigField(owner, name, fieldType, key, defaultValue));
+        getSingleton(owner).addConfigField(new ConfigField(owner, name, fieldType, key, defaultValue, mandatory));
     }
 
     @UsedInGeneratedCode(ModuleFactoryWriter.class)

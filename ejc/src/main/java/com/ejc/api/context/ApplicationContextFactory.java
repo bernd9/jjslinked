@@ -56,12 +56,12 @@ public class ApplicationContextFactory {
                 // TODO Exception
                 break;
             }
-            singletonProviders.remove(invocableProviders);
             invocableProviders.forEach(this::invokeProviderOrProcessor);
         }
     }
 
     private void invokeProviderOrProcessor(SingletonProvider provider) {
+        singletonProviders.remove(provider);
         singletonProcessor.beforeInstantiation(provider.getType().getReferencedClass())
                 .ifPresentOrElse(this::onSingletonCreated, () -> invokeProvider(provider));
     }

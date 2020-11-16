@@ -42,6 +42,9 @@ public class TypeUtils {
 
     public <T> T convertStringToSimple(String value, @NonNull Class<T> fieldType) {
         if (value == null) {
+            if (fieldType.isPrimitive()) {
+                throw new NullPointerException("null is not allowed for primitives");
+            }
             return null;
         }
         if (fieldType == String.class) {
