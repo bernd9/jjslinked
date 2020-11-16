@@ -155,10 +155,16 @@ class ParameterReferences {
     void addParameterReference(VariableElement variableElement, CodeBlock.Builder builder) {
         if (JavaModelUtils.hasGenericType(variableElement)) {
             TypeMirror genericType = JavaModelUtils.getGenericType(variableElement);
-            builder.add(getRef(variableElement.asType(), genericType));
+            builder.add(getCollectionParameterRef(variableElement.asType(), genericType));
+        } else if (isPrimitive(variableElement)) {
+            builder.add(refPrimitive(variableElement.asType()));
         } else {
-            builder.add(getRef(variableElement.asType()));
+            builder.add(getSimpleRef(variableElement.asType()));
         }
+    }
+
+    private boolean isPrimitive(VariableElement e) {
+        return e.asType().getKind().isPrimitive();
     }
 
     CodeBlock getRef(VariableElement variableElement) {
@@ -166,22 +172,12 @@ class ParameterReferences {
         addParameterReference(variableElement, builder);
         return builder.build();
     }
-    
-    private String getRef(TypeMirror e) {
-        if (e.getKind().isPrimitive()) {
-            return refPrimitive(e);
-        }
-        TypeElement typeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(e);
-        return getRef(typeElement);
 
-    }
-
-    private String getRef(TypeElement e) {
+    private String getSimpleRef(TypeMirror e) {
         return CodeBlock.builder()
-                .add("$T.getRef(\"$L\")", ClassReference.class, JavaModelUtils.getClassName(e))
+                .add("$T.getRef(\"$L\")", ClassReference.class, e.toString())
                 .build().toString();
     }
-
 
     private String refPrimitive(TypeMirror mirror) {
         return CodeBlock.builder()
@@ -189,19 +185,16 @@ class ParameterReferences {
                 .build().toString();
     }
 
-    private String getRef(TypeMirror collectionType, TypeMirror genericType) {
+    private String getCollectionParameterRef(TypeMirror collectionType, TypeMirror genericType) {
         TypeElement typeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(collectionType);
         TypeElement genTypeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(genericType);
         return getRef(typeElement, genTypeElement);
     }
-
-
+    
     private String getRef(TypeElement collectionType, TypeElement genericType) {
         return CodeBlock.builder()
                 .add("$T.getRef($L.class, \"$L\")", ClassReference.class, JavaModelUtils.getClassName(collectionType), JavaModelUtils.getClassName(genericType))
                 .build().toString();
     }
-
-
 }
 
