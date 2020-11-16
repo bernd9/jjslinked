@@ -134,25 +134,12 @@ class ClassReferences {
         return getRef(typeElement);
     }
 
-    String getRef(TypeMirror collectionType, TypeMirror genericType) {
-        TypeElement typeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(collectionType);
-        TypeElement genTypeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(genericType);
-        return getRef(typeElement, genTypeElement);
-    }
-
-
-    String getRef(TypeElement collectionType, TypeElement genericType) {
-        return CodeBlock.builder()
-                .add("$T.getRef($L.class, \"$L\")", ClassReference.class, JavaModelUtils.getClassName(collectionType), JavaModelUtils.getClassName(genericType))
-                .build().toString();
-    }
-
     String getRefNonPrimitive(String e) {
         TypeElement typeElement = processingEnvironment.getElementUtils().getTypeElement(e);
         return getRef(typeElement);
     }
 
-    String refPrimitive(TypeMirror mirror) {
+    private String refPrimitive(TypeMirror mirror) {
         return CodeBlock.builder()
                 .add("$T.getRefPrimitive(\"$L\")", ClassReference.class, mirror.toString())
                 .build().toString();
@@ -174,7 +161,7 @@ class ParameterReferences {
         }
     }
 
-    String getRef(TypeMirror e) {
+    private String getRef(TypeMirror e) {
         if (e.getKind().isPrimitive()) {
             return refPrimitive(e);
         }
@@ -183,20 +170,20 @@ class ParameterReferences {
 
     }
 
-    String getRef(TypeElement e) {
+    private String getRef(TypeElement e) {
         return CodeBlock.builder()
                 .add("$T.getRef(\"$L\")", ClassReference.class, JavaModelUtils.getClassName(e))
                 .build().toString();
     }
 
 
-    String refPrimitive(TypeMirror mirror) {
+    private String refPrimitive(TypeMirror mirror) {
         return CodeBlock.builder()
                 .add("$T.getRefPrimitive(\"$L\")", ClassReference.class, mirror.toString())
                 .build().toString();
     }
 
-    String getRef(TypeMirror collectionType, TypeMirror genericType) {
+    private String getRef(TypeMirror collectionType, TypeMirror genericType) {
         TypeElement typeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(collectionType);
         TypeElement genTypeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(genericType);
         return getRef(typeElement, genTypeElement);
