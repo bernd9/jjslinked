@@ -1,6 +1,8 @@
 package com.ejc.util;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.*;
 
 public class FieldUtils {
 
@@ -44,5 +46,28 @@ public class FieldUtils {
     public static void setFieldValue(Object bean, String fieldName, Object value) {
         Field field = getField(bean, fieldName);
         setFieldValue(bean, field, value);
+    }
+
+    public static Collection<Field> getAllFields(Object o) {
+        Map<String, Field> fields = new HashMap<>();
+        getHierarchy(o.getClass()).stream()
+                .map(Class::getDeclaredFields)
+                .map(Arrays::asList)
+                .flatMap(List::stream)
+                .filter(field -> !Modifier.isFinal(field.getModifiers()))
+                .peek(field -> field.setAccessible(true))
+                .forEach(field -> fields.put(field.getName(), field));
+        return fields.values();
+    }
+
+
+    private static List<Class<?>> getHierarchy(Class<?> c) {
+        List<Class<?>> classes = new ArrayList<>();
+        while (c != null && c != Object.class) {
+            classes.add(c);
+            c = c.getSuperclass();
+        }
+        Collections.reverse(classes);
+        return classes;
     }
 }
