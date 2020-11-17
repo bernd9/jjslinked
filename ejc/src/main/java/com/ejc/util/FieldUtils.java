@@ -15,9 +15,13 @@ public class FieldUtils {
     }
 
     public static Object getFieldValue(Object o, String fieldName) {
+        Field field = getField(o, fieldName);
+        return getFieldValue(o, field);
+    }
+
+    public static Object getFieldValue(Object o, Field field) {
+        field.setAccessible(true);
         try {
-            Field field = getField(o, fieldName);
-            field.setAccessible(true);
             return field.get(o);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);
