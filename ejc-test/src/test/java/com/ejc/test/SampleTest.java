@@ -1,4 +1,4 @@
-package com.ejc.junit5;
+package com.ejc.test;
 
 import com.ejc.Inject;
 import com.ejc.Singleton;
@@ -7,13 +7,14 @@ import com.ejc.test.*;
 import lombok.Getter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.internal.util.MockUtil;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(UnitTestExtension.class)
-@org.junit.jupiter.api.TestInstance(org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS)
+@TestInstance(org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS)
 public class SampleTest {
 
     @TestSubject
