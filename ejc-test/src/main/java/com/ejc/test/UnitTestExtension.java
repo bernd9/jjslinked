@@ -10,8 +10,7 @@ public class UnitTestExtension implements BeforeTestExecutionCallback {
     @Override
     public void beforeTestExecution(ExtensionContext context) {
         Object test = context.getTestInstance().orElseGet(() -> ClassUtils.createInstance(context.getTestClass().orElseThrow()));
-        UnitTestContext unitTestContext = new UnitTestContextBuilder(test).createUnitTestContext();
-        new UnitTestFieldInitializer(unitTestContext).setTestFieldValues();
+        new UnitTestFieldInitializer(test).setTestFieldValues();
     }
 }
 

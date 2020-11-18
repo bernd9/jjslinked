@@ -7,21 +7,22 @@ import com.ejc.test.*;
 import lombok.Getter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.internal.util.MockUtil;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(UnitTestExtension.class)
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@org.junit.jupiter.api.TestInstance(org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS)
 public class SampleTest {
 
+    @TestSubject
     @InjectConfigValue(name = "host", value = "localhost")
     @InjectConfigValue(name = "port", value = "8080")
     @InjectTestDependencies
     private Singleton2 singleton2;
 
+    @TestSubject
     @InjectConfigValue(name = "host", value = "localhost")
     @InjectConfigValue(name = "port", value = "8080")
     @InjectTestDependencies

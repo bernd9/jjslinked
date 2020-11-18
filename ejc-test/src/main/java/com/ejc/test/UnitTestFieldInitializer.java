@@ -17,41 +17,46 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 class UnitTestFieldInitializer {
-    private final UnitTestContext unitTestContext;
+    private final Object test;
 
     void setTestFieldValues() {
         Set<Object> providedDependencies = providedDependencies();
-        setTestSubjectFieldsInTest(providedDependencies);
+        setSingletonFieldsInTest(providedDependencies);
     }
 
-    private void setTestSubjectFieldsInTest(Set<Object> providedDependencies) {
-        unitTestContext.getTestAnnotatedFields().getOrDefault(InjectTestDependencies.class, Collections.emptySet())
-                .forEach(field -> setTestSubjectFieldValueInTest(field, providedDependencies));
+    private void setSingletonFieldsInTest(Set<Object> providedDependencies) {
+        FieldUtils.getAllFields(test).stream()
+                .filter(field -> field.isAnnotationPresent(TestSubject.class))
+                .forEach(fieldForSingleton -> {
+                    Object singleton = createInstance(fieldForSingleton, providedDependencies);
+                    setConfigFieldValues(singleton, fieldForSingleton);
+                    setDependencyFieldValues(singleton, providedDependencies);
+                    FieldUtils.setFieldValue(test, fieldForSingleton, singleton);
+                });
     }
 
-    private void setTestSubjectFieldValueInTest(Field fieldForSingleton, Set<Object> providedDependencies) {
-        Object singleton = setSingletonInstanceFieldInTestIfNull(fieldForSingleton, providedDependencies);
+    private void setDependencyFieldValues(Object singleton, Set<Object> providedDependencies) {
+        FieldUtils.getAllFields(singleton).stream()
+                .filter(field -> field.isAnnotationPresent(Inject.class))
+                .forEach(field -> setDependencyFieldValue(singleton, field, providedDependencies));
+    }
+
+    private void setConfigFieldValues(Object singleton, Field fieldForSingleton) {
         Collection<Field> fieldsInSingleton = FieldUtils.getAllFields(singleton);
         setConfigFieldValues(fieldForSingleton, singleton, fieldsInSingleton);
-        setDependencyFieldValues(singleton, fieldsInSingleton, providedDependencies);
+
     }
 
     private void setConfigFieldValues(Field fieldForSingleton, Object singleton, Collection<Field> fieldsInSingleton) {
         Map<String, String> configValues = configValues(fieldForSingleton);
         fieldsInSingleton.stream()
                 .filter(fieldInSingleton -> fieldInSingleton.isAnnotationPresent(Value.class))
-                .forEach(field -> setConfigFieldValue(fieldForSingleton, singleton, configValues));
+                .forEach(configField -> setConfigFieldValue(configField, singleton, configValues));
     }
 
     private void setConfigFieldValue(Field fieldInSingleton, Object singleton, Map<String, String> configValues) {
         Object configValue = getConfigValueOrThrow(fieldInSingleton.getAnnotation(Value.class), fieldInSingleton.getType(), configValues);
         FieldUtils.setFieldValue(singleton, fieldInSingleton, configValue);
-    }
-
-    private void setDependencyFieldValues(Object singleton, Collection<Field> fieldsInSingleton, Set<Object> providedDependencies) {
-        fieldsInSingleton.stream()
-                .filter(fieldInSingleton -> fieldInSingleton.isAnnotationPresent(Inject.class))
-                .forEach(dependencyField -> setDependencyFieldValue(singleton, dependencyField, providedDependencies));
     }
 
     private void setDependencyFieldValue(Object singleton, Field dependencyField, Set<Object> providedDependencies) {
@@ -63,22 +68,12 @@ class UnitTestFieldInitializer {
     }
 
     private void setSimpleDependencyFieldValue(Object singleton, Field dependencyField, Set<Object> providedDependencies) {
-        Object value = providedDependencies.stream()
+        Optional<Object> value = providedDependencies.stream()
                 .filter(dependencyField.getType()::isInstance)
-                .collect(CollectorUtils.toOnlyElement(list -> throwUnexpectedCountOfCandidates(dependencyField, list)));
-        FieldUtils.setFieldValue(singleton, dependencyField, value);
+                .collect(CollectorUtils.toOnlyOptional());
+        FieldUtils.setFieldValue(singleton, dependencyField, value.orElseGet(() -> Mockito.mock(dependencyField.getType())));
     }
-
-    private RuntimeException throwUnexpectedCountOfCandidates(Field dependencyField, List<?> dependencies) {
-        if (dependencies.isEmpty()) {
-            return new RuntimeException("unsatisfied dependency " + dependencyField);
-        }
-        if (dependencies.size() > 1) {
-            return new RuntimeException("ambiguous values for " + dependencyField);
-        }
-        return new IllegalStateException();
-    }
-
+    
     @SuppressWarnings("unchecked")
     private void setCollectionDependencyFieldValue(Object singleton, Field dependencyField, Set<Object> providedDependencies) {
         Collection<Object> collection = TypeUtils.emptyCollection((Class<? extends Collection<Object>>) dependencyField.getType());
@@ -88,10 +83,11 @@ class UnitTestFieldInitializer {
     }
 
     private Set<Object> providedDependencies() {
+        Collection<Field> testFields = FieldUtils.getAllFields(test);
         Set<Object> dependencies = new HashSet<>();
-        dependencies.addAll(testDependencies());
-        dependencies.addAll(mocks());
-        dependencies.addAll(spies());
+        dependencies.addAll(testDependencies(testFields));
+        dependencies.addAll(mocks(testFields));
+        dependencies.addAll(spies(testFields));
         return dependencies;
     }
 
@@ -100,62 +96,59 @@ class UnitTestFieldInitializer {
                 .collect(Collectors.toMap(InjectConfigValue::name, InjectConfigValue::value));
     }
 
-    private Set<Object> testDependencies() {
-        return unitTestContext.getTestAnnotatedFields().getOrDefault(TestDependency.class, Collections.emptySet())
-                .stream()
+    private Set<Object> testDependencies(Collection<Field> testFields) {
+        return testFields.stream()
+                .filter(field -> field.isAnnotationPresent(TestDependency.class))
                 .map(this::getFieldValueOrThrow)
                 .collect(Collectors.toSet());
     }
 
-    private Set<Object> mocks() {
-        return unitTestContext.getTestAnnotatedFields().getOrDefault(Mock.class, Collections.emptySet())
-                .stream()
+    private Set<Object> mocks(Collection<Field> testFields) {
+        return testFields.stream()
+                .filter(field -> field.isAnnotationPresent(Mock.class))
                 .map(this::setMockIfNull)
                 .collect(Collectors.toSet());
     }
 
-    private Set<Object> spies() {
-        return unitTestContext.getTestAnnotatedFields().getOrDefault(Spy.class, Collections.emptySet())
-                .stream()
-                .map(this::setSpyIfNull)
+    private Set<Object> spies(Collection<Field> testFields) {
+        return testFields.stream()
+                .filter(field -> field.isAnnotationPresent(Spy.class))
+                .map(this::setSpy)
                 .collect(Collectors.toSet());
     }
 
     private Object getFieldValueOrThrow(Field field) {
-        return Objects.requireNonNull(FieldUtils.getFieldValue(unitTestContext.getTest(), field), "value of " + field + " is null");
+        return Objects.requireNonNull(FieldUtils.getFieldValue(test, field), "value of " + field + " is null");
     }
 
     private Object setMockIfNull(Field field) {
-        Object o = FieldUtils.getFieldValue(unitTestContext.getTest(), field);
+        Object o = FieldUtils.getFieldValue(test, field);
         if (o == null) {
             o = Mockito.mock(field.getType());
-            FieldUtils.setFieldValue(unitTestContext.getTest(), field, o);
+            FieldUtils.setFieldValue(test, field, o);
         }
         return o;
     }
 
-    private Object setSpyIfNull(Field field) {
-        Object o = FieldUtils.getFieldValue(unitTestContext.getTest(), field);
+    private Object setSpy(Field field) {
+        Object o = FieldUtils.getFieldValue(test, field);
         if (o == null) {
             o = Mockito.spy(field.getType());
-            FieldUtils.setFieldValue(unitTestContext.getTest(), field, o);
+            FieldUtils.setFieldValue(test, field, o);
         } else if (!MockUtil.isSpy(o)) {
             o = Mockito.spy(o);
-            FieldUtils.setFieldValue(unitTestContext.getTest(), field, o);
+            FieldUtils.setFieldValue(test, field, o);
         }
         return o;
     }
 
-    private Object setSingletonInstanceFieldInTestIfNull(Field fieldForSingleton, Set<Object> dependencies) {
+    private Object createInstance(Field fieldForSingleton, Set<Object> dependencies) {
         Map<String, String> configValues = configValues(fieldForSingleton);
-        Object o = FieldUtils.getFieldValue(unitTestContext.getTest(), fieldForSingleton);
-        if (o == null) {
-            try {
-                o = createInstance(fieldForSingleton.getType(), dependencies, configValues);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-            FieldUtils.setFieldValue(unitTestContext.getTest(), fieldForSingleton, o);
+        Object o;
+        try {
+            o = createInstance(fieldForSingleton.getType(), dependencies, configValues);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         return o;
     }
