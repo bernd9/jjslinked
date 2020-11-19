@@ -7,6 +7,7 @@ import lombok.Builder;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import java.util.Collections;
 import java.util.Optional;
 
 class CustomAnnotationProviderWriter extends JavaWriter {
@@ -15,7 +16,7 @@ class CustomAnnotationProviderWriter extends JavaWriter {
 
     @Builder
     public CustomAnnotationProviderWriter(TypeElement annotationClass, String providerClassSimpleName, String providerClassPackageName, ProcessingEnvironment processingEnvironment) {
-        super(providerClassSimpleName, Optional.of(providerClassPackageName), Optional.of(CustomSingletonAnnotationProvider.class), processingEnvironment);
+        super(providerClassSimpleName, Optional.of(providerClassPackageName), Optional.of(CustomSingletonAnnotationProvider.class), processingEnvironment, Collections.emptySet());
         this.annotationClass = annotationClass;
     }
 

@@ -27,5 +27,9 @@ public class CompoundSingletonProcessor implements SingletonProcessor {
                 .collect(CollectorUtils.toOnlyOptional());
     }
 
+    void addSingletonProcessor(SingletonProcessor singletonProcessor) {
+        singletonProcessors.add(singletonProcessor);
+    }
+
 
 }

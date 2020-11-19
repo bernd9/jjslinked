@@ -6,6 +6,8 @@ import java.util.Set;
 
 public abstract class ApplicationContext {
 
+    public static final String APPLICATION_CLASS_HOLDER_NAME = "com.ejc.ApplicationClassHolderImpl";
+
     @Getter
     static ApplicationContext instance;
 

@@ -18,6 +18,7 @@ import javax.lang.model.element.Name;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
@@ -32,7 +33,7 @@ public class ModuleFactoryWriter extends JavaWriter {
 
     @Builder
     public ModuleFactoryWriter(ModuleFactoryWriterModel model, String simpleName, Optional<String> packageName, ProcessingEnvironment processingEnvironment) {
-        super(simpleName, packageName, Optional.of(ModuleFactory.class), processingEnvironment);
+        super(simpleName, packageName, Optional.of(ModuleFactory.class), processingEnvironment, Collections.emptySet());
         this.model = model;
         this.classReferences = new ClassReferences(processingEnvironment);
         this.parameterReferences = new ParameterReferences(processingEnvironment);

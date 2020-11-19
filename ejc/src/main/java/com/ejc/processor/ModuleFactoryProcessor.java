@@ -177,6 +177,7 @@ public class ModuleFactoryProcessor extends ProcessorBase {
     protected void processingOver() {
         ModuleFactoryWriterModel model = createWriterModel();
         writeSingletons(model);
+        writeAppCLassHolder(model);
         writeContextFile(model);
     }
 
@@ -190,7 +191,7 @@ public class ModuleFactoryProcessor extends ProcessorBase {
         try {
             writer.write();
         } catch (IOException e) {
-            e.printStackTrace();
+            reportError(e);
         }
     }
 
@@ -249,6 +250,15 @@ public class ModuleFactoryProcessor extends ProcessorBase {
 
     private void writeContextFile(ModuleFactoryWriterModel model) {
         IOUtils.write(Collections.singletonList(ModuleFactory.getQualifiedName(model.getApplicationClass())), processingEnv.getFiler(), "META-INF/services/" + ModuleFactory.class.getName());
+    }
+
+    private void writeAppCLassHolder(ModuleFactoryWriterModel model) {
+        ApplicationClassHolderWriter writer = new ApplicationClassHolderWriter(model.getApplicationClass(), processingEnv);
+        try {
+            writer.write();
+        } catch (IOException e) {
+            reportError(e);
+        }
     }
 
     private Optional<String> getSingletonReplacementAttribute(TypeElement annotatedElement) {
