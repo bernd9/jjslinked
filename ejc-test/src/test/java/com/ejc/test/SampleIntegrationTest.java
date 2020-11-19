@@ -1,8 +1,8 @@
 package com.ejc.test;
 
-import com.ejc.Application;
 import com.ejc.Inject;
-import com.ejc.Singleton;
+import com.ejc.test.testapp.Singleton1;
+import com.ejc.test.testapp.Singleton2;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,31 +11,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SampleIntegrationTest {
 
-    @TestSubject
-    private Service1 service1;
+    @Inject
+    private Singleton1 singleton1;
 
     @Mock
-    private Dao1 dao1;
+    private Singleton2 singleton2;
+
 
     @Test
     void test() {
-
-    }
-
-    @Application
-    class TestApp {
-
-    }
-
-    @Singleton
-    class Service1 {
-
-        @Inject
-        private Dao1 dao;
-    }
-
-    @Singleton
-    class Dao1 {
 
     }
 }
