@@ -9,6 +9,6 @@ public class IntegrationTestExtension implements BeforeTestExecutionCallback {
     @Override
     public void beforeTestExecution(ExtensionContext context) {
         Object test = context.getTestInstance().orElseGet(() -> ClassUtils.createInstance(context.getTestClass().orElseThrow()));
-        new IntegrationTestFieldInitializer(test).setTestFieldValues();
+        new IntegrationTestFieldInitializer(null, test).setTestFieldValues();// TODO
     }
 }
