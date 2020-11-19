@@ -179,6 +179,7 @@ public class ModuleFactoryProcessor extends ProcessorBase {
         writeSingletons(model);
         writeAppCLassHolder(model);
         writeContextFile(model);
+        writeManifest(model);
     }
 
     private void writeSingletons(ModuleFactoryWriterModel model) {
@@ -250,6 +251,10 @@ public class ModuleFactoryProcessor extends ProcessorBase {
 
     private void writeContextFile(ModuleFactoryWriterModel model) {
         IOUtils.write(Collections.singletonList(ModuleFactory.getQualifiedName(model.getApplicationClass())), processingEnv.getFiler(), "META-INF/services/" + ModuleFactory.class.getName());
+    }
+
+    private void writeManifest(ModuleFactoryWriterModel model) {
+        IOUtils.write(Collections.singletonList("Main-Class: " + ApplicationRunner.class.getName()), processingEnv.getFiler(), "META-INF/MANIFEST.MF");
     }
 
     private void writeAppCLassHolder(ModuleFactoryWriterModel model) {
