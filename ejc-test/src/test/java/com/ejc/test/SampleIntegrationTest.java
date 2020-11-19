@@ -20,6 +20,6 @@ public class SampleIntegrationTest {
 
     @Test
     void test() {
-
+        System.out.println(singleton1.getSingleton2());
     }
 }

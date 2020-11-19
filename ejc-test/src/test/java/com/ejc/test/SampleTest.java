@@ -3,7 +3,6 @@ package com.ejc.test;
 import com.ejc.Inject;
 import com.ejc.Singleton;
 import com.ejc.Value;
-import com.ejc.test.*;
 import lombok.Getter;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -20,13 +19,11 @@ public class SampleTest {
     @TestSubject
     @InjectConfigValue(name = "host", value = "localhost")
     @InjectConfigValue(name = "port", value = "8080")
-    @InjectTestDependencies
     private Singleton2 singleton2;
 
     @TestSubject
     @InjectConfigValue(name = "host", value = "localhost")
     @InjectConfigValue(name = "port", value = "8080")
-    @InjectTestDependencies
     private Singleton3 singleton3;
 
     @TestDependency
