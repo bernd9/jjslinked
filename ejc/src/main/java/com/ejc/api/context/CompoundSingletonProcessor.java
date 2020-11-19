@@ -1,6 +1,5 @@
 package com.ejc.api.context;
 
-import com.ejc.util.CollectorUtils;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;
@@ -16,7 +15,8 @@ public class CompoundSingletonProcessor implements SingletonProcessor {
         return singletonProcessors.stream()
                 .map(singletonProcessor -> singletonProcessor.beforeInstantiation(type))
                 .filter(Optional::isPresent)
-                .collect(CollectorUtils.toOnlyOptional());
+                .map(Optional::get)
+                .findFirst();
     }
 
     @Override
@@ -24,7 +24,8 @@ public class CompoundSingletonProcessor implements SingletonProcessor {
         return singletonProcessors.stream()
                 .map(singletonProcessor -> singletonProcessor.afterInstantiation(o))
                 .filter(Optional::isPresent)
-                .collect(CollectorUtils.toOnlyOptional());
+                .map(Optional::get)
+                .findFirst();
     }
 
     void addSingletonProcessor(SingletonProcessor singletonProcessor) {
