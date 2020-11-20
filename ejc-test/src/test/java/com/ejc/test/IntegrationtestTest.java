@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(IntegrationTestExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class SampleIntegrationTest {
+public class IntegrationtestTest {
 
     @Mock
     private Singleton1 singleton1;
@@ -20,6 +20,7 @@ public class SampleIntegrationTest {
     @Inject
     private Singleton2 singleton2;
 
+    // TODO Collection field and constructor-parameter-test
 
     @Test
     void test() {

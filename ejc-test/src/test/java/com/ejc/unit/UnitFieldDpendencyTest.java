@@ -1,5 +1,6 @@
-package com.ejc.test;
+package com.ejc.unit;
 
+import com.ejc.test.*;
 import com.ejc.test.testapp.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
@@ -12,8 +13,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Disabled
 @ExtendWith(UnitTestExtension.class)
-@TestInstance(org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS)
-public class SampleUnitTest {
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+public class UnitFieldDpendencyTest {
 
     @TestSubject
     @InjectConfigValue(name = "host", value = "localhost")
