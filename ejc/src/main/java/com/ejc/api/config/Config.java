@@ -1,6 +1,6 @@
 package com.ejc.api.config;
 
-import com.ejc.api.profile.Profile;
+import com.ejc.api.profile.ActiveProfile;
 import com.ejc.util.TypeUtils;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -27,8 +27,8 @@ public class Config {
 
     private static Properties loadProperties() {
         Properties properties = loadProperties("application.properties");
-        String profile = Profile.getCurrentProfile();
-        if (!profile.equals(Profile.DEFAULT_PROFILE)) {
+        String profile = ActiveProfile.getCurrentProfile();
+        if (!profile.equals(ActiveProfile.DEFAULT_PROFILE)) {
             properties.putAll(loadProperties(String.format("application-%s.properties", profile)));
         }
         properties.putAll(System.getenv());

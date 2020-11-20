@@ -4,11 +4,11 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class Profile {
+public class ActiveProfile {
 
-    static final String KEY = "ejc-profile";
+    static final String KEY = "profile";
     public static final String DEFAULT_PROFILE = "default";
-    private static String currentProfile;
+    private static volatile String currentProfile;
 
     public static synchronized String getCurrentProfile() {
         if (currentProfile == null) {
@@ -21,6 +21,10 @@ public class Profile {
             currentProfile = DEFAULT_PROFILE;
         }
         return currentProfile;
+    }
+
+    static void setActiveProfile(String profile) {
+        currentProfile = profile;
     }
 
     public static void unload() {
