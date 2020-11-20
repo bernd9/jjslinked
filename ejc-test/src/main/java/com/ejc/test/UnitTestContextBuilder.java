@@ -42,7 +42,7 @@ class UnitTestContextBuilder {
      */
 
     private boolean isUnitTestAnnotation(Annotation annotation) {
-        return annotation.annotationType().isAnnotationPresent(UnitTestAnnotation.class);
+        return annotation.annotationType().isAnnotationPresent(UnitTestFieldAnnotation.class);
     }
 
 

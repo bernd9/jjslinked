@@ -8,7 +8,11 @@ public class UnitTestExtension implements BeforeTestExecutionCallback {
 
     @Override
     public void beforeTestExecution(ExtensionContext context) {
-        new UnitTestFieldInitializer(JUnit5Util.getTestInstance(context)).setTestFieldValues();
+        Object test = JUnit5Util.getTestInstance(context);
+        if (test.getClass().isAnnotationPresent(ActivateProfile.class)) {
+            throw new IllegalStateException("@ActivateProfile is only valid in integration tests");
+        }
+        new UnitTestFieldInitializer(test).setTestFieldValues();
     }
 }
 
