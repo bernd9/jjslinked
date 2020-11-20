@@ -7,19 +7,22 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @ExtendWith(IntegrationTestExtension.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class SampleIntegrationTest {
 
-    @Inject
+    @Mock
     private Singleton1 singleton1;
 
-    @Mock
+
+    @Inject
     private Singleton2 singleton2;
 
 
     @Test
     void test() {
-        System.out.println(singleton1.getSingleton2());
+        assertThat(singleton2.getSingleton1()).isNotNull();
     }
 }

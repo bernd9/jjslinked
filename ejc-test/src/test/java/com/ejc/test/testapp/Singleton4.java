@@ -7,6 +7,6 @@ import lombok.RequiredArgsConstructor;
 @Singleton
 @Getter
 @RequiredArgsConstructor
-public class Singleton1 {
+public class Singleton4 {
     private final Singleton2 singleton2;
 }
