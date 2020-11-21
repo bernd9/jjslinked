@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'groovy'
 }
 
 group 'com.ejc'
@@ -14,30 +15,30 @@ repositories {
 
 dependencies {
     annotationProcessor(group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7')
-    compile 'org.projectlombok:lombok:1.18.12'
+    implementation 'org.projectlombok:lombok:1.18.12'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
     //testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.6.2'
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
     testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.6.2'
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.6.2")
+    //testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.6.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.2")
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.6.2")
+    //testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.6.2")
 
     // https://mvnrepository.com/artifact/org.assertj/assertj-core
     testCompile group: 'org.assertj', name: 'assertj-core', version: '3.16.1'
 
 
-    compile 'com.google.testing.compile:compile-testing:0.11'
+    testCompile 'com.google.testing.compile:compile-testing:0.11'
     //compile 'net.bytebuddy:byte-buddy:1.10.10'
     compile group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7'
-    compile group: 'com.squareup', name: 'javapoet', version: '1.12.1'
+    implementation group: 'com.squareup', name: 'javapoet', version: '1.12.1'
     //compile group: 'com.github.spullara.mustache.java', name: 'compiler', version: '0.9.6'
     // https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
-    compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.10'
+    //compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.10'
 
-    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.6.1'
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.6.1'
+    //compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.6.1'
+    //compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.6.1'
     // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-core
     compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.11.0'
 
