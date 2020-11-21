@@ -32,7 +32,7 @@ dependencies {
 
     //implementation group: 'com.squareup', name: 'javapoet', version: '1.12.1'
 
-    testCompile group: 'junit', name: 'junit', version: '4.12'
+    //testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
 jar {
