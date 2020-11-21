@@ -32,17 +32,24 @@ public class UnittestTest {
     @Spy
     private Singleton5 singleton5 = new Singleton5();
 
+    @TestDependency
+    private Singleton6 singleton6 = new Singleton6();
+
     @BeforeAll
     void beforeEach() {
         System.out.println("beforeEach");
         singleton1 = new Singleton1();
     }
 
-    // TODO Collection field and constructor-parameter-test
     @Test
     void configFieldInjection() {
         assertThat(singleton2.getPort()).isEqualTo(8080);
         assertThat(singleton2.getHost()).isEqualTo("localhost");
+    }
+
+    @Test
+    void collectionConfigFieldInjection() {
+        assertThat(singleton2.getCollection()).hasSize(4);
     }
 
     @Test
@@ -62,24 +69,33 @@ public class UnittestTest {
         assertThat(MockUtil.isSpy(singleton2.getSingleton5())).isTrue();
     }
 
+
     @Test
-    void mockFieldIfUndefined() {
-        assertThat(singleton2.getSingleton6()).isNotNull();
-        assertThat(MockUtil.isMock(singleton2.getSingleton6())).isTrue();
+    void configParameterInjection() {
+        assertThat(singleton3.getPort()).isEqualTo(8080);
+        assertThat(singleton3.getHost()).isEqualTo("localhost");
     }
 
     @Test
-    void constructorInjection() {
-        assertThat(singleton3.getPort()).isEqualTo(8080);
-        assertThat(singleton3.getHost()).isEqualTo("localhost");
-        assertThat(singleton3.getSingleton1()).isNotNull();
-        assertThat(singleton3.getSingleton4()).isNotNull();
-        assertThat(singleton3.getSingleton5()).isNotNull();
-        assertThat(singleton3.getSingleton6()).isNotNull();
+    void collectionConfigParameterInjection() {
+        assertThat(singleton3.getCollection()).hasSize(4);
+    }
 
+    @Test
+    void testDependencyParameterInjection() {
+        assertThat(singleton3.getSingleton1()).isNotNull();
+    }
+
+    @Test
+    void mockParameterInjection() {
+        assertThat(singleton3.getSingleton4()).isNotNull();
         assertThat(MockUtil.isMock(singleton3.getSingleton4())).isTrue();
+    }
+
+    @Test
+    void spyParameterInjection() {
+        assertThat(singleton3.getSingleton5()).isNotNull();
         assertThat(MockUtil.isSpy(singleton3.getSingleton5())).isTrue();
-        assertThat(MockUtil.isMock(singleton3.getSingleton6())).isTrue();
     }
 
 }

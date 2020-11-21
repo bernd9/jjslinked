@@ -93,10 +93,15 @@ class IntegrationTestInitializer implements SingletonProcessor {
     private void addToInjectCollectionField(Object o) {
         injectFields.stream()
                 .filter(field -> Collection.class.isAssignableFrom(field.getType()))
-                .filter(field -> TypeUtils.getGenericType((Class<? extends Collection>) field.getType()).isAssignableFrom(o.getClass()))
+                .filter(field -> matchesGenericTypeParameter(field, o))
                 .map(field -> FieldUtils.getFieldValue(test, field))
                 .map(Collection.class::cast)
                 .forEach(coll -> coll.add(o));
+    }
+
+    private boolean matchesGenericTypeParameter(Field field, Object o) {
+        Class<?> genericType = FieldUtils.getGenericCollectionType(field).orElseThrow(() -> new IllegalStateException(field + " must have a generic type parameter"));
+        return genericType.isInstance(o);
     }
 
     private Optional<Object> bindMock(Class<?> type) {

@@ -7,6 +7,6 @@ import lombok.RequiredArgsConstructor;
 @Singleton
 @Getter
 @RequiredArgsConstructor
-public class Singleton4 {
+public class Singleton4 implements Interface1 {
     private final Singleton2 singleton2;
 }

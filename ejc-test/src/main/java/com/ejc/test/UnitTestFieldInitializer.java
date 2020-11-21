@@ -4,6 +4,7 @@ import com.ejc.Inject;
 import com.ejc.Value;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.FieldUtils;
+import com.ejc.util.ParameterUtils;
 import com.ejc.util.TypeUtils;
 import lombok.RequiredArgsConstructor;
 import org.mockito.Mockito;
@@ -68,19 +69,40 @@ class UnitTestFieldInitializer {
     }
 
     private void setSimpleDependencyFieldValue(Object singleton, Field dependencyField, Set<Object> providedDependencies) {
-        Optional<Object> value = providedDependencies.stream()
-                .filter(dependencyField.getType()::isInstance)
-                .collect(CollectorUtils.toOnlyOptional());
-        FieldUtils.setFieldValue(singleton, dependencyField, value.orElseGet(() -> Mockito.mock(dependencyField.getType())));
+        FieldUtils.setFieldValue(singleton, dependencyField, getSimpleDependency(dependencyField, providedDependencies));
     }
-    
-    @SuppressWarnings("unchecked")
+
     private void setCollectionDependencyFieldValue(Object singleton, Field dependencyField, Set<Object> providedDependencies) {
-        Collection<Object> collection = TypeUtils.emptyCollection((Class<? extends Collection<Object>>) dependencyField.getType());
-        Class<?> genericType = TypeUtils.getGenericType((Class<? extends Collection<?>>) dependencyField.getType());
-        collection.addAll(providedDependencies.stream().filter(genericType::isInstance).collect(Collectors.toSet()));
-        FieldUtils.setFieldValue(singleton, dependencyField, collection);
+        FieldUtils.setFieldValue(singleton, dependencyField, getCollectionDependency(dependencyField, providedDependencies));
     }
+
+    private static Object getSimpleDependency(Field dependencyField, Set<Object> providedDependencies) {
+        return providedDependencies.stream()
+                .filter(dependencyField.getType()::isInstance)
+                .collect(CollectorUtils.toOnlyElement("value for field " + dependencyField));
+    }
+
+
+    private static Object getSimpleDependency(Parameter parameter, Set<Object> providedDependencies) {
+        return providedDependencies.stream()
+                .filter(parameter.getType()::isInstance)
+                .collect(CollectorUtils.toOnlyElement("value for parameter " + parameter));
+    }
+
+    private static Collection<Object> getCollectionDependency(Field dependencyField, Set<Object> providedDependencies) {
+        Collection<Object> collection = TypeUtils.emptyCollection((Class<? extends Collection<Object>>) dependencyField.getType());
+        Class<?> genericType = FieldUtils.getGenericCollectionType(dependencyField).orElseThrow(() -> new IllegalStateException(dependencyField + " must have a generic type argument"));
+        collection.addAll(providedDependencies.stream().filter(genericType::isInstance).collect(Collectors.toSet()));
+        return collection;
+    }
+
+    private static Collection<Object> getCollectionDependency(Parameter parameter, Set<Object> providedDependencies) {
+        Collection<Object> collection = TypeUtils.emptyCollection((Class<? extends Collection<Object>>) parameter.getType());
+        Class<?> genericType = ParameterUtils.getGenericCollectionType(parameter).orElseThrow(() -> new IllegalStateException(parameter + " must have a generic type argument"));
+        collection.addAll(providedDependencies.stream().filter(genericType::isInstance).collect(Collectors.toSet()));
+        return collection;
+    }
+
 
     private Set<Object> providedDependencies() {
         Collection<Field> testFields = FieldUtils.getAllFields(test);
@@ -167,19 +189,19 @@ class UnitTestFieldInitializer {
             if (parameter.isAnnotationPresent(Value.class)) {
                 args[index++] = getConfigValueOrThrow(parameter.getAnnotation(Value.class), parameter.getType(), configValues);
             } else {
-                args[index++] = getDependencyOrMock(parameter.getType(), dependencies);
+                args[index++] = getDependencyOrThrow(parameter, dependencies);
             }
         }
         return args;
     }
 
-    private Object getDependencyOrMock(Class<?> type, Set<Object> dependencies) {
-        Optional<Object> dependency = dependencies.stream()
-                .filter(o -> type.isInstance(o))
-                .collect(CollectorUtils.toOnlyOptional());
-        return dependency.orElseGet(() -> Mockito.mock(type));
+    private Object getDependencyOrThrow(Parameter parameter, Set<Object> dependencies) {
+        if (Collection.class.isAssignableFrom(parameter.getType())) {
+            return getCollectionDependency(parameter, dependencies);
+        }
+        return getSimpleDependency(parameter, dependencies);
     }
-
+    
     private Object getConfigValueOrThrow(Value value, Class<?> type, Map<String, String> configValues) {
         String valueAsString;
         if (configValues.containsKey(value.value())) {

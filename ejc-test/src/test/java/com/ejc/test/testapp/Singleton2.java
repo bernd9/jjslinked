@@ -5,6 +5,8 @@ import com.ejc.Singleton;
 import com.ejc.Value;
 import lombok.Getter;
 
+import java.util.Set;
+
 @Getter
 @Singleton
 public class Singleton2 {
@@ -25,5 +27,8 @@ public class Singleton2 {
 
     @Inject
     private Singleton6 singleton6;
+
+    @Inject
+    private Set<Interface1> collection;
 
 }

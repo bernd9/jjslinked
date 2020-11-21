@@ -3,5 +3,5 @@ package com.ejc.test.testapp;
 import com.ejc.Singleton;
 
 @Singleton
-class Singleton6 {
+public class Singleton6 implements Interface1 {
 }
