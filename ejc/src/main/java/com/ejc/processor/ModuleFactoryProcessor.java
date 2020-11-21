@@ -210,7 +210,7 @@ public class ModuleFactoryProcessor extends ProcessorBase {
         return typeElement.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.CONSTRUCTOR)
                 .map(ExecutableElement.class::cast)
-                .collect(CollectorUtils.toOnlyElement(coll -> new IllegalStateException(typeElement + " has multiple constructors")));
+                .collect(CollectorUtils.toOnlyElement("constructors for " + typeElement.getQualifiedName()));
     }
 
     private TypeElement getSuperClassToOverride(TypeElement e) {
