@@ -2,6 +2,8 @@ package com.ejc.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 
 public class FieldUtils {
@@ -69,5 +71,17 @@ public class FieldUtils {
         }
         Collections.reverse(classes);
         return classes;
+    }
+
+    public static Optional<Class<?>> getGenericCollectionType(Field field) {
+        if (!Collection.class.isAssignableFrom(field.getType())) {
+            throw new IllegalArgumentException("not a collection field: " + field);
+        }
+        Type genericType = field.getGenericType();
+        if (genericType instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) field.getGenericType();
+            return Optional.of((Class<?>) parameterizedType.getActualTypeArguments()[0]);
+        }
+        return Optional.empty();
     }
 }

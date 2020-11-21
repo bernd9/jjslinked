@@ -4,8 +4,6 @@ import lombok.NonNull;
 import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.TypeVariable;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
@@ -99,11 +97,5 @@ public class TypeUtils {
         }
         throw new IllegalArgumentException("illegal type " + fieldType);
 
-    }
-
-    public static Class<?> getGenericType(Class<? extends Collection> collectionType) {
-        ParameterizedType parameterizedType = (ParameterizedType) collectionType.getGenericSuperclass();
-        TypeVariable<?> typeVariable = (TypeVariable) parameterizedType.getActualTypeArguments()[0];
-        return ClassUtils.classForName(typeVariable.getTypeName());
     }
 }
