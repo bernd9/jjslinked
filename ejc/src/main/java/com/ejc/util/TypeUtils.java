@@ -32,7 +32,7 @@ public class TypeUtils {
         if (collectionType.equals(List.class)) {
             return (C) new ArrayList<T>();
         }
-        if (collectionType.equals(Set.class)) {
+        if (collectionType.equals(Set.class) || collectionType.equals(Collection.class)) {
             return (C) new HashSet<T>();
         }
         if (collectionType.equals(Vector.class)) {
