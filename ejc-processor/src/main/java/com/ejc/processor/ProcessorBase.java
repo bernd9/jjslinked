@@ -1,6 +1,7 @@
 package com.ejc.processor;
 
 import com.ejc.util.ProcessorLogger;
+import lombok.NonNull;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -30,7 +31,7 @@ public abstract class ProcessorBase extends AbstractProcessor {
         return processingEnv.getElementUtils().getTypeElement(name);
     }
 
-    protected void process(TypeElement annotationClass, RoundEnvironment roundEnvironment, QueryResult result) {
+    protected void process(@NonNull TypeElement annotationClass, RoundEnvironment roundEnvironment, QueryResult result) {
         var name = annotationClass.getQualifiedName().toString();
         result.computeIfAbsent(name, n -> new HashSet<>())
                 .addAll(roundEnvironment.getElementsAnnotatedWith(annotationClass).stream().collect(Collectors.toSet()));
