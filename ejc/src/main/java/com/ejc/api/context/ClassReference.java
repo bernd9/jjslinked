@@ -1,6 +1,5 @@
 package com.ejc.api.context;
 
-import com.ejc.processor.ModuleFactoryWriter;
 import com.ejc.util.ClassUtils;
 import com.ejc.util.TypeUtils;
 import lombok.Getter;
@@ -56,12 +55,12 @@ public class ClassReference {
         return clazz;
     }
 
-    @UsedInGeneratedCode(ModuleFactoryWriter.class)
+    @UsedInGeneratedCode
     public static ClassReference getRef(String className) {
         return references.computeIfAbsent(className, ClassReference::new);
     }
 
-    @UsedInGeneratedCode(ModuleFactoryWriter.class)
+    @UsedInGeneratedCode
     public static ClassReference getRef(Class<? extends Collection> collectionClass, String className) {
         StringBuilder name = new StringBuilder(collectionClass.getName());
         name.append("<");
@@ -70,7 +69,7 @@ public class ClassReference {
         return references.computeIfAbsent(name.toString(), n -> new ClassReference(collectionClass.getName(), className));
     }
 
-    @UsedInGeneratedCode(ModuleFactoryWriter.class)
+    @UsedInGeneratedCode
     public static ClassReference getRefPrimitive(String className) {
         return references.computeIfAbsent(className, name -> new ClassReference(TypeUtils.getPrimitiveClass(className).orElseThrow()));
     }

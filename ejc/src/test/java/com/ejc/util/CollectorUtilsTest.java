@@ -13,31 +13,31 @@ class CollectorUtilsTest {
     @Test
     void toOnlyElementEmpty() {
         List<Integer> list = new ArrayList<>();
-        assertThatThrownBy(() -> list.stream().collect(CollectorUtils.toOnlyElement())).hasMessage("stream is empty");
+        assertThatThrownBy(() -> list.stream().collect(com.ejc.util.CollectorUtils.toOnlyElement())).hasMessage("stream is empty");
     }
 
     @Test
     void toOnlyElementOneElement() {
         List<Integer> list = List.of(1);
-        assertThat(list.stream().collect(CollectorUtils.toOnlyElement())).isEqualTo(1);
+        assertThat(list.stream().collect(com.ejc.util.CollectorUtils.toOnlyElement())).isEqualTo(1);
     }
 
     @Test
     void toOnlyElementOneMany() {
         List<Integer> list = List.of(1, 2);
-        assertThatThrownBy(() -> list.stream().collect(CollectorUtils.toOnlyElement())).isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(() -> list.stream().collect(com.ejc.util.CollectorUtils.toOnlyElement())).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
     void toOnlyOptionalEmpty() {
         List<Integer> list = new ArrayList<>();
-        assertThat(list.stream().collect(CollectorUtils.toOnlyOptional())).isEmpty();
+        assertThat(list.stream().collect(com.ejc.util.CollectorUtils.toOnlyOptional())).isEmpty();
     }
 
     @Test
     void toOnlyOptionalPresent() {
         List<Integer> list = List.of(1);
-        assertThat(list.stream().collect(CollectorUtils.toOnlyOptional())).isPresent();
+        assertThat(list.stream().collect(com.ejc.util.CollectorUtils.toOnlyOptional())).isPresent();
     }
 
     @Test

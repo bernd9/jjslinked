@@ -29,7 +29,7 @@ class ParameterUtilsTest {
 
     @Test
     void getGenericCollectionTypeEmpty() {
-        assertThat(ParameterUtils.getGenericCollectionType(parameter2)).isEmpty();
+        assertThat(com.ejc.util.ParameterUtils.getGenericCollectionType(parameter2)).isEmpty();
     }
 
 

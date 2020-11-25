@@ -4,21 +4,11 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
 import java.lang.reflect.Constructor;
-import java.util.Arrays;
 import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ClassUtils {
 
-    // TODO: Fails, fix or remove
-    public static <T> Set<Class<T>> getLoadedClasses(Class<T> type) {
-        return Arrays.stream(InstrumentationHook.getInstrumentation().getAllLoadedClasses())
-                .filter(c -> type.isAssignableFrom(c))
-                .map(c -> (Class<T>) c)
-                .collect(Collectors.toSet());
-    }
 
     public static Object createInstance(String c) {
         return createInstance(classForName(c));
@@ -57,9 +47,4 @@ public class ClassUtils {
         }
         return qualifiedName.substring(qualifiedName.lastIndexOf(".") + 1);
     }
-
-    public static void main(String[] args) {
-        Object p = InstrumentationHook.getInstrumentation().getAllLoadedClasses();
-    }
-
 }

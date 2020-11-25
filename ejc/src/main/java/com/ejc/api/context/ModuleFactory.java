@@ -1,6 +1,5 @@
 package com.ejc.api.context;
 
-import com.ejc.processor.ModuleFactoryWriter;
 import com.ejc.util.ClassUtils;
 import lombok.RequiredArgsConstructor;
 
@@ -27,39 +26,39 @@ public abstract class ModuleFactory {
         return ClassUtils.getSimpleName(appClassQualifiedName) + "ModuleFactory";
     }
 
-    @UsedInGeneratedCode(ModuleFactoryWriter.class)
+    @UsedInGeneratedCode
     public void addInitMethod(ClassReference owner, String name) {
         getSingleton(owner).addInitMethod(new InitMethod(name));
     }
 
-    @UsedInGeneratedCode(ModuleFactoryWriter.class)
+    @UsedInGeneratedCode
     public void addBeanMethod(ClassReference owner, String name, ClassReference returnType, ParameterReference... parameterReferences) {
         SingletonObject singletonObject = getSingleton(owner);
         getSingleton(owner).addBeanMethod(new BeanMethod(singletonObject, name, returnType, Arrays.asList(parameterReferences)));
     }
 
-    @UsedInGeneratedCode(ModuleFactoryWriter.class)
+    @UsedInGeneratedCode
     public void addConfigField(ClassReference owner, String name, Class<?> fieldType, String key, String defaultValue, boolean mandatory) {
         getSingleton(owner).addConfigField(new ConfigField(owner, name, fieldType, key, defaultValue, mandatory));
     }
 
-    @UsedInGeneratedCode(ModuleFactoryWriter.class)
+    @UsedInGeneratedCode
     public void addDependencyField(ClassReference owner, String name, ClassReference fieldType) {
         getSingleton(owner).addSimpleDependencyField(new SimpleDependencyField(name, fieldType));
     }
 
-    @UsedInGeneratedCode(ModuleFactoryWriter.class) // TODO support arrays in new class ArrayDependencyField
+    @UsedInGeneratedCode // TODO support arrays in new class ArrayDependencyField
     public void addCollectionDependencyField(ClassReference owner, String name, ClassReference fieldType) {
         getSingleton(owner).addCollectionDependencyField(new CollectionDependencyField(name, owner, fieldType));
     }
 
-    @UsedInGeneratedCode(ModuleFactoryWriter.class)
+    @UsedInGeneratedCode
     public void addConstructor(ClassReference owner, ParameterReference... parameterReferences) {
         getSingleton(owner);// Important !
         constructors.add(new SingletonConstructor(owner, Arrays.asList(parameterReferences)));
     }
 
-    @UsedInGeneratedCode(ModuleFactoryWriter.class)
+    @UsedInGeneratedCode
     public void addClassReplacement(ClassReference type, ClassReference replacement) {
         classReplacements.put(type, replacement);
     }

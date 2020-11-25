@@ -5,5 +5,5 @@ import java.lang.annotation.Target;
 
 @Target({ElementType.METHOD, ElementType.TYPE, ElementType.CONSTRUCTOR})
 public @interface UsedInGeneratedCode {
-    Class<?> value();
+    Class<?> value() default UndefinedClass.class;
 }

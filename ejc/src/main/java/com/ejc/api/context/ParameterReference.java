@@ -1,6 +1,5 @@
 package com.ejc.api.context;
 
-import com.ejc.processor.ModuleFactoryWriter;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -13,7 +12,7 @@ public class ParameterReference {
     private final String name;
     private final Optional<ValueAnnotationReference> valueAnnotationReference;
 
-    @UsedInGeneratedCode(ModuleFactoryWriter.class)
+    @UsedInGeneratedCode
     public static ParameterReference getRef(ClassReference classReference, String name, Optional<ValueAnnotationReference> valueAnnotationReference) {
         return new ParameterReference(classReference, name, valueAnnotationReference);
     }
