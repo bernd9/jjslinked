@@ -2,6 +2,7 @@ package com.ejc.processor;
 
 import com.ejc.*;
 import com.ejc.api.context.ModuleFactory;
+import com.ejc.api.context.ModuleFactoryLoader;
 import com.ejc.api.context.UndefinedClass;
 import com.ejc.util.CollectionUtils;
 import com.ejc.util.CollectorUtils;
@@ -177,7 +178,7 @@ public class ModuleFactoryProcessor extends ProcessorBase {
     protected void processingOver() {
         ModuleFactoryWriterModel model = createWriterModel();
         writeSingletons(model);
-        writeAppCLassHolder(model);
+        writeAppClassHolder(model);
         writeContextFile(model);
         writeManifest(model);
     }
@@ -250,14 +251,15 @@ public class ModuleFactoryProcessor extends ProcessorBase {
     }
 
     private void writeContextFile(ModuleFactoryWriterModel model) {
-        IOUtils.write(Collections.singletonList(ModuleFactory.getQualifiedName(model.getApplicationClass())), processingEnv.getFiler(), "META-INF/services/" + ModuleFactory.class.getName());
+        String name = ModuleFactory.getQualifiedName(model.getApplicationClass());
+        IOUtils.write(Collections.singletonList(name), processingEnv.getFiler(), String.format("%s/%s", ModuleFactoryLoader.RESOURCE_FOLDER , name));
     }
 
     private void writeManifest(ModuleFactoryWriterModel model) {
         IOUtils.write(Collections.singletonList("Main-Class: " + ApplicationRunner.class.getName()), processingEnv.getFiler(), "META-INF/MANIFEST.MF");
     }
 
-    private void writeAppCLassHolder(ModuleFactoryWriterModel model) {
+    private void writeAppClassHolder(ModuleFactoryWriterModel model) {
         ApplicationClassHolderWriter writer = new ApplicationClassHolderWriter(model.getApplicationClass(), processingEnv);
         try {
             writer.write();

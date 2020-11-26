@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'groovy'
 }
 
 group 'com.jjslinked'
@@ -30,13 +31,15 @@ compileJava {
 
 jar {
     manifest {
-        attributes "Main-Class": "test.TestApp"
+        attributes("Main-Class": "test.TestApp")
     }
 
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
+
+
 
 sourceSets {
     main {

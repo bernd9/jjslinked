@@ -30,7 +30,7 @@ dependencies {
 
 jar {
 // TODO do not pack core here !
-    from {
-        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-    }
+    
 }
+
+sourceSets.main.resources.includes = ["META-INF/modules/*"]
