@@ -8,7 +8,10 @@ import com.ejc.http.exception.ExceptionController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.Closeable;
+import java.io.IOException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,7 +48,20 @@ public class ControllerMethodInvoker {
         var method = getMethod(controller, controllerMethod);
         var parameters = getParameters(controllerMethod, context).toArray();
         var returnValue = method.invoke(controller, parameters);
+        closeCloseableParameters(parameters);
         responder.sendResponse(returnValue, response);
+    }
+
+    private void closeCloseableParameters(Object[] parameters) {
+        Arrays.stream(parameters)
+                .filter(Closeable.class::isInstance)
+                .map(Closeable.class::cast)
+                .forEach(closeable -> {
+                    try {
+                        closeable.close();
+                    } catch (IOException e) {
+                    }
+                });
     }
 
 
@@ -80,7 +96,6 @@ public class ControllerMethodInvoker {
     }
 
     private ControllerMethod getMatchingMethod(HttpServletRequest request) {
-        ControllerMethod controllerMethod = null;
         for (ControllerMethod method : controllerMethods) {
             if (!method.httpMethodMatches(request)) {
                 continue;

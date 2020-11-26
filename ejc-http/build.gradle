@@ -19,6 +19,8 @@ dependencies {
     annotationProcessor files('../ejc-processor/build/libs/ejc-processor-1.0-SNAPSHOT.jar')
 
     implementation files('../ejc-processor/build/libs/ejc-processor-1.0-SNAPSHOT.jar')
+    implementation files('../ejc-test/build/libs/ejc-test-1.0-SNAPSHOT.jar')
+
     implementation 'org.projectlombok:lombok:1.18.12'
     compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.31.v20200723'
     compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.4.31.v20200723'
@@ -30,7 +32,7 @@ dependencies {
 
 jar {
 // TODO do not pack core here !
-    
+
 }
 
-sourceSets.main.resources.includes = ["META-INF/modules/*"]
+//sourceSets.main.resources.includes = ["META-INF/modules/*"]

@@ -99,7 +99,7 @@ public class ControllerMethodAnnotationProcessor extends AbstractProcessor {
             return new ParameterProviderForServletResponse();
         }
         if (type.equals(HttpSession.class.getName())) {
-            return new ParameterProviderForServletResponse();
+            return new ParameterProviderForSession();
         }
         if (variableElement.getAnnotation(BodyContent.class) != null) {
             return new ParameterProviderForRequestBody(ClassReference.getRef(variableElement.asType().toString()));
@@ -108,6 +108,11 @@ public class ControllerMethodAnnotationProcessor extends AbstractProcessor {
             AnnotationMirror pathVariable = getAnnotationMirror(variableElement, PathVariable.class);
             AnnotationValue value = getAnnotationValue(pathVariable, "value");
             return new ParameterProviderForUrlParam(value.getValue().toString(), ClassReference.getRef(variableElement.asType().toString()));
+        }
+        if (variableElement.getAnnotation(NamedPart.class) != null) {
+            AnnotationMirror namedPart = getAnnotationMirror(variableElement, NamedPart.class);
+            AnnotationValue value = getAnnotationValue(namedPart, "value");
+            return new ParameterProviderForQueryParameter(value.getValue().toString(), ClassReference.getRef(variableElement.asType().toString()));
         }
         throw new IllegalStateException("no provider for " + variableElement + " in " + variableElement.getEnclosingElement());
     }
