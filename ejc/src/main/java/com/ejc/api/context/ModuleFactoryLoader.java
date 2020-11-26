@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
@@ -21,18 +20,6 @@ import java.util.stream.StreamSupport;
 public class ModuleFactoryLoader {
 
     public static final String RESOURCE_FOLDER = "META-INF/modules";
-
-    public Set<ModuleFactory> load2() {
-        ServiceLoader<ModuleFactory> loader = ServiceLoader.load(ModuleFactory.class);
-        return loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toSet());
-    }
-
-    public Set<ModuleFactory> load3() {
-        return moduleLoaderClassNames()
-                .map(ClassUtils::createInstance)
-                .map(ModuleFactory.class::cast)
-                .collect(Collectors.toSet());
-    }
 
     public Set<ModuleFactory> load() {
         return asStream(moduleFolderUrls())
@@ -51,7 +38,7 @@ public class ModuleFactoryLoader {
             paths.remove(path);
             return paths.stream()
                     .map(p -> p.toString().substring(index))
-                    .map(Object::toString).collect(Collectors.toSet());
+                    .collect(Collectors.toSet());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -71,22 +58,6 @@ public class ModuleFactoryLoader {
         }
 
     }
-
-    private Stream<String> moduleLoaderClassNames() {
-        return asStream(moduleFolderUrls())
-                .map(this::listFiles)
-                .flatMap(Set::stream);
-    }
-
-    private Set<String> listFiles(URL folder) {
-        log.info("url:" + folder);
-        String path = folder.getPath();
-        return Arrays.stream(new File(path).listFiles())
-                .map(File::getAbsolutePath)
-                .map(resource -> resource.substring(path.length() + 1))
-                .collect(Collectors.toSet());
-    }
-
 
     private Enumeration<URL> moduleFolderUrls() {
         try {
