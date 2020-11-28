@@ -3,7 +3,6 @@ package com.ejc.api.context;
 import com.ejc.util.ClassUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.log4j.Log4j2;
 
 import java.io.IOException;
 import java.net.URI;
@@ -14,7 +13,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-@Log4j2
 @Getter
 @RequiredArgsConstructor
 public class ModuleFactoryLoader {
