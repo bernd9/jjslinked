@@ -8,6 +8,7 @@ import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -28,10 +29,12 @@ public abstract class ProcessorBase extends AbstractProcessor {
     }
 
     private TypeElement asTypeElement(String name) {
+        TypeElement annotationClass = processingEnv.getElementUtils().getTypeElement(name);
+        Objects.requireNonNull(annotationClass, "no type element available for " + name);
         return processingEnv.getElementUtils().getTypeElement(name);
     }
 
-    protected void process(@NonNull TypeElement annotationClass, RoundEnvironment roundEnvironment, QueryResult result) {
+    protected void process(TypeElement annotationClass, RoundEnvironment roundEnvironment, QueryResult result) {
         var name = annotationClass.getQualifiedName().toString();
         result.computeIfAbsent(name, n -> new HashSet<>())
                 .addAll(roundEnvironment.getElementsAnnotatedWith(annotationClass).stream().collect(Collectors.toSet()));

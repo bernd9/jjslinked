@@ -1,38 +1,39 @@
 package com.ejc;
 
-import com.ejc.api.context.ApplicationContext;
-import com.ejc.api.context.ApplicationContextFactory;
 import com.ejc.api.context.SingletonProcessor;
 import com.ejc.util.ClassUtils;
-import lombok.NoArgsConstructor;
 
-import java.util.Optional;
+import java.util.Collection;
+import java.util.HashSet;
 
-@NoArgsConstructor
-public class ApplicationRunner {
+public abstract class ApplicationRunner {
 
-    public static void run(Class<?> applicationClass) {
-        if (!applicationClass.isAnnotationPresent(Application.class)) {
-            throw new IllegalStateException(applicationClass + " is not annotated with @" + Application.class.getName());
-        }
+    private static final String APPLICATION_RUNNER_IMPL = "com.ejc.ApplicationRunnerImpl";
+    private static final Collection<SingletonProcessor> SINGLETON_PROCESSORS = new HashSet<>();
+    
+    public static void run() throws Exception {
+        ApplicationRunner instance;
         try {
-            ApplicationContextFactory factory = new ApplicationContextFactory(applicationClass);
-            factory.createApplicationContext();
+            instance = (ApplicationRunner) ClassUtils.createInstance(APPLICATION_RUNNER_IMPL);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw new IllegalStateException("No runner-implementation. May be you forgot to build project or to configure the annotation processor-lib in your buildfile");
         }
+        instance.doRun(SINGLETON_PROCESSORS);
     }
 
-    public static void run(Optional<SingletonProcessor> singletonProcessor) {
-        ApplicationClassHolder holder = (ApplicationClassHolder) ClassUtils.createInstance(ApplicationContext.APPLICATION_CLASS_HOLDER_NAME);
-        ApplicationContextFactory factory = new ApplicationContextFactory(ClassUtils.classForName(holder.getCurrentAppClassName()));
-        singletonProcessor.ifPresent(factory::addSingletonProcessor);
-        factory.createApplicationContext();
+    public static void addSingletonProcessor(SingletonProcessor singletonProcessor) {
+        SINGLETON_PROCESSORS.add(singletonProcessor);
     }
 
-    public static void main(String[] arg) {
-        run(Optional.empty());
+    protected abstract void doRun(Collection<SingletonProcessor> singletonProcessors) throws Exception;
+
+    public static void main(String[] args) throws Exception {
+        long t0 = System.currentTimeMillis();
+        run();
+        long t1 = System.currentTimeMillis();
+        System.out.println(t1 - t0);
     }
+
 }
 
 
