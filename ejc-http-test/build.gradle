@@ -1,0 +1,26 @@
+plugins {
+    id 'java'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+
+    implementation 'org.projectlombok:lombok:1.18.12'
+    implementation files('../ejc-http/build/libs/ejc-http-1.0-SNAPSHOT.jar')
+
+
+
+    compile group: 'org.mockito', name: 'mockito-core', version: '2.1.0'
+    compile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.6.2'
+
+    // https://mvnrepository.com/artifact/org.assertj/assertj-core
+    testCompile group: 'org.assertj', name: 'assertj-core', version: '3.16.1'
+
+}
