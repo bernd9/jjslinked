@@ -1,72 +1,72 @@
 package com.ejc.api.context;
 
 import com.ejc.util.ClassUtils;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URL;
-import java.nio.file.*;
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
-@Getter
-@RequiredArgsConstructor
-public class ModuleFactoryLoader {
+class ModuleFactoryLoader {
 
-    public static final String RESOURCE_FOLDER = "META-INF/modules";
+    public static final String RESOURCE_FOLDER_DIR = "META-INF/modules";
+    public static final String RESOURCE_FOLDER_JAR = RESOURCE_FOLDER_DIR + "/";
 
     public Set<ModuleFactory> load() {
-        return asStream(moduleFolderUrls())
-                .map(this::asPath)
-                .map(this::listFiles)
-                .flatMap(Collection::stream)
+        Set<ModuleFactory> factories = new HashSet<>();
+        final String classPath = System.getProperty("java.class.path", ".");
+        final String[] classPathElements = classPath.split(System.getProperty("path.separator"));
+        for (final String element : classPathElements) {
+            factories.addAll(getModuleFactories(element));
+        }
+        return factories;
+    }
+
+    private Set<ModuleFactory> getModuleFactories(String element) {
+        final File file = new File(element);
+        Set<String> moduleFactoryNames = new HashSet<>();
+        if (file.exists()) {
+            if (file.isDirectory()) {
+                moduleFactoryNames.addAll(getModuleFactoryNamesFromDirectory(new File(file, "META-INF/modules")));
+            } else {
+                try {
+                    moduleFactoryNames.addAll(getModuleFactoriesNamesFromJarFile(file));
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+        return moduleFactoryNames.stream()
                 .map(ClassUtils::createInstance)
                 .map(ModuleFactory.class::cast)
                 .collect(Collectors.toSet());
     }
 
-    private Set<String> listFiles(Path path) {
-        int index = path.toString().length() + 1;
-        try {
-            Set<Path> paths = new HashSet<>(Files.walk(path, 1).collect(Collectors.toSet()));
-            paths.remove(path);
-            return paths.stream()
-                    .map(p -> p.toString().substring(index))
-                    .collect(Collectors.toSet());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+    private Set<String> getModuleFactoriesNamesFromJarFile(File jarFile) throws Exception {
+        Set<String> names = new HashSet<>();
+        ZipFile jar = new ZipFile(jarFile);
+        if (jar.getEntry(RESOURCE_FOLDER_DIR) == null) {
+            return Collections.emptySet();
         }
+        Enumeration<? extends ZipEntry> entries = jar.entries();
+        while (entries.hasMoreElements()) {
+            ZipEntry entry = entries.nextElement();
+            String name = entry.getName();
+            if (name.startsWith(RESOURCE_FOLDER_JAR) && !name.equals(RESOURCE_FOLDER_JAR)) {
+                names.add(name.replace(RESOURCE_FOLDER_JAR, ""));
+            }
+        }
+        return names;
     }
 
-    private Path asPath(URL url) {
-        try {
-            URI uri = url.toURI();
-            if (uri.getScheme().equals("jar")) {
-                FileSystem fileSystem = FileSystems.newFileSystem(uri, Collections.<String, Object>emptyMap());
-                return fileSystem.getPath(RESOURCE_FOLDER);
-            } else if (uri.getScheme().equals("file")) {
-                return Paths.get(uri);
-            } else throw new IllegalArgumentException("unsupported schema: " + uri.getScheme());
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+    private Set<String> getModuleFactoryNamesFromDirectory(File modulesDir) {
+        if (!modulesDir.exists()) {
+            return Collections.emptySet();
         }
-
-    }
-
-    private Enumeration<URL> moduleFolderUrls() {
-        try {
-            return ClassLoader.getSystemResources(RESOURCE_FOLDER);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private Stream<URL> asStream(Enumeration<URL> enumeration) {
-        Iterable<URL> iterable = () -> enumeration.asIterator();
-        return StreamSupport.stream(iterable.spliterator(), false);
+        return Arrays.stream(modulesDir.listFiles())
+                .map(File::getName)
+                //.map(name -> name.replace(RESOURCE_FOLDER_DIR, ""))
+                .collect(Collectors.toSet());
     }
 }
