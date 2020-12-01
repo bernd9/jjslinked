@@ -1,0 +1,19 @@
+level1a:
+  level2aSimple: 123
+  level2aList:
+    - a
+    - b
+    - c
+level1b:
+  - 1
+  - 2
+  - 3
+level1c:
+  list2c1:
+      - 1
+      - 2
+      - 3
+  list2c2:
+      - x
+      - y
+      - z
