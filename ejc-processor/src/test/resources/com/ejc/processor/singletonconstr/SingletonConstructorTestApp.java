@@ -1,15 +1,12 @@
 package com.ejc.processor.singletonconstr;
 
 import com.ejc.Application;
-import com.ejc.ApplicationRunner;
 import com.ejc.Singleton;
 
 @Application
 class SingletonConstructorTestApp {
 
-    public static void main(String[] args) {
-        ApplicationRunner.run(SingletonConstructorTestApp.class);
-    }
+    
 }
 
 @Singleton

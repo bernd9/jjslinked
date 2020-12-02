@@ -4,6 +4,7 @@ import com.ejc.*;
 import com.ejc.api.context.ModuleFactory;
 import com.ejc.api.context.ModuleFactoryLoader;
 import com.ejc.api.context.UndefinedClass;
+import com.ejc.processor.config.ConfigYmlToProperties;
 import com.ejc.util.CollectionUtils;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.IOUtils;
@@ -181,6 +182,7 @@ public class ModuleFactoryProcessor extends ProcessorBase {
         writeAppRunner(model);
         writeContextFile(model);
         writeManifest(model);
+        applicationYamlToProperties();
     }
 
     private void writeSingletons(ModuleFactoryWriterModel model) {
@@ -252,11 +254,15 @@ public class ModuleFactoryProcessor extends ProcessorBase {
 
     private void writeContextFile(ModuleFactoryWriterModel model) {
         String name = ModuleFactory.getQualifiedName(model.getApplicationClass());
-        IOUtils.write(Collections.singletonList(name), processingEnv.getFiler(), String.format("%s/%s", ModuleFactoryLoader.RESOURCE_FOLDER , name));
+        IOUtils.write(Collections.singletonList(name), processingEnv.getFiler(), String.format("%s/%s", ModuleFactoryLoader.RESOURCE_FOLDER, name));
     }
 
     private void writeManifest(ModuleFactoryWriterModel model) {
         IOUtils.write(Collections.singletonList("Main-Class: " + ApplicationRunner.class.getName()), processingEnv.getFiler(), "META-INF/MANIFEST.MF");
+    }
+
+    private void applicationYamlToProperties() {
+        new ConfigYmlToProperties(this.processingEnv).writePropertyFiles();
     }
 
     private void writeAppRunner(ModuleFactoryWriterModel model) {

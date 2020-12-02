@@ -1,15 +1,12 @@
 package com.ejc.processor.simpleDependency;
 
 import com.ejc.Application;
-import com.ejc.ApplicationRunner;
 import com.ejc.Inject;
 import com.ejc.Singleton;
 
 @Application
 class TestApp {
-    public static void main(String[] args) {
-        ApplicationRunner.run(TestApp.class);
-    }
+ 
 }
 
 @Singleton

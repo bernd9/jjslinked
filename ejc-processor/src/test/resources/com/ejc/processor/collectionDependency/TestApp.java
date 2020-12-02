@@ -1,14 +1,15 @@
 package com.ejc.processor.collectionDependency;
 
-import com.ejc.*;
+import com.ejc.Application;
+import com.ejc.Configuration;
+import com.ejc.Inject;
+import com.ejc.Singleton;
 
 import java.util.Set;
 
 @Application
 class TestApp {
-    public static void main(String[] args) {
-        ApplicationRunner.run(TestApp.class);
-    }
+   
 }
 
 @Configuration

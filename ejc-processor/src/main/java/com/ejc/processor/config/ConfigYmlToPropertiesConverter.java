@@ -50,23 +50,25 @@ private ObjectMapper objectMapper = new ObjectMapper(new YAMLFactory());
     }
 
     private void evaluateValueNode(ValueNode node, List<String> propertyPath, Properties properties) {
-        properties.put(name(propertyPath), node.asText());
+        if (node.isNull()) {
+            properties.put(name(propertyPath), "");
+        } else {
+            properties.put(name(propertyPath), node.asText());
+        }
+
     }
 
     private void evaluateArrayNode(String name, ArrayNode arrayNode, List<String> propertyPath, Properties properties) {
         for (int i = 0; i < arrayNode.size(); i++) {
             JsonNode childNode  = arrayNode.get(i);
             List<String> childPropertyPath = new ArrayList<>(propertyPath);
+            String key = String.format("%s[%d]", name, i);
+            childPropertyPath.add(key);
             if (childNode.isValueNode()) {
-                String key = String.format("%s[%d]", name, i);
-                childPropertyPath.add(key);
                 evaluateValueNode((ValueNode) childNode, childPropertyPath, properties);
             } else if (childNode.isObject()){
-                String key = String.format("%s[%d]", name, i);
-                childPropertyPath.add(key);
                 evaluateObjectNode((ObjectNode) childNode, childPropertyPath, properties);
             } else if (childNode.isArray()) {
-                childPropertyPath.add(name);
                 evaluateArrayNode(name, (ArrayNode) childNode, childPropertyPath, properties);
             }
         }

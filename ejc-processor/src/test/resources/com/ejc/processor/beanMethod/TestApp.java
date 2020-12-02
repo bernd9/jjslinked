@@ -4,10 +4,7 @@ import com.ejc.*;
 
 @Application
 class TestApp {
-
-    public static void main(String[] args) {
-        ApplicationRunner.run(TestApp.class);
-    }
+    
 }
 
 

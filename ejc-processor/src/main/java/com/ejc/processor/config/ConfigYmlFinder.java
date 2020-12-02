@@ -9,16 +9,15 @@ import java.util.stream.Stream;
 
 class ConfigYmlFinder {
 
-    private static final Pattern YAML_FILE_PATTERN = Pattern.compile("(.*)\\.ya?ml");
+    private static final Pattern YAML_FILE_PATTERN = Pattern.compile("application(\\-(.*))?\\.ya?ml");
 
     Map<String,File> getConfigFilesByProfile() {
         Map<String,File> rv = new HashMap<>();
         getClassDirectories()
-                .filter(File::isDirectory)
                 .map(this::getConfigFilesByProfile)
                 .map(Map::entrySet)
                 .flatMap(Collection::stream)
-                .map(e -> rv.put(e.getKey(), e.getValue()));
+                .forEach(e -> rv.put(e.getKey(), e.getValue()));
         return rv;
 
     }
@@ -28,7 +27,7 @@ class ConfigYmlFinder {
         for (File file: directory.listFiles()) {
             Matcher matcher = YAML_FILE_PATTERN.matcher(file.getName());
             if (matcher.find()) {
-                rv.put(matcher.group(1), file);
+                rv.put(matcher.group(2) != null ? matcher.group(2) : "default", file);
             }
         }
         return rv;
@@ -37,6 +36,7 @@ class ConfigYmlFinder {
     private Stream<File> getClassDirectories() {
         return getClassPathElements()
                 .map(File::new)
+                .peek(System.out::println)
                 .filter(File::isDirectory);
     }
 
