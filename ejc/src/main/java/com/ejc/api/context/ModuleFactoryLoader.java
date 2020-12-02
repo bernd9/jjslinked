@@ -10,8 +10,8 @@ import java.util.zip.ZipFile;
 
 class ModuleFactoryLoader {
 
-    public static final String RESOURCE_FOLDER_DIR = "META-INF/modules";
-    public static final String RESOURCE_FOLDER_JAR = RESOURCE_FOLDER_DIR + "/";
+    static final String RESOURCE_FOLDER_DIR = ApplicationContext.RESOURCE_FOLDER_DIR;
+    static final String RESOURCE_FOLDER_JAR = RESOURCE_FOLDER_DIR + "/";
 
     public Set<ModuleFactory> load() {
         Set<ModuleFactory> factories = new HashSet<>();

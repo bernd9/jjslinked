@@ -1,15 +1,12 @@
 package com.ejc.processor.classReplacement;
 
 import com.ejc.Application;
-import com.ejc.ApplicationRunner;
 import com.ejc.Singleton;
 import com.ejc.processor.Implementation;
 
 @Application
 class TestApp {
-    public static void main(String[] args) {
-        ApplicationRunner.run(TestApp.class);
-    }
+ 
 }
 
 @Singleton

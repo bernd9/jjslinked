@@ -6,7 +6,7 @@ import java.util.Set;
 
 public abstract class ApplicationContext {
 
-    public static final String APPLICATION_CLASS_HOLDER_NAME = "com.ejc.ApplicationClassHolderImpl";
+    public static final String RESOURCE_FOLDER_DIR = "META-INF/modules";
 
     @Getter
     static ApplicationContext instance;

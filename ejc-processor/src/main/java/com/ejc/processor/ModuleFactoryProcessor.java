@@ -1,8 +1,8 @@
 package com.ejc.processor;
 
 import com.ejc.*;
+import com.ejc.api.context.ApplicationContext;
 import com.ejc.api.context.ModuleFactory;
-import com.ejc.api.context.ModuleFactoryLoader;
 import com.ejc.api.context.UndefinedClass;
 import com.ejc.processor.config.ConfigYmlToProperties;
 import com.ejc.util.CollectionUtils;
@@ -254,7 +254,7 @@ public class ModuleFactoryProcessor extends ProcessorBase {
 
     private void writeContextFile(ModuleFactoryWriterModel model) {
         String name = ModuleFactory.getQualifiedName(model.getApplicationClass());
-        IOUtils.write(Collections.singletonList(name), processingEnv.getFiler(), String.format("%s/%s", ModuleFactoryLoader.RESOURCE_FOLDER, name));
+        IOUtils.write(Collections.singletonList(name), processingEnv.getFiler(), String.format("%s/%s", ApplicationContext.RESOURCE_FOLDER_DIR, name));
     }
 
     private void writeManifest(ModuleFactoryWriterModel model) {

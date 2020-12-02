@@ -1,6 +1,7 @@
 package com.ejc.processor;
 
 import com.ejc.api.context.ApplicationRunnerBase;
+import com.ejc.api.context.ClassReference;
 import com.ejc.javapoet.JavaWriter;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
@@ -20,7 +21,7 @@ class ApplicationRunnerWriter extends JavaWriter {
 
     @Override
     protected void writeConstructor(MethodSpec.Builder constructorBuilder) {
-        constructorBuilder.addStatement("super($L.class)", appClassName);
+        constructorBuilder.addStatement("super($T.getRef(\"$L\"))", ClassReference.class, appClassName);
     }
 
     @Override
