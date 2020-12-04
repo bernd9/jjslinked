@@ -4,6 +4,8 @@ import com.ejc.api.config.Config;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.Collection;
+
 
 @RequiredArgsConstructor
 class ConfigParameter implements Parameter {
@@ -24,7 +26,12 @@ class ConfigParameter implements Parameter {
     @Override
     public Object getValue() {
         if (value == null) { // Read it lately, for better testing
-            value = Config.getProperty(key, parameterType.getReferencedClass(), defaultValue, mandatory);
+            if (parameterType.getGenericType().isPresent()) {
+                value = Config.getCollectionProperty(key, (Class<? extends Collection>)
+                        parameterType.getReferencedClass(), parameterType.getGenericType().get().getReferencedClass(), defaultValue, mandatory);
+            } else {
+                value = Config.getProperty(key, parameterType.getReferencedClass(), defaultValue, mandatory);
+            }
         }
         return value;
     }

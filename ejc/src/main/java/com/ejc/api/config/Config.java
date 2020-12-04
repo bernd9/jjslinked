@@ -7,7 +7,11 @@ import lombok.NoArgsConstructor;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Properties;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Config {
@@ -49,17 +53,6 @@ public class Config {
         }
     }
 
-    public static <T> T getProperty(String name, Class<T> type) throws PropertyNotFoundException {
-        String property = getProperties().getProperty(name);
-        if (property == null) {
-            throw new PropertyNotFoundException(name);
-        }
-        try {
-            return TypeUtils.convertStringToSimple(property, type);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalPropertyTypeException(name, property, type);
-        }
-    }
 
     public static <T> T getProperty(String name, Class<T> type, String defaultValue, boolean mandatory) throws PropertyNotFoundException {
         String property = getProperties().getProperty(name);
@@ -74,5 +67,40 @@ public class Config {
         } catch (IllegalArgumentException e) {
             throw new IllegalPropertyTypeException(name, property, type);
         }
+    }
+
+    public static <T, C extends Collection> C getCollectionProperty(String name, Class<C> collectionType, Class<T> elementType, String defaultValue, boolean mandatory) throws PropertyNotFoundException {
+        Collection<T> coll = TypeUtils.emptyCollection(collectionType);
+        for (int i = 0; ; i++) {
+            String elementName = String.format("%s[%d]", name, i);
+            String property = getProperties().getProperty(elementName);
+            if (property == null) {
+                break;
+            }
+            try {
+                coll.add(TypeUtils.convertStringToSimple(property, elementType));
+            } catch (IllegalArgumentException e) {
+                throw new IllegalPropertyTypeException(name, property, elementType);
+            }
+        }
+
+        if (coll.isEmpty()) {
+            if (defaultValue.isEmpty()) {
+                if (mandatory) {
+                    throw new PropertyNotFoundException(name);
+                }
+            } else {
+                coll.addAll(getDefaultValueCollection(defaultValue, elementType));
+            }
+        }
+        return (C) coll;
+    }
+
+    private static <T> Set<T> getDefaultValueCollection(String defaultValueStr, Class<T> elementType) {
+        return Arrays.stream(defaultValueStr.split(","))
+                .map(String::trim)
+                .filter(String::isEmpty)
+                .map(s -> TypeUtils.convertStringToSimple(s, elementType))
+                .collect(Collectors.toSet());
     }
 }

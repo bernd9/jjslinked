@@ -39,8 +39,14 @@ public abstract class ModuleFactory {
 
     @UsedInGeneratedCode
     public void addConfigField(ClassReference owner, String name, Class<?> fieldType, String key, String defaultValue, boolean mandatory) {
-        getSingleton(owner).addConfigField(new ConfigField(owner, name, fieldType, key, defaultValue, mandatory));
+        getSingleton(owner).addConfigField(new ConfigField(owner, name, fieldType, Optional.empty(), key, defaultValue, mandatory));
     }
+
+    @UsedInGeneratedCode
+    public void addCollectionConfigField(ClassReference owner, String name, Class<? extends Collection> fieldType, Class<?> elementType, String key, String defaultValue, boolean mandatory) {
+        getSingleton(owner).addConfigField(new ConfigField(owner, name, fieldType, Optional.of(elementType), key, defaultValue, mandatory));
+    }
+
 
     @UsedInGeneratedCode
     public void addDependencyField(ClassReference owner, String name, ClassReference fieldType) {
