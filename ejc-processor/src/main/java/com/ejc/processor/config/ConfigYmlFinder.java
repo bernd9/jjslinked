@@ -1,18 +1,20 @@
 package com.ejc.processor.config;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class ConfigYmlFinder {
 
     private static final Pattern YAML_FILE_PATTERN = Pattern.compile("application(\\-(.*))?\\.ya?ml");
 
-    Map<String,File> getConfigFilesByProfile() {
-        Map<String,File> rv = new HashMap<>();
+    Map<String, File> getConfigFilesByProfile() {
+        Map<String, File> rv = new HashMap<>();
         getClassDirectories()
                 .map(this::getConfigFilesByProfile)
                 .map(Map::entrySet)
@@ -22,9 +24,9 @@ class ConfigYmlFinder {
 
     }
 
-    private Map<String,File> getConfigFilesByProfile(File directory) {
-        Map<String,File> rv = new HashMap<>();
-        for (File file: directory.listFiles()) {
+    private Map<String, File> getConfigFilesByProfile(File directory) {
+        Map<String, File> rv = new HashMap<>();
+        for (File file : directory.listFiles()) {
             Matcher matcher = YAML_FILE_PATTERN.matcher(file.getName());
             if (matcher.find()) {
                 rv.put(matcher.group(2) != null ? matcher.group(2) : "default", file);
@@ -36,7 +38,6 @@ class ConfigYmlFinder {
     private Stream<File> getClassDirectories() {
         return getClassPathElements()
                 .map(File::new)
-                .peek(System.out::println)
                 .filter(File::isDirectory);
     }
 
