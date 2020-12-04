@@ -23,6 +23,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
+import static com.ejc.util.JavaModelUtils.stripGenerics;
+
 
 public class ModuleFactoryWriter extends JavaWriter {
 
@@ -51,6 +53,7 @@ public class ModuleFactoryWriter extends JavaWriter {
         model.getInitMethods().forEach(method -> constructorBuilder.addStatement("addInitMethod($L, \"$L\")", classReferences.getSimpleRef(model.getSingleton()), method.getSimpleName()));
         model.getBeanMethods().forEach(method -> writeBeanMethod(model.getSingleton(), method, constructorBuilder));
         model.getConfigFields().forEach(field -> writeConfigField(model.getSingleton(), field, constructorBuilder));
+        model.getCollectionConfigFields().forEach(field -> writeCollectionConfigField(model.getSingleton(), field, constructorBuilder));
         model.getDependencyFields().forEach(field -> writeDependencyField(model.getSingleton(), field, constructorBuilder));
         model.getCollectionDependencyFields().forEach(field -> writeDependencyCollectionField(model.getSingleton(), field, constructorBuilder));
     }
@@ -78,6 +81,17 @@ public class ModuleFactoryWriter extends JavaWriter {
                 classReferences.getSimpleRef(singleton),
                 field.getSimpleName(),
                 field.asType(),
+                getConfigFieldKey(field),
+                getConfigFieldDefault(field),
+                getConfigFieldMandatory(field));
+    }
+
+    private void writeCollectionConfigField(TypeElement singleton, VariableElement field, MethodSpec.Builder constructorBuilder) {
+        constructorBuilder.addStatement("addCollectionConfigField($L, \"$L\", $L.class, $T.class, \"$L\", \"$L\", $L)",
+                classReferences.getSimpleRef(singleton),
+                field.getSimpleName(),
+                stripGenerics(field),
+                JavaModelUtils.getGenericType(field),
                 getConfigFieldKey(field),
                 getConfigFieldDefault(field),
                 getConfigFieldMandatory(field));

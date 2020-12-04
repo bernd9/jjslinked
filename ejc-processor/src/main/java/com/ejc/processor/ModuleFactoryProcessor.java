@@ -35,6 +35,7 @@ public class ModuleFactoryProcessor extends ProcessorBase {
     private Map<Name, Collection<VariableElement>> dependencyFields = new HashMap<>();
     private Map<Name, Collection<VariableElement>> collectionDependencyFields = new HashMap<>();
     private Map<Name, Collection<VariableElement>> configFields = new HashMap<>();
+    private Map<Name, Collection<VariableElement>> collectionConfigFields = new HashMap<>();
     private Set<TypeElement> singletons = new HashSet<>();
     private Map<TypeElement, TypeElement> replacements = new HashMap<>();
 
@@ -96,7 +97,11 @@ public class ModuleFactoryProcessor extends ProcessorBase {
 
     private void processValueField(VariableElement field) {
         TypeElement owner = (TypeElement) field.getEnclosingElement();
-        configFields.computeIfAbsent(owner.getQualifiedName(), t -> new HashSet<>()).add(field);
+        if (isCollection(field)) {
+            collectionConfigFields.computeIfAbsent(owner.getQualifiedName(), t -> new HashSet<>()).add(field);
+        } else {
+            configFields.computeIfAbsent(owner.getQualifiedName(), t -> new HashSet<>()).add(field);
+        }
     }
 
     private void processInjectFields(QueryResult result) {
@@ -166,6 +171,7 @@ public class ModuleFactoryProcessor extends ProcessorBase {
         dependencyFields.forEach((name, fields) -> mapper.putDependencyFields(typeForName(name), fields));
         collectionDependencyFields.forEach((name, fields) -> mapper.putCollectionDependencyFields(typeForName(name), fields));
         configFields.forEach((name, fields) -> mapper.putConfigFields(typeForName(name), fields));
+        collectionConfigFields.forEach((name, fields) -> mapper.putCollectionConfigFields(typeForName(name), fields));
         singletons.forEach(type -> mapper.putConstructor(type, getConstructor(type)));
         String appClassName = CollectionUtils.getOnlyElement(appClassQualifiedNames, "Classes annotated with @Application");
         return mapper.getSingletonWriterModel(appClassName, replacements);

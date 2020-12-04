@@ -48,6 +48,12 @@ class SingletonElementMapper {
                 .forEach(model -> model.getConfigFields().addAll(fields));
     }
 
+    void putCollectionConfigFields(Element type, Collection<VariableElement> fields) {
+        singletonElements.stream()
+                .filter(model -> model.isAncestorClass(type))
+                .forEach(model -> model.getCollectionConfigFields().addAll(fields));
+    }
+
     void putImplementation(Element base, TypeElement impl) {
         singletonElements.stream()
                 .filter(model -> model.getSingleton().equals(base))

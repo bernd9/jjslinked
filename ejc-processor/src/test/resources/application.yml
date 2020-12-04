@@ -1,0 +1,10 @@
+simpleValue1: x
+simpleValue2: y
+collectionValue1:
+  - 1
+  - 2
+  - 3
+collectionValue2:
+  - a
+  - b
+  - c

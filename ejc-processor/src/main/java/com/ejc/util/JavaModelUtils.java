@@ -68,6 +68,10 @@ public class JavaModelUtils {
         return typeMirror != null;
     }
 
+    public static String stripGenerics(VariableElement collectionVariable) {
+        return collectionVariable.asType().toString().replaceAll("<[^>]+>", "");
+    }
+
     public static TypeMirror getGenericType(VariableElement collectionVariable) {
         GenericTypeVisitor visitor = new GenericTypeVisitor();
         return collectionVariable.asType().accept(visitor, null).orElseThrow(() -> new IllegalStateException(collectionVariable + " must have generic type"));
