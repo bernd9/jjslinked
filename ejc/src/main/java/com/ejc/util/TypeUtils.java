@@ -25,6 +25,19 @@ public class TypeUtils {
         return Optional.ofNullable(PRIMITIVES.get(primitive));
     }
 
+    public boolean isPrimitiveOrWrapper(Class<?> c) {
+        if (c.isPrimitive()) {
+            return true;
+        }
+        if (Number.class.isAssignableFrom(c)) {
+            return true;
+        }
+        if (c.equals(Character.class)) {
+            return true;
+        }
+        return false;
+    }
+
     public <T, C extends Collection<? extends T>> C emptyCollection(Class<C> collectionType) {
         if (!collectionType.isInterface() && !Modifier.isAbstract(collectionType.getModifiers())) {
             return ClassUtils.createInstance(collectionType);

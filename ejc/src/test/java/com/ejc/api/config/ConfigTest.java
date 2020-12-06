@@ -1,25 +1,16 @@
 package com.ejc.api.config;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@Disabled("profile problem during build")
+
 class ConfigTest {
 
     @Test
     void values() {
-        System.setProperty("ejc-profile", "test");
-        Config.unload();
-
-        assertThat(Config.getProperty("string", String.class, "", true)).isEqualTo("value1");
-        assertThat(Config.getProperty("integer", Integer.class, "", true)).isEqualTo(123);
-        assertThat(Config.getProperty("float", Float.class, "", true)).isEqualTo(1.2f);
-        assertThat(Config.getProperty("char", Character.class, "", true)).isEqualTo('c');
-        assertThat(Config.getProperty("value1.sub1", String.class, "", true)).isEqualTo("sub1");
-        assertThat(Config.getProperty("value1.sub2", String.class, "", true)).isEqualTo("replaced");
+        assertThat(Config.getProperty("key1.key2", String.class, "", true)).isEqualTo("xx");
     }
 
     @Test
@@ -29,7 +20,7 @@ class ConfigTest {
 
     @Test
     void noExceptionIfNotPresentAndNotMandatory() {
-        assertThat(Config.getProperty("blabla", String.class, "", false)).isEmpty();
+        assertThat(Config.getProperty("blabla", String.class, "", false)).isNull();
     }
 
 }
