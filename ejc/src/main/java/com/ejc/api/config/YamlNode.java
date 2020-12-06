@@ -12,8 +12,8 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 class YamlNode {
 
-    private static final Pattern KEY_VALUE_PATTERN = Pattern.compile("[ ]*(\\w+):[ ]*(\\w+)");
-    private static final Pattern KEY_PATTERN = Pattern.compile("[ ]*(\\w+):");
+    private static final Pattern KEY_VALUE_PATTERN = Pattern.compile("[ ]*([\\w\\.]+):[ ]*(\\w+)");
+    private static final Pattern KEY_PATTERN = Pattern.compile("[ ]*([\\w\\.]+):");
     private static final Pattern ARRAY_ELEMENT_PATTERN = Pattern.compile("[ ]*\\-[ ]+(\\w+)?");
     private final int indents;
     private final String line;

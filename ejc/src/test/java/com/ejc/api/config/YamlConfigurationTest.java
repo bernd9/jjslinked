@@ -25,4 +25,12 @@ class YamlConfigurationTest {
         List<Integer> value = configuration.findCollectionValue("key1.list", List.class, Integer.class);
         assertThat(value).containsExactly(1, 2, 3);
     }
+
+    @Test
+    void parseAndFindValueWithNameContainingDot() {
+        YamlConfiguration configuration = new YamlConfiguration("default");
+        configuration.init();
+        Optional<String> value = configuration.findSingleValue("x.y", String.class);
+        assertThat(value).contains("xy");
+    }
 }
