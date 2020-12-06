@@ -1,7 +1,5 @@
 package com.ejc.api.config;
 
-import java.util.Iterator;
-
 class YamlRootNode {
 
     private YamlNode firstChild;
@@ -15,7 +13,7 @@ class YamlRootNode {
         }
     }
 
-    YamlNode findNode(Iterator<String> path) {
+    YamlNode findNode(ConfigPath path) {
         if (firstChild == null || !path.hasNext()) {
             return null;
         }

@@ -13,7 +13,7 @@ class YamlConfigurationTest {
     void parseAndFindStringLevel2() {
         YamlConfiguration configuration = new YamlConfiguration("default");
         configuration.init();
-        Optional<String> value = configuration.findSingleValue(List.of("key1", "key2"), String.class);
+        Optional<String> value = configuration.findSingleValue("key1.key2", String.class);
         assertThat(value).contains("xx");
     }
 
@@ -22,7 +22,7 @@ class YamlConfigurationTest {
     void parseAndFindListLevel2() {
         YamlConfiguration configuration = new YamlConfiguration("default");
         configuration.init();
-        List<Integer> value = configuration.findCollectionValue(List.of("key1", "list"), List.class, Integer.class);
+        List<Integer> value = configuration.findCollectionValue("key1.list", List.class, Integer.class);
         assertThat(value).containsExactly(1, 2, 3);
     }
 }

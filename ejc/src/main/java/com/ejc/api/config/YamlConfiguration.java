@@ -27,14 +27,14 @@ class YamlConfiguration {
         }
     }
 
-    <T> Optional<T> findSingleValue(List<String> path, Class<T> targetType) {
+    <T> Optional<T> findSingleValue(String path, Class<T> targetType) {
         return findKeyValueNode(path)
                 .filter(Objects::nonNull)
                 .map(YamlNode::getValue)
                 .map(str -> TypeUtils.convertStringToSimple(str, targetType));
     }
 
-    <T, C extends Collection> C findCollectionValue(List<String> path, Class<C> collectionType, Class<T> elementType) {
+    <T, C extends Collection> C findCollectionValue(String path, Class<C> collectionType, Class<T> elementType) {
         Collection<T> collection = TypeUtils.emptyCollection(collectionType);
         collection.addAll(findKeyNode(path)
                 .filter(Objects::nonNull)
@@ -48,13 +48,13 @@ class YamlConfiguration {
         return (C) collection;
     }
 
-    private Optional<YamlNode> findKeyValueNode(List<String> path) {
+    private Optional<YamlNode> findKeyValueNode(String path) {
         Optional<YamlNode> yamlNode = findNode(path);
         yamlNode.ifPresent(this::verifyIsKeyValue);
         return yamlNode;
     }
 
-    private Optional<YamlNode> findKeyNode(List<String> path) {
+    private Optional<YamlNode> findKeyNode(String path) {
         Optional<YamlNode> yamlNode = findNode(path);
         yamlNode.ifPresent(this::verifyIsKey);
         return yamlNode;
@@ -78,20 +78,20 @@ class YamlConfiguration {
         }
     }
 
-    private Optional<YamlNode> findNode(List<String> path) {
-        Optional<YamlNode> yamlNode = findInProfileConfig(path);
+    private Optional<YamlNode> findNode(String path) {
+        Optional<YamlNode> yamlNode = findInProfileConfig(new ConfigPath(path));
         if (yamlNode.isPresent()) {
             return yamlNode;
         }
-        return findInDefaultConfig(path);
+        return findInDefaultConfig(new ConfigPath(path));
     }
 
-    private Optional<YamlNode> findInProfileConfig(List<String> path) {
-        return configRootForProfile.map(node -> node.findNode(path.iterator())).filter(Objects::nonNull);
+    private Optional<YamlNode> findInProfileConfig(ConfigPath path) {
+        return configRootForProfile.map(node -> node.findNode(path)).filter(Objects::nonNull);
     }
 
-    private Optional<YamlNode> findInDefaultConfig(List<String> path) {
-        return Optional.ofNullable(defaultConfigRoot.findNode(path.iterator()));
+    private Optional<YamlNode> findInDefaultConfig(ConfigPath path) {
+        return Optional.ofNullable(defaultConfigRoot.findNode(path));
     }
 
     private List<String> yamlLines(String resourceName) {

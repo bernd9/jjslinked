@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -13,11 +12,9 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 class YamlNode {
 
-
     private static final Pattern KEY_VALUE_PATTERN = Pattern.compile("[ ]*(\\w+):[ ]*(\\w+)");
     private static final Pattern KEY_PATTERN = Pattern.compile("[ ]*(\\w+):");
     private static final Pattern ARRAY_ELEMENT_PATTERN = Pattern.compile("[ ]*\\-[ ]+(\\w+)?");
-
     private final int indents;
     private final String line;
     private YamlNode firstChild;
@@ -30,11 +27,6 @@ class YamlNode {
         this.line = line;
         indents = indents(line);
         parseContent();
-    }
-
-    YamlNode() {
-        indents = -1;
-        line = "";
     }
 
     void addNode(YamlNode yamlNode) {
@@ -52,12 +44,11 @@ class YamlNode {
         }
     }
 
-    YamlNode findNode(Iterator<String> path) {
+    YamlNode findNode(ConfigPath path) {
         if (!path.hasNext()) {
             return null;
         }
-        String name = path.next();
-        if (name.equals(this.name)) {
+        if (path.matches(this.name)) {
             if (!path.hasNext()) {
                 return this;
             }
@@ -66,24 +57,24 @@ class YamlNode {
             }
             return firstChild.findNode(path);
         }
-        YamlNode sibling = siblingByName(name);
+        YamlNode sibling = siblingByName(path);
         if (!path.hasNext()) {
             return sibling;
         }
-        if (sibling.firstChild == null) {
+        if (sibling == null || sibling.firstChild == null) {
             return null;
         }
         return sibling.firstChild.findNode(path);
     }
 
-    private YamlNode siblingByName(String name) {
-        if (this.name.equals(name)) {
+    private YamlNode siblingByName(ConfigPath path) {
+        if (path.matches(this.name)) {
             return this;
         }
         if (nextSibling == null) {
             return null;
         }
-        return nextSibling.siblingByName(name);
+        return nextSibling.siblingByName(path);
     }
 
     YamlNode lastSibling() {

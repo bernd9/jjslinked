@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -19,13 +18,12 @@ public class Config {
         // TODO
     }
 
-    public static <T> T getProperty(String name, Class<T> type, String defaultValue, boolean mandatory) throws PropertyNotFoundException {
-        List<String> path = Arrays.asList(name.split("\\."));
+    public static <T> T getProperty(String path, Class<T> type, String defaultValue, boolean mandatory) throws PropertyNotFoundException {
         T property = getYamlConfiguration()
                 .findSingleValue(path, type)
-                .orElseGet(() -> convertDefaultValue(defaultValue, type, name));
+                .orElseGet(() -> convertDefaultValue(defaultValue, type, path));
         if (property == null && mandatory) {
-            throw new PropertyNotFoundException(name);
+            throw new PropertyNotFoundException(path);
         }
         return property;
     }
@@ -41,13 +39,12 @@ public class Config {
         }
     }
 
-    public static <T, C extends Collection> C getCollectionProperty(String name, Class<C> collectionType, Class<T> elementType, String defaultValue, boolean mandatory) throws PropertyNotFoundException {
-        List<String> path = Arrays.asList(name.split("\\."));
+    public static <T, C extends Collection> C getCollectionProperty(String path, Class<C> collectionType, Class<T> elementType, String defaultValue, boolean mandatory) throws PropertyNotFoundException {
         Collection<T> coll = getYamlConfiguration().findCollectionValue(path, collectionType, elementType);
         if (coll.isEmpty()) {
             if (defaultValue.isEmpty()) {
                 if (mandatory) {
-                    throw new PropertyNotFoundException(name);
+                    throw new PropertyNotFoundException(path);
                 }
             } else {
                 coll = getDefaultValueCollection(defaultValue, elementType);
