@@ -7,8 +7,8 @@ import com.ejc.api.context.UndefinedClass;
 import com.ejc.processor.config.ConfigYmlToProperties;
 import com.ejc.util.CollectionUtils;
 import com.ejc.util.CollectorUtils;
-import com.ejc.util.IOUtils;
 import com.ejc.util.JavaModelUtils;
+import com.ejc.util.ProcessorIOUtils;
 import com.google.auto.service.AutoService;
 import com.google.common.base.Functions;
 import com.google.common.base.Predicate;
@@ -260,11 +260,11 @@ public class ModuleFactoryProcessor extends ProcessorBase {
 
     private void writeContextFile(ModuleFactoryWriterModel model) {
         String name = ModuleFactory.getQualifiedName(model.getApplicationClass());
-        IOUtils.write(Collections.singletonList(name), processingEnv.getFiler(), String.format("%s/%s", ApplicationContext.RESOURCE_FOLDER_DIR, name));
+        ProcessorIOUtils.write(Collections.singletonList(name), processingEnv.getFiler(), String.format("%s/%s", ApplicationContext.RESOURCE_FOLDER_DIR, name));
     }
 
     private void writeManifest(ModuleFactoryWriterModel model) {
-        IOUtils.write(Collections.singletonList("Main-Class: " + ApplicationRunner.class.getName()), processingEnv.getFiler(), "META-INF/MANIFEST.MF");
+        ProcessorIOUtils.write(Collections.singletonList("Main-Class: " + ApplicationRunner.class.getName()), processingEnv.getFiler(), "META-INF/MANIFEST.MF");
     }
 
     private void applicationYamlToProperties() {

@@ -12,14 +12,14 @@ import java.io.PrintWriter;
 import java.util.Collection;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class IOUtils {
+public class ProcessorIOUtils {
 
 
     public static void write(Collection<String> lines, Filer filer, String resource) {
         write(lines, registryTextFileForWriting(resource, filer));
     }
 
-
+    // TODO move this method to processor utils
     public static void write(Collection<String> lines, FileObject fileObject) {
         try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(fileObject.openOutputStream()))) {
             lines.forEach(writer::println);
@@ -27,7 +27,7 @@ public class IOUtils {
             throw new RuntimeException(e);
         }
     }
-    
+
 
     private static FileObject registryTextFileForWriting(String name, Filer filer) {
         try {

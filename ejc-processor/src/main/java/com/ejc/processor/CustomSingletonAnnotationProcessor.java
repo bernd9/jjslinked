@@ -1,7 +1,7 @@
 package com.ejc.processor;
 
 import com.ejc.Singleton;
-import com.ejc.util.IOUtils;
+import com.ejc.util.ProcessorIOUtils;
 import com.ejc.util.ProcessorLogger;
 import com.google.auto.service.AutoService;
 
@@ -61,7 +61,7 @@ public class CustomSingletonAnnotationProcessor extends AbstractProcessor {
     }
 
     private void writeContextFile() {
-        IOUtils.write(providerClasses, processingEnv.getFiler(), "META-INF/services/" + CustomSingletonAnnotationProvider.class.getName());
+        ProcessorIOUtils.write(providerClasses, processingEnv.getFiler(), "META-INF/services/" + CustomSingletonAnnotationProvider.class.getName());
     }
 
     private String getProviderClassSimpleName() {
