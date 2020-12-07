@@ -14,11 +14,11 @@ repositories {
 
 dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
-    annotationProcessor files('../ejc-http/build/libs/ejc-http-1.0-SNAPSHOT.jar')
+    // annotationProcessor files('../ejc-http/build/libs/ejc-http-1.0-SNAPSHOT.jar')
     annotationProcessor files('../ejc-processor/build/libs/ejc-processor-1.0-SNAPSHOT.jar')
 
     compile files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
-    compile files('../ejc-http/build/libs/ejc-http-1.0-SNAPSHOT.jar')
+    //compile files('../ejc-http/build/libs/ejc-http-1.0-SNAPSHOT.jar')
     implementation 'org.projectlombok:lombok:1.18.12'
 
 }

@@ -4,7 +4,6 @@ import com.ejc.*;
 import com.ejc.api.context.ApplicationContext;
 import com.ejc.api.context.ModuleFactory;
 import com.ejc.api.context.UndefinedClass;
-import com.ejc.processor.config.ConfigYmlToProperties;
 import com.ejc.util.CollectionUtils;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.JavaModelUtils;
@@ -36,6 +35,8 @@ public class ModuleFactoryProcessor extends ProcessorBase {
     private Map<Name, Collection<VariableElement>> collectionDependencyFields = new HashMap<>();
     private Map<Name, Collection<VariableElement>> configFields = new HashMap<>();
     private Map<Name, Collection<VariableElement>> collectionConfigFields = new HashMap<>();
+    private Map<Name, Collection<VariableElement>> mapConfigFields = new HashMap<>();
+
     private Set<TypeElement> singletons = new HashSet<>();
     private Map<TypeElement, TypeElement> replacements = new HashMap<>();
 
@@ -97,8 +98,10 @@ public class ModuleFactoryProcessor extends ProcessorBase {
 
     private void processValueField(VariableElement field) {
         TypeElement owner = (TypeElement) field.getEnclosingElement();
-        if (isCollection(field)) {
+        if (JavaModelUtils.isCollection(field)) {
             collectionConfigFields.computeIfAbsent(owner.getQualifiedName(), t -> new HashSet<>()).add(field);
+        } else if (JavaModelUtils.isMap(field)) {
+            mapConfigFields.computeIfAbsent(owner.getQualifiedName(), t -> new HashSet<>()).add(field);
         } else {
             configFields.computeIfAbsent(owner.getQualifiedName(), t -> new HashSet<>()).add(field);
         }
@@ -142,17 +145,9 @@ public class ModuleFactoryProcessor extends ProcessorBase {
     }
 
     private Predicate<VariableElement> isCollection() {
-        return variable -> isCollection(variable);
+        return variable -> JavaModelUtils.isCollection(variable);
     }
 
-    private boolean isCollection(VariableElement var) {
-        String name = var.asType().toString().replaceAll("<[^\\]]*>", "");
-        try {
-            return Collection.class.isAssignableFrom(Class.forName(name));
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
 
     private boolean isInstanceOf(TypeMirror candidate, TypeElement superType) {
         return isInstanceOf(candidate, superType.asType());
@@ -172,6 +167,7 @@ public class ModuleFactoryProcessor extends ProcessorBase {
         collectionDependencyFields.forEach((name, fields) -> mapper.putCollectionDependencyFields(typeForName(name), fields));
         configFields.forEach((name, fields) -> mapper.putConfigFields(typeForName(name), fields));
         collectionConfigFields.forEach((name, fields) -> mapper.putCollectionConfigFields(typeForName(name), fields));
+        mapConfigFields.forEach((name, fields) -> mapper.putMapConfigFields(typeForName(name), fields));
         singletons.forEach(type -> mapper.putConstructor(type, getConstructor(type)));
         String appClassName = CollectionUtils.getOnlyElement(appClassQualifiedNames, "Classes annotated with @Application");
         return mapper.getSingletonWriterModel(appClassName, replacements);
@@ -188,7 +184,6 @@ public class ModuleFactoryProcessor extends ProcessorBase {
         writeAppRunner(model);
         writeContextFile(model);
         writeManifest(model);
-        applicationYamlToProperties();
     }
 
     private void writeSingletons(ModuleFactoryWriterModel model) {
@@ -265,10 +260,6 @@ public class ModuleFactoryProcessor extends ProcessorBase {
 
     private void writeManifest(ModuleFactoryWriterModel model) {
         ProcessorIOUtils.write(Collections.singletonList("Main-Class: " + ApplicationRunner.class.getName()), processingEnv.getFiler(), "META-INF/MANIFEST.MF");
-    }
-
-    private void applicationYamlToProperties() {
-        new ConfigYmlToProperties(this.processingEnv).writePropertyFiles();
     }
 
     private void writeAppRunner(ModuleFactoryWriterModel model) {

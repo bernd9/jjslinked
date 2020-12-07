@@ -5,9 +5,7 @@ import com.ejc.util.TypeUtils;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -53,6 +51,19 @@ public class Config {
         return (C) coll;
     }
 
+    public static <K, V> Map<K, V> getMapProperty(String path, Class<? extends Map<K, V>> fieldType, Class<K> keyType, Class<V> valueType, String defaultValue, boolean mandatory) {
+        Optional<Map<K, V>> map = getYamlConfiguration().findMapValue(path, keyType, valueType);
+        if (!map.isPresent() && mandatory) {
+            if (!defaultValue.isEmpty()) {
+                throw new IllegalStateException("'defaultValue' can not be used for fields of type java.util.Map in field " + path);
+            }
+            if (mandatory) {
+                throw new PropertyNotFoundException(path);
+            }
+        }
+        return map.get();
+    }
+
     private static <T> Set<T> getDefaultValueCollection(String defaultValueStr, Class<T> elementType) {
         return Arrays.stream(defaultValueStr.split(","))
                 .map(String::trim)
@@ -70,4 +81,6 @@ public class Config {
         }
         return yamlConfiguration;
     }
+
+
 }

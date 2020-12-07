@@ -22,6 +22,7 @@ class SingletonElement {
     private final Set<VariableElement> collectionDependencyFields = new HashSet<>();
     private final Set<VariableElement> configFields = new HashSet<>();
     private final Set<VariableElement> collectionConfigFields = new HashSet<>();
+    private final Set<VariableElement> mapConfigFields = new HashSet<>();
 
     SingletonElement(TypeElement singleton, List<TypeElement> parentTypes) {
         this.singleton = singleton;

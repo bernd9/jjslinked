@@ -54,6 +54,7 @@ public class ModuleFactoryWriter extends JavaWriter {
         model.getBeanMethods().forEach(method -> writeBeanMethod(model.getSingleton(), method, constructorBuilder));
         model.getConfigFields().forEach(field -> writeConfigField(model.getSingleton(), field, constructorBuilder));
         model.getCollectionConfigFields().forEach(field -> writeCollectionConfigField(model.getSingleton(), field, constructorBuilder));
+        model.getMapConfigFields().forEach(field -> writeMapConfigField(model.getSingleton(), field, constructorBuilder));
         model.getDependencyFields().forEach(field -> writeDependencyField(model.getSingleton(), field, constructorBuilder));
         model.getCollectionDependencyFields().forEach(field -> writeDependencyCollectionField(model.getSingleton(), field, constructorBuilder));
     }
@@ -91,7 +92,22 @@ public class ModuleFactoryWriter extends JavaWriter {
                 classReferences.getSimpleRef(singleton),
                 field.getSimpleName(),
                 stripGenerics(field),
-                JavaModelUtils.getGenericType(field),
+                JavaModelUtils.getGenericCollectionType(field),
+                getConfigFieldKey(field),
+                getConfigFieldDefault(field),
+                getConfigFieldMandatory(field));
+    }
+
+    private void writeMapConfigField(TypeElement singleton, VariableElement field, MethodSpec.Builder constructorBuilder) {
+        TypeMirror[] genericTypes = JavaModelUtils.getGenericMapTypes(field);
+        TypeMirror keyType = genericTypes[0];
+        TypeMirror valueType = genericTypes[1];
+        constructorBuilder.addStatement("addMapConfigField($L, \"$L\", $L.class, $T.class, $T.class, \"$L\", \"$L\", $L)",
+                classReferences.getSimpleRef(singleton),
+                field.getSimpleName(),
+                stripGenerics(field),
+                keyType,
+                valueType,
                 getConfigFieldKey(field),
                 getConfigFieldDefault(field),
                 getConfigFieldMandatory(field));
@@ -148,7 +164,6 @@ public class ModuleFactoryWriter extends JavaWriter {
     }
 }
 
-
 @RequiredArgsConstructor
 class ClassReferences {
     private final ProcessingEnvironment processingEnvironment;
@@ -170,7 +185,7 @@ class ClassReferences {
     }
 
     CodeBlock getCollectionFieldRef(VariableElement field) {
-        TypeMirror genericType = JavaModelUtils.getGenericType(field);
+        TypeMirror genericType = JavaModelUtils.getGenericCollectionType(field);
         TypeElement collectionType = (TypeElement) processingEnvironment.getTypeUtils().asElement(field.asType());
         TypeElement genTypeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(genericType);
         return getCollectionFieldRef(collectionType, genTypeElement);
@@ -194,9 +209,12 @@ class ParameterReferences {
 
     void addParameterReference(VariableElement variableElement, CodeBlock.Builder builder) {
         Name name = variableElement.getSimpleName();
-        if (JavaModelUtils.hasGenericType(variableElement)) {
-            TypeMirror genericType = JavaModelUtils.getGenericType(variableElement);
+        if (JavaModelUtils.isCollection(variableElement) && JavaModelUtils.hasGenericType(variableElement)) {
+            TypeMirror genericType = JavaModelUtils.getGenericCollectionType(variableElement);
             builder.add(getCollectionParameterRef(variableElement, genericType, name));
+        } else if (JavaModelUtils.isMap(variableElement) && JavaModelUtils.hasGenericMapTypes(variableElement)) {
+            TypeMirror[] genericTypes = JavaModelUtils.getGenericMapTypes(variableElement);
+            builder.add(getMapParameterRef(variableElement, genericTypes, name));
         } else if (isPrimitive(variableElement)) {
             builder.add(getPrimitiveParameterRef(variableElement, name));
         } else {
@@ -217,6 +235,22 @@ class ParameterReferences {
                         ClassReference.class,
                         JavaModelUtils.getClassName(collectionTypeElement),
                         JavaModelUtils.getClassName(genericTypeElement),
+                        name,
+                        valueAnnotationReference(e))
+                .build().toString();
+    }
+
+    private String getMapParameterRef(VariableElement e, TypeMirror[] genericTypes, Name name) {
+        TypeElement collectionTypeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(e.asType());
+        TypeElement genericKeyTypeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(genericTypes[0]);
+        TypeElement genericValueTypeElement = (TypeElement) processingEnvironment.getTypeUtils().asElement(genericTypes[1]);
+        return CodeBlock.builder()
+                .add("$T.getRef($T.getRef($L.class, \"$L\", \"$L\"), \"$L\", $L)",
+                        ParameterReference.class,
+                        ClassReference.class,
+                        JavaModelUtils.getClassName(collectionTypeElement),
+                        JavaModelUtils.getClassName(genericKeyTypeElement),
+                        JavaModelUtils.getClassName(genericValueTypeElement),
                         name,
                         valueAnnotationReference(e))
                 .build().toString();

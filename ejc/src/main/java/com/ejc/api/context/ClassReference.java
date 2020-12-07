@@ -22,21 +22,33 @@ public class ClassReference {
     @Getter
     private final Optional<ClassReference> genericType;
 
+    @Getter
+    private final Optional<ClassReference> genericType2;
+
     ClassReference(Class<?> c) {
         this.clazz = c;
         this.className = c.getName();
         this.genericType = Optional.empty();
+        this.genericType2 = Optional.empty();
     }
 
     ClassReference(String className) {
         this.className = className;
         this.genericType = Optional.empty();
+        this.genericType2 = Optional.empty();
     }
 
 
     ClassReference(String className, String genericType) {
         this.className = className;
         this.genericType = Optional.of(getRef(genericType));
+        this.genericType2 = Optional.empty();
+    }
+
+    ClassReference(String className, String genericKeyType, String genericValueType) {
+        this.className = className;
+        this.genericType = Optional.of(getRef(genericKeyType));
+        this.genericType2 = Optional.of(getRef(genericValueType));
     }
 
 
@@ -67,6 +79,17 @@ public class ClassReference {
         name.append(className);
         name.append(">");
         return references.computeIfAbsent(name.toString(), n -> new ClassReference(collectionClass.getName(), className));
+    }
+
+    @UsedInGeneratedCode
+    public static ClassReference getRef(Class<? extends Map> mapClass, String keyClassName, String valueClassName) {
+        StringBuilder name = new StringBuilder(mapClass.getName());
+        name.append("<");
+        name.append(keyClassName);
+        name.append(",");
+        name.append(valueClassName);
+        name.append(">");
+        return references.computeIfAbsent(name.toString(), n -> new ClassReference(mapClass.getName(), keyClassName, valueClassName));
     }
 
     @UsedInGeneratedCode

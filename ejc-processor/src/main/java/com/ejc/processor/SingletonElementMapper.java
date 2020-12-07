@@ -66,4 +66,9 @@ class SingletonElementMapper {
                 .forEach(model -> model.setConstructor(constructor));
     }
 
+    public void putMapConfigFields(TypeElement type, Collection<VariableElement> fields) {
+        singletonElements.stream()
+                .filter(model -> model.isAncestorClass(type))
+                .forEach(model -> model.getMapConfigFields().addAll(fields));
+    }
 }

@@ -63,8 +63,17 @@ public class JavaModelUtils {
         if (variableElement.asType().getKind().isPrimitive()) {
             return false; // otherwise NullPointerException
         }
-        GenericTypeVisitor visitor = new GenericTypeVisitor();
+        GenericCollectionTypeVisitor visitor = new GenericCollectionTypeVisitor();
         TypeMirror typeMirror = variableElement.asType().accept(visitor, null).orElse(null);
+        return typeMirror != null;
+    }
+
+    public static boolean hasGenericMapTypes(VariableElement variableElement) {
+        if (variableElement.asType().getKind().isPrimitive()) {
+            return false; // otherwise NullPointerException
+        }
+        GenericMapTypeVisitor visitor = new GenericMapTypeVisitor();
+        TypeMirror[] typeMirror = variableElement.asType().accept(visitor, null).orElse(null);
         return typeMirror != null;
     }
 
@@ -72,29 +81,65 @@ public class JavaModelUtils {
         return collectionVariable.asType().toString().replaceAll("<[^>]+>", "");
     }
 
-    public static TypeMirror getGenericType(VariableElement collectionVariable) {
-        GenericTypeVisitor visitor = new GenericTypeVisitor();
+    public static TypeMirror getGenericCollectionType(VariableElement collectionVariable) {
+        GenericCollectionTypeVisitor visitor = new GenericCollectionTypeVisitor();
         return collectionVariable.asType().accept(visitor, null).orElseThrow(() -> new IllegalStateException(collectionVariable + " must have generic type"));
     }
+
+    public static TypeMirror[] getGenericMapTypes(VariableElement mapVariable) {
+        GenericMapTypeVisitor visitor = new GenericMapTypeVisitor();
+        return mapVariable.asType().accept(visitor, null).orElseThrow(() -> new IllegalStateException(mapVariable + " must have generic types"));
+    }
+
 
     public static TypeMirror getIterableType(VariableElement collectionVariable) {
-        GenericTypeVisitor visitor = new GenericTypeVisitor();
+        GenericCollectionTypeVisitor visitor = new GenericCollectionTypeVisitor();
         return collectionVariable.asType().accept(visitor, null).orElseThrow(() -> new IllegalStateException(collectionVariable + " must have generic type"));
     }
 
 
-    private static class GenericTypeVisitor extends SimpleTypeVisitor9<Optional<TypeMirror>, Void> {
+    private static class GenericCollectionTypeVisitor extends SimpleTypeVisitor9<Optional<TypeMirror>, Void> {
 
         @Override
         public Optional<TypeMirror> visitDeclared(DeclaredType t, Void aVoid) {
             if (t.getTypeArguments() != null) {
                 return (Optional<TypeMirror>) t.getTypeArguments().stream().findFirst();
             }
+            return Optional.empty();
+        }
+
+    }
+
+
+    private static class GenericMapTypeVisitor extends SimpleTypeVisitor9<Optional<TypeMirror[]>, Void> {
+
+        @Override
+        public Optional<TypeMirror[]> visitDeclared(DeclaredType t, Void aVoid) {
+            if (t.getTypeArguments() != null && t.getTypeArguments().size() > 1) {
+                return Optional.of(t.getTypeArguments().stream().toArray(TypeMirror[]::new));
+            }
             return null;
         }
 
     }
 
+    public static boolean isCollection(VariableElement var) {
+        String name = var.asType().toString().replaceAll("<[^\\]]*>", "");
+        try {
+            return Collection.class.isAssignableFrom(Class.forName(name));
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
+    public static boolean isMap(VariableElement var) {
+        String name = var.asType().toString().replaceAll("<[^\\],]*>", "");
+        try {
+            return Map.class.isAssignableFrom(Class.forName(name));
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
 
     /**
      * For :
