@@ -10,6 +10,7 @@ class YamlParser {
 
     YamlRootNode parse(List<String> yamlLines) {
         Iterator<YamlNode> yamlNodes = yamlLines.stream()
+                .filter(this::notIgnore)
                 .map(YamlNode::new)
                 .iterator();
         YamlRootNode root = new YamlRootNode();
@@ -17,6 +18,11 @@ class YamlParser {
             root.addNode(yamlNodes.next());
         }
         return root;
+    }
+
+    private boolean notIgnore(String s) {
+        String trimmed = s.trim();
+        return !trimmed.isEmpty() && !trimmed.matches("\\-{3,}");
     }
 
 }

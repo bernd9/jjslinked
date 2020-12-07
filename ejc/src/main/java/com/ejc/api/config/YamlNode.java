@@ -12,9 +12,11 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 class YamlNode {
 
-    private static final Pattern KEY_VALUE_PATTERN = Pattern.compile("[ ]*([\\w\\.]+):[ ]*(\\w+)");
-    private static final Pattern KEY_PATTERN = Pattern.compile("[ ]*([\\w\\.]+):");
-    private static final Pattern ARRAY_ELEMENT_PATTERN = Pattern.compile("[ ]*\\-[ ]+(\\w+)?");
+    static final Pattern KEY_VALUE_PATTERN = Pattern.compile("^[ ]*([\\w\\.]+):[ ]*(\\w+)");
+    static final Pattern KEY_PATTERN = Pattern.compile("^[ ]*([\\w\\.]+):[ ]*$");
+    static final Pattern ARRAY_ELEMENT_PATTERN = Pattern.compile("^[ ]*\\-[ ]+(\\w+)$");
+    static final Pattern MAP_PATTERN = Pattern.compile("^[ ]*([\\w\\.]+):[ ]*\\{([^\\}]*)\\}$");
+
     private final int indents;
     private final String line;
     private YamlNode firstChild;
@@ -115,8 +117,14 @@ class YamlNode {
             nodeType = YamlNodeType.KEY;
             return;
         }
-
-        throw new IllegalStateException();
+        matcher = MAP_PATTERN.matcher(line);
+        if (matcher.find()) {
+            name = matcher.group(1);
+            value = matcher.group(2);
+            nodeType = YamlNodeType.MAP;
+            return;
+        }
+        throw new IllegalStateException("unsupported line " + line);
     }
 
     private static int indents(String line) {

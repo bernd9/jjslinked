@@ -16,7 +16,7 @@ class YamlConfiguration {
     private Optional<YamlRootNode> configRootForProfile;
     private final YamlParser yamlParser = new YamlParser();
 
-    private static YamlConfiguration instance;
+    private static final YamlMapParser MAP_PARSER = new YamlMapParser();
 
     void init() {
         defaultConfigRoot = yamlParser.parse(yamlLines("application.yml"));
@@ -48,9 +48,22 @@ class YamlConfiguration {
         return (C) collection;
     }
 
+    <K, V> Optional<Map<K, V>> findMapValue(String path, Class<K> keyType, Class<V> valueType) {
+        return findMapNode(path)
+                .filter(Objects::nonNull)
+                .map(YamlNode::getValue)
+                .map(str -> MAP_PARSER.parseMap(str, keyType, valueType));
+    }
+
     private Optional<YamlNode> findKeyValueNode(String path) {
         Optional<YamlNode> yamlNode = findNode(path);
         yamlNode.ifPresent(this::verifyIsKeyValue);
+        return yamlNode;
+    }
+
+    private Optional<YamlNode> findMapNode(String path) {
+        Optional<YamlNode> yamlNode = findNode(path);
+        yamlNode.ifPresent(this::verifyIsMapValue);
         return yamlNode;
     }
 
@@ -62,15 +75,23 @@ class YamlConfiguration {
 
     private void verifyIsKeyValue(YamlNode yamlNode) {
         if (yamlNode.getNodeType() != YamlNodeType.KEY_VALUE) {
-            throw new IllegalStateException("value found but not a key-value-node");
+            throw new IllegalStateException("value found but not a key-value-node" + yamlNode.getLine());
         }
     }
 
     private void verifyIsKey(YamlNode yamlNode) {
         if (yamlNode.getNodeType() != YamlNodeType.KEY) {
-            throw new IllegalStateException("value found but not a key-node");
+            throw new IllegalStateException("value found but not a key-node" + yamlNode.getLine());
         }
     }
+
+
+    private void verifyIsMapValue(YamlNode yamlNode) {
+        if (yamlNode.getNodeType() != YamlNodeType.MAP) {
+            throw new IllegalStateException("value found but not a map-node: " + yamlNode.getLine());
+        }
+    }
+
 
     private void verifyIsArrayElement(YamlNode yamlNode) {
         if (yamlNode.getNodeType() != YamlNodeType.ARRAY_ELEMENT) {
@@ -101,4 +122,5 @@ class YamlConfiguration {
             return Collections.emptyList();
         }
     }
+
 }
