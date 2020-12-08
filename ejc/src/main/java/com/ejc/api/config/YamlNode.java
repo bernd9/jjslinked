@@ -12,9 +12,9 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 class YamlNode {
 
-    static final Pattern KEY_VALUE_PATTERN = Pattern.compile("^[ ]*([\\w\\.]+):[ ]*(\\w+)");
+    static final Pattern KEY_VALUE_PATTERN = Pattern.compile("^[ ]*([\\w\\.]+):[ ]*([^ ]+)");
     static final Pattern KEY_PATTERN = Pattern.compile("^[ ]*([\\w\\.]+):[ ]*$");
-    static final Pattern ARRAY_ELEMENT_PATTERN = Pattern.compile("^[ ]*\\-[ ]+(\\w+)$");
+    static final Pattern ARRAY_ELEMENT_PATTERN = Pattern.compile("^[ ]*\\-[ ]+([^ ]+)");
     static final Pattern MAP_PATTERN = Pattern.compile("^[ ]*([\\w\\.]+):[ ]*\\{([^\\}]*)\\}$");
 
     private final int indents;
@@ -104,6 +104,13 @@ class YamlNode {
             nodeType = YamlNodeType.ARRAY_ELEMENT;
             return;
         }
+        matcher = MAP_PATTERN.matcher(line);
+        if (matcher.find()) {
+            name = matcher.group(1);
+            value = matcher.group(2);
+            nodeType = YamlNodeType.MAP;
+            return;
+        }
         matcher = KEY_VALUE_PATTERN.matcher(line);
         if (matcher.find()) {
             name = matcher.group(1);
@@ -115,13 +122,6 @@ class YamlNode {
         if (matcher.find()) {
             name = matcher.group(1);
             nodeType = YamlNodeType.KEY;
-            return;
-        }
-        matcher = MAP_PATTERN.matcher(line);
-        if (matcher.find()) {
-            name = matcher.group(1);
-            value = matcher.group(2);
-            nodeType = YamlNodeType.MAP;
             return;
         }
         throw new IllegalStateException("unsupported line " + line);
