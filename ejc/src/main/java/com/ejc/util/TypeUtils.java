@@ -1,14 +1,15 @@
 package com.ejc.util;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import lombok.experimental.UtilityClass;
 
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.*;
 
-@UtilityClass
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class TypeUtils {
 
     public static final Map<String, Class<?>> PRIMITIVES = Map.of("byte", byte.class, //
@@ -21,11 +22,12 @@ public class TypeUtils {
             "char", char.class);
 
 
-    public Optional<Class<?>> getPrimitiveClass(String primitive) {
+    public static Optional<Class<?>> getPrimitiveClass(String primitive) {
         return Optional.ofNullable(PRIMITIVES.get(primitive));
     }
 
-    public boolean isPrimitiveOrWrapper(Class<?> c) {
+
+    public static boolean isPrimitiveOrWrapper(Class<?> c) {
         if (c.isPrimitive()) {
             return true;
         }
@@ -38,7 +40,7 @@ public class TypeUtils {
         return false;
     }
 
-    public <T, C extends Collection<? extends T>> C emptyCollection(Class<C> collectionType) {
+    public static <T, C extends Collection<? extends T>> C emptyCollection(Class<C> collectionType) {
         if (!collectionType.isInterface() && !Modifier.isAbstract(collectionType.getModifiers())) {
             return ClassUtils.createInstance(collectionType);
         }
@@ -51,11 +53,25 @@ public class TypeUtils {
         if (collectionType.equals(Vector.class)) {
             return (C) new Vector<T>();
         }
-        throw new IllegalArgumentException("unsupported collection type ");
+        throw new IllegalArgumentException("unsupported collection type: " + collectionType);
 
     }
 
-    public <T> T convertSimple(Object value, @NonNull Class<T> fieldType) {
+    public static <V, K> Map<K, V> emptyMap(Class<? extends Map> mapType, Class<K> keyType, Class<V> valueType) {
+        if (!mapType.isInterface() && !Modifier.isAbstract(mapType.getModifiers())) {
+            return ClassUtils.createInstance(mapType);
+        }
+        if (mapType.equals(Map.class) || mapType.equals(HashMap.class)) {
+            return new HashMap<>();
+        }
+        if (mapType.equals(TreeMap.class)) {
+            return new TreeMap<>();
+        }
+        throw new IllegalArgumentException("unsupported map type: " + mapType);
+    }
+
+
+    public static <T> T convertSimple(Object value, @NonNull Class<T> fieldType) {
         if (value == null) {
             return null;
         }
@@ -65,7 +81,7 @@ public class TypeUtils {
         return convertStringToSimple(value.toString(), fieldType);
     }
 
-    public <T> T convertStringToSimple(String value, @NonNull Class<T> fieldType) {
+    public static <T> T convertStringToSimple(String value, @NonNull Class<T> fieldType) {
         if (value == null) {
             if (fieldType.isPrimitive()) {
                 throw new NullPointerException("null is not allowed for primitives");
@@ -111,4 +127,6 @@ public class TypeUtils {
         throw new IllegalArgumentException("illegal type " + fieldType);
 
     }
+
+
 }

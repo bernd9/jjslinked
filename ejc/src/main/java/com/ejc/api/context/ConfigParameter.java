@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;
+import java.util.Map;
 
 
 @RequiredArgsConstructor
@@ -26,11 +27,18 @@ class ConfigParameter implements Parameter {
     @Override
     public Object getValue() {
         if (value == null) { // Read it lately, for better testing
-            if (parameterType.getGenericType().isPresent()) {
-                value = Config.getCollectionProperty(key, (Class<? extends Collection>)
-                        parameterType.getReferencedClass(), parameterType.getGenericType().get().getReferencedClass(), defaultValue, mandatory);
+            Config config = Config.getInstance();
+            if (Collection.class.isAssignableFrom(parameterType.getReferencedClass())) {
+                Class<?> genericType = parameterType.getGenericType().map(ClassReference::getReferencedClass).orElseThrow(() -> new IllegalStateException("collection must have generic type"));
+                Class<? extends Collection> collectionType = (Class<? extends Collection>) parameterType.getReferencedClass();
+                value = config.getCollectionProperty(key, collectionType, genericType, defaultValue, mandatory);
+            } else if (Map.class.isAssignableFrom(parameterType.getReferencedClass())) {
+                Class<?> keyType = parameterType.getGenericType().map(ClassReference::getReferencedClass).orElseThrow(() -> new IllegalStateException("map must have generic key-type"));
+                Class<?> valueType = parameterType.getGenericType2().map(ClassReference::getReferencedClass).orElseThrow(() -> new IllegalStateException("map must have generic value-type"));
+                Class<? extends Map<Object, Object>> mapType = (Class<? extends Map<Object, Object>>) parameterType.getReferencedClass();
+                value = config.getMapProperty(key, mapType, keyType, valueType, defaultValue, mandatory);
             } else {
-                value = Config.getProperty(key, parameterType.getReferencedClass(), defaultValue, mandatory);
+                value = config.getInstance().getProperty(key, parameterType.getReferencedClass(), defaultValue, mandatory);
             }
         }
         return value;
