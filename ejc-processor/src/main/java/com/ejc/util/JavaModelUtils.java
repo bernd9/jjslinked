@@ -124,7 +124,7 @@ public class JavaModelUtils {
     }
 
     public static boolean isCollection(VariableElement var) {
-        String name = var.asType().toString().replaceAll("<[^\\]]*>", "");
+        String name = var.asType().toString().replaceAll("<.*>$", "");
         try {
             return Collection.class.isAssignableFrom(Class.forName(name));
         } catch (ClassNotFoundException e) {
@@ -133,7 +133,7 @@ public class JavaModelUtils {
     }
 
     public static boolean isMap(VariableElement var) {
-        String name = var.asType().toString().replaceAll("<[^\\],]*>", "");
+        String name = var.asType().toString().replaceAll("<.*>$", "");
         try {
             return Map.class.isAssignableFrom(Class.forName(name));
         } catch (ClassNotFoundException e) {
