@@ -6,3 +6,6 @@ key1:
     - 3
 x.y: xy
 map: { x: 1, y: 2 }
+rootOfMap:
+  a: 1
+  b: 2

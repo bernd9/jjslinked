@@ -42,10 +42,21 @@ class YamlConfigurationTest {
     void parseAndFindMap() {
         YamlConfiguration configuration = new YamlConfiguration("default");
         configuration.init();
-        Optional<Map<String, Integer>> value = configuration.findMapValue("map", String.class, Integer.class);
+        Optional<Map<String, Integer>> value = configuration.findMapValue("map", Map.class, String.class, Integer.class);
         assertThat(value).isPresent();
         Map<String, Integer> map = value.get();
         assertThat(map.get("x")).isEqualTo(1);
         assertThat(map.get("y")).isEqualTo(2);
+    }
+
+    @Test
+    void parseAndReadMapFromChildNodes() {
+        YamlConfiguration configuration = new YamlConfiguration("default");
+        configuration.init();
+        Optional<Map<String, Integer>> value = configuration.findMapValue("rootOfMap", Map.class, String.class, Integer.class);
+        assertThat(value).isPresent();
+        Map<String, Integer> map = value.get();
+        assertThat(map.get("a")).isEqualTo(1);
+        assertThat(map.get("b")).isEqualTo(2);
     }
 }

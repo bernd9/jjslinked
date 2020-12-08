@@ -60,7 +60,7 @@ public class Config {
 
     public <K, V> Map<K, V> getMapProperty(String path, Class<? extends Map> mapType, Class<K> keyType, Class<V> valueType, String defaultValue, boolean mandatory) {
         Map<K, V> returnValue = TypeUtils.emptyMap(mapType, keyType, valueType);
-        Optional<Map<K, V>> map = getYamlConfiguration().findMapValue(path, keyType, valueType);
+        Optional<Map<K, V>> map = getYamlConfiguration().findMapValue(path, mapType, keyType, valueType);
         if (!map.isPresent() && mandatory) {
             if (!defaultValue.isEmpty()) {
                 throw new IllegalStateException("'defaultValue' can not be used for fields of type java.util.Map in field " + path);

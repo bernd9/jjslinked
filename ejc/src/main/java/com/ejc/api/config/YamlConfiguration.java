@@ -48,22 +48,39 @@ class YamlConfiguration {
         return (C) collection;
     }
 
-    <K, V> Optional<Map<K, V>> findMapValue(String path, Class<K> keyType, Class<V> valueType) {
-        return findMapNode(path)
-                .filter(Objects::nonNull)
-                .map(YamlNode::getValue)
-                .map(str -> MAP_PARSER.parseMap(str, keyType, valueType));
+    <K, V> Optional<Map<K, V>> findMapValue(String path, Class<? extends Map> mapType, Class<K> keyType, Class<V> valueType) {
+        return findNode(path).filter(Objects::nonNull).map(node -> asMap(node, mapType, keyType, valueType, path));
+    }
+
+    private <K, V> Map<K, V> asMap(YamlNode yamlNode, Class<? extends Map> mapType, Class<K> keyType, Class<V> valueType, String path) {
+        switch (yamlNode.getNodeType()) {
+            case MAP:
+                return mapFromMapFormattedString(yamlNode.getValue(), mapType, keyType, valueType);
+            case KEY:
+                return mapFromElementTree(yamlNode, mapType, keyType, valueType);
+            default:
+                throw new IllegalStateException(path + " in yaml can not be parsed to map");
+        }
+    }
+
+    private <K, V> Map<K, V> mapFromMapFormattedString(String value, Class<? extends Map> mapType, Class<K> keyType, Class<V> valueType) {
+        Map<K, V> map = TypeUtils.emptyMap(mapType, keyType, valueType);
+        map.putAll(MAP_PARSER.parseMap(value, keyType, valueType));
+        return map;
+    }
+
+    private <K, V> Map<K, V> mapFromElementTree(YamlNode yamlNode, Class<? extends Map> mapType, Class<K> keyType, Class<V> valueType) {
+        Map<K, V> map = TypeUtils.emptyMap(mapType, keyType, valueType);
+        yamlNode.getChildNodes().stream()
+                .filter(node -> node.getNodeType() == YamlNodeType.KEY_VALUE)
+                .forEach(node -> map.put(TypeUtils.convertStringToSimple(node.getName(), keyType),
+                        TypeUtils.convertStringToSimple(node.getValue(), valueType)));
+        return map;
     }
 
     private Optional<YamlNode> findKeyValueNode(String path) {
         Optional<YamlNode> yamlNode = findNode(path);
         yamlNode.ifPresent(this::verifyIsKeyValue);
-        return yamlNode;
-    }
-
-    private Optional<YamlNode> findMapNode(String path) {
-        Optional<YamlNode> yamlNode = findNode(path);
-        yamlNode.ifPresent(this::verifyIsMapValue);
         return yamlNode;
     }
 
