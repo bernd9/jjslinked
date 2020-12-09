@@ -6,31 +6,49 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Collection;
+import java.util.Map;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class Config {
 
     @Setter
     private static Config instance;
+    private YamlConfigFile defaultConfigFile;
+    private YamlConfigFile configFileForProfile;
 
-    public static Config getInstance() {
+    public static synchronized Config getInstance() {
         if (instance == null) { // lazy instantiation for better testing
             instance = new Config();
+            instance.init();
         }
         return instance;
     }
 
+    private void init() {
+        defaultConfigFile = YamlConfigFile.load("application.yml").orElse(null);
+        if (!ActiveProfile.getCurrentProfile().equals("default")) {
+            configFileForProfile = YamlConfigFile.load(String.format("application-%d.yml", ActiveProfile.getCurrentProfile())).orElse(null);
+        }
+    }
+
 
     public <T> T getProperty(String path, Class<T> type, String defaultValue, boolean mandatory) throws PropertyNotFoundException {
-        T property = getYamlConfiguration()
-                .findSingleValue(path, type)
-                .orElseGet(() -> convertDefaultValue(defaultValue, type, path));
-        if (property == null && mandatory) {
+        T property = null;
+        if (configFileForProfile != null) {
+            property = configFileForProfile.findValue(path, type).orElse(null);
+        }
+        if (property == null) {
+            property = defaultConfigFile.findValue(path, type).orElse(null);
+        }
+        if (property == null && !defaultValue.equals("")) {
+            property = convertDefaultValue(defaultValue, type, path);
+        }
+        if (mandatory && property == null) {
             throw new PropertyNotFoundException(path);
         }
         return property;
+
     }
 
     private <T> T convertDefaultValue(String defaultValue, Class<T> type, String name) {
@@ -44,51 +62,47 @@ public class Config {
         }
     }
 
-    public <T, C extends Collection> C getCollectionProperty(String path, Class<C> collectionType, Class<T> elementType, String defaultValue, boolean mandatory) throws PropertyNotFoundException {
-        Collection<T> coll = getYamlConfiguration().findCollectionValue(path, collectionType, elementType);
-        if (coll.isEmpty()) {
-            if (defaultValue.isEmpty()) {
-                if (mandatory) {
-                    throw new PropertyNotFoundException(path);
-                }
-            } else {
-                coll = getDefaultValueCollection(defaultValue, elementType);
-            }
+    public <T, C extends Collection<T>> C getCollectionProperty(String path, Class<C> collectionType, Class<T> elementType, String defaultValue, boolean mandatory) throws PropertyNotFoundException {
+        C property = null;
+        if (configFileForProfile != null) {
+            property = configFileForProfile.findCollection(path, collectionType, elementType).orElse(null);
         }
-        return (C) coll;
+        if (property == null) {
+            property = defaultConfigFile.findCollection(path, collectionType, elementType).orElse(null);
+        }
+        if (!defaultValue.equals("")) {
+            throw new IllegalStateException("'defaultValue' can not be used for collection-fields " + path);
+        }
+        if (property.isEmpty() && mandatory) {
+            throw new PropertyNotFoundException(path);
+        }
+        C coll = TypeUtils.emptyCollection(collectionType);
+        if (property != null) {
+            coll.addAll(property);
+        }
+        return coll;
     }
 
-    public <K, V> Map<K, V> getMapProperty(String path, Class<? extends Map> mapType, Class<K> keyType, Class<V> valueType, String defaultValue, boolean mandatory) {
-        Map<K, V> returnValue = TypeUtils.emptyMap(mapType, keyType, valueType);
-        Optional<Map<K, V>> map = getYamlConfiguration().findMapValue(path, mapType, keyType, valueType);
-        if (!map.isPresent() && mandatory) {
-            if (!defaultValue.isEmpty()) {
-                throw new IllegalStateException("'defaultValue' can not be used for fields of type java.util.Map in field " + path);
-            }
-            if (mandatory) {
-                throw new PropertyNotFoundException(path);
-            }
+
+    public <K, V, M extends Map<K, V>> M getMapProperty(String path, Class<? extends Map> mapType, Class<K> keyType, Class<V> valueType, String defaultValue, boolean mandatory) {
+        M property = null;
+        if (configFileForProfile != null) {
+            property = (M) configFileForProfile.findMap(path, mapType, keyType, valueType).orElse(null);
         }
-        returnValue.putAll(map.get());
-        return returnValue;
-    }
-
-    private <T> Set<T> getDefaultValueCollection(String defaultValueStr, Class<T> elementType) {
-        return Arrays.stream(defaultValueStr.split(","))
-                .map(String::trim)
-                .filter(String::isEmpty)
-                .map(s -> TypeUtils.convertStringToSimple(s, elementType))
-                .collect(Collectors.toSet());
-    }
-
-    private static YamlConfiguration yamlConfiguration;
-
-    private static YamlConfiguration getYamlConfiguration() {
-        if (yamlConfiguration == null) {
-            yamlConfiguration = new YamlConfiguration(ActiveProfile.getCurrentProfile());
-            yamlConfiguration.init();
+        if (property == null) {
+            property = (M) defaultConfigFile.findMap(path, mapType, keyType, valueType).orElse(null);
         }
-        return yamlConfiguration;
+        if (!defaultValue.equals("")) {
+            throw new IllegalStateException("'defaultValue' can not be used for collection-fields " + path);
+        }
+        if (property.isEmpty() && mandatory) {
+            throw new PropertyNotFoundException(path);
+        }
+        M map = TypeUtils.emptyMap(mapType);
+        if (property != null) {
+            map.putAll(property);
+        }
+        return map;
     }
 
 

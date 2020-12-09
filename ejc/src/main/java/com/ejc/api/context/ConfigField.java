@@ -27,11 +27,13 @@ public class ConfigField {
         Config config = Config.getInstance();
         if (Collection.class.isAssignableFrom(fieldType)) {
             Class genType = genericType.orElseThrow(() -> new IllegalStateException(declaringClass.getClassName() + "." + fieldName + " must have generic type"));
-            FieldUtils.setFieldValue(bean, fieldName, config.getCollectionProperty(key, (Class<? extends Collection<?>>) fieldType, genType, defaultValue, mandatory));
+            Collection<Object> collection = config.getCollectionProperty(key, (Class<? extends Collection<Object>>) fieldType, genType, defaultValue, mandatory);
+            FieldUtils.setFieldValue(bean, fieldName, collection);
         } else if (Map.class.isAssignableFrom(fieldType)) {
             Class keyType = genericType.orElseThrow(() -> new IllegalStateException(declaringClass.getClassName() + "." + fieldName + " must have generic key-type"));
             Class valueType = genericType.orElseThrow(() -> new IllegalStateException(declaringClass.getClassName() + "." + fieldName + " must have generic value-type"));
-            FieldUtils.setFieldValue(bean, fieldName, config.getMapProperty(key, (Class<? extends Map<Object, Object>>) fieldType, keyType, valueType, defaultValue, mandatory));
+            Map<Object, Object> map = config.getMapProperty(key, (Class<? extends Map<Object, Object>>) fieldType, keyType, valueType, defaultValue, mandatory);
+            FieldUtils.setFieldValue(bean, fieldName, map);
         } else {
             FieldUtils.setFieldValue(bean, fieldName, config.getInstance().getProperty(key, fieldType, defaultValue, mandatory));
         }

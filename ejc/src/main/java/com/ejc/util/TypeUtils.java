@@ -57,15 +57,15 @@ public class TypeUtils {
 
     }
 
-    public static <V, K> Map<K, V> emptyMap(Class<? extends Map> mapType, Class<K> keyType, Class<V> valueType) {
+    public static <V, K, M extends Map<K, V>> M emptyMap(Class<? extends Map> mapType) {
         if (!mapType.isInterface() && !Modifier.isAbstract(mapType.getModifiers())) {
-            return ClassUtils.createInstance(mapType);
+            return (M) ClassUtils.createInstance(mapType);
         }
         if (mapType.equals(Map.class) || mapType.equals(HashMap.class)) {
-            return new HashMap<>();
+            return (M) new HashMap<>();
         }
         if (mapType.equals(TreeMap.class)) {
-            return new TreeMap<>();
+            return (M) new TreeMap<>();
         }
         throw new IllegalArgumentException("unsupported map type: " + mapType);
     }
