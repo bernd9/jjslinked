@@ -1,4 +1,4 @@
-package com.ejc.http.api.jetty;
+package com.ejc.http.api;
 
 import com.ejc.Configuration;
 import com.ejc.Init;

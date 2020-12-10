@@ -1,29 +1,34 @@
 package com.ejc.test;
 
 import com.ejc.Inject;
-import com.ejc.api.context.SingletonProcessor;
+import com.ejc.api.context.SingletonPreProcessor;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.FieldUtils;
 import com.ejc.util.TypeUtils;
-import lombok.RequiredArgsConstructor;
 import org.mockito.Mockito;
 import org.mockito.internal.util.MockUtil;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@RequiredArgsConstructor
-class IntegrationTestInitializer implements SingletonProcessor {
+class IntegrationTestInitializer extends SingletonPreProcessor<Object> {
     private final Object test;
 
     private Set<Field> injectFields;
     private Set<Field> mockFields;
     private Set<Field> spyFields;
 
-    void init() {
+    public IntegrationTestInitializer(Object test) {
+        super(Object.class);
+        this.test = test;
+        init();
+    }
+
+    private void init() {
         findInjectFields();
         findMockFields();
         findSpyFields();
@@ -63,7 +68,7 @@ class IntegrationTestInitializer implements SingletonProcessor {
 
 
     @Override
-    public Optional<Object> beforeInstantiation(Class<?> type) {
+    public Optional<Object> beforeInstantiation(Class<Object> type) {
         Optional<Object> singleton = bindMock(type);
         if (singleton.isPresent()) {
             return singleton;
@@ -76,10 +81,17 @@ class IntegrationTestInitializer implements SingletonProcessor {
     }
 
     @Override
-    public Optional<Object> afterInstantiation(Object o) {
+    public Object afterInstantiation(Object o) {
         injectIntoSimpleField(o);
         addToInjectCollectionField(o);
-        return Optional.empty();
+        return o;
+    }
+
+    @SuppressWarnings("unused")
+    void setTestFieldValue(Object o) {
+        Objects.requireNonNull(this.injectFields, "not initialized");
+        injectIntoSimpleField(o);
+        addToInjectCollectionField(o);
     }
 
 

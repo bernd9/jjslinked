@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'groovy'
 }
 
 group 'org.example'
@@ -11,10 +12,13 @@ repositories {
 
 dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor files('../ejc-http/build/libs/ejc-http-1.0-SNAPSHOT.jar')
+    annotationProcessor files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
 
     implementation 'org.projectlombok:lombok:1.18.12'
     implementation files('../ejc-http/build/libs/ejc-http-1.0-SNAPSHOT.jar')
-
+    implementation files('../ejc-test/build/libs/ejc-test-1.0-SNAPSHOT.jar')
+    implementation files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
 
 
     compile group: 'org.mockito', name: 'mockito-core', version: '2.1.0'

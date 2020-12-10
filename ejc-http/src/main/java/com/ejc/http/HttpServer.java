@@ -4,7 +4,7 @@ import com.ejc.Application;
 import com.ejc.ApplicationRunner;
 
 @Application
-public class HttpServer {
+class HttpServer {
 
 
 }

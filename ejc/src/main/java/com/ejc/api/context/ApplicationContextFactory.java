@@ -16,7 +16,7 @@ public class ApplicationContextFactory {
     private UniqueBeanValidator uniqueBeanValidator;
     private Set<SingletonObject> singletonObjects;
     private ApplicationContextImpl applicationContext = new ApplicationContextImpl();
-    private CompoundSingletonProcessor compoundSingletonProcessor;
+    private CompoundSingletonPreProcessor compoundSingletonProcessor;
 
     public ApplicationContextFactory(Class<?> applicationClass) {
         init(applicationClass, new ModuleComposer(loadModules(), applicationClass));
@@ -28,7 +28,7 @@ public class ApplicationContextFactory {
 
     private void init(Class<?> applicationClass, ModuleComposer moduleComposer) {
         moduleComposer.composeModules();
-        compoundSingletonProcessor = new CompoundSingletonProcessor(SingletonProcessorLoader.load());
+        compoundSingletonProcessor = new CompoundSingletonPreProcessor(SingletonProcessorLoader.load());
         singletonObjectMap = moduleComposer.getSingletonObjectMap();
         singletonConstructors = moduleComposer.getSingletonConstructors();
         uniqueBeanValidator = new UniqueBeanValidator(singletonProviders, extractSimpleDependencyFields(singletonObjectMap.values()));
@@ -39,8 +39,8 @@ public class ApplicationContextFactory {
         singletonObjects = new HashSet<>(singletonObjectMap.values());
     }
 
-    public void addSingletonProcessor(SingletonProcessor singletonProcessor) {
-        compoundSingletonProcessor.addSingletonProcessor(singletonProcessor);
+    public void addSingletonProcessor(SingletonPreProcessor singletonPreProcessor) {
+        compoundSingletonProcessor.addSingletonProcessor(singletonPreProcessor);
     }
 
     public ApplicationContext createApplicationContext() {
@@ -67,7 +67,7 @@ public class ApplicationContextFactory {
 
     private void invokeProviderOrProcessor(SingletonProvider provider) {
         singletonProviders.remove(provider);
-        compoundSingletonProcessor.beforeInstantiation(provider.getType().getReferencedClass())
+        compoundSingletonProcessor.beforeInstantiation((Class<Object>) provider.getType().getReferencedClass())
                 .ifPresentOrElse(this::onSingletonCreated, () -> invokeProvider(provider));
     }
 
@@ -76,7 +76,7 @@ public class ApplicationContextFactory {
     }
 
     private void onSingletonCreated(Object o) {
-        final Object singleton = compoundSingletonProcessor.afterInstantiation(o).orElse(o);
+        final Object singleton = compoundSingletonProcessor.afterInstantiation(o);
         uniqueBeanValidator.onSingletonCreated(o);
         singletonProviders.onSingletonCreated(o);
         singletonObjects.forEach(singletonObject -> singletonObject.onSingletonCreated(singleton, singletonProviders));

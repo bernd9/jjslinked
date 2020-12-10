@@ -11,9 +11,9 @@ public class ApplicationRunnerBase extends ApplicationRunner {
     private final ClassReference applicationClass;
 
     @Override
-    public void doRun(Collection<SingletonProcessor> singletonProcessors) {
+    public void doRun(Collection<SingletonPreProcessor> singletonPreProcessors) {
         ApplicationContextFactory factory = new ApplicationContextFactory(applicationClass.getReferencedClass());
-        singletonProcessors.forEach(factory::addSingletonProcessor);
+        singletonPreProcessors.forEach(factory::addSingletonProcessor);
         factory.createApplicationContext();
     }
 }
