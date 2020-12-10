@@ -11,7 +11,7 @@ import java.util.Set;
 
 
 @Getter
-public class HttpRequestMock {
+public class HttpMock {
     private HttpMethod httpMethod = HttpMethod.GET;
     private String path = "";
     private final Map<String, Set<Object>> parameters = new HashMap<>();
@@ -19,34 +19,34 @@ public class HttpRequestMock {
     private final Map<String, byte[]> parts = new HashMap<>();
     private String body;
 
-    HttpRequestMock() {
+    HttpMock() {
     }
 
-    public HttpRequestMock httpMethod(HttpMethod httpMethod) {
+    public HttpMock httpMethod(HttpMethod httpMethod) {
         this.httpMethod = httpMethod;
         return this;
     }
 
-    public HttpRequestMock path(String path) {
+    public HttpMock path(String path) {
         this.path = path;
         return this;
     }
 
-    public HttpRequestMock header(String name, String value) {
+    public HttpMock header(String name, String value) {
         headers.put(name, value);
         return this;
     }
 
-    public HttpRequestMock contentType(String value) {
+    public HttpMock contentType(String value) {
         return header("Content-Type", value);
     }
 
-    public HttpRequestMock withPart(String name, byte[] bytes) {
+    public HttpMock withPart(String name, byte[] bytes) {
         parts.put(name, bytes);
         return this;
     }
 
-    public HttpRequestMock body(String body) {
+    public HttpMock body(String body) {
         this.body = body;
         return this;
     }

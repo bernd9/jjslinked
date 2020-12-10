@@ -9,7 +9,7 @@ public class HttpIntegrationTestExtension implements BeforeTestExecutionCallback
     @Override
     public void beforeTestExecution(ExtensionContext context) throws Exception {
         IntegrationTestInitializer initializer = new IntegrationTestInitializer(JUnit5Util.getTestInstance(context));
-        initializer.setTestFieldValue(new HttpRequestMock());
+        initializer.setTestFieldValue(new HttpMock());
         ApplicationRunner.addSingletonPreProcessor(initializer);
         ApplicationRunner.addSingletonPreProcessor(new JettyBoostrapDisabledPreProcessor());
         ApplicationRunner.run();

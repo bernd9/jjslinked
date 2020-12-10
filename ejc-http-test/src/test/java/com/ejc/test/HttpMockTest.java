@@ -7,14 +7,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 
 @ExtendWith(HttpIntegrationTestExtension.class)
-class HttpRequestMockTest {
+class HttpMockTest {
 
     @Inject
-    private HttpRequestMock httpRequestMock;
+    private HttpMock httpMock;
 
     @Test
     void test() {
-        HttpTestResponse response = httpRequestMock.httpMethod(HttpMethod.GET).path("/").send();
+        HttpTestResponse response = httpMock.httpMethod(HttpMethod.GET).path("/").send();
     }
 }
 
