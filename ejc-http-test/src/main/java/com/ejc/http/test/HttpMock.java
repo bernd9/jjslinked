@@ -1,4 +1,4 @@
-package com.ejc.test;
+package com.ejc.http.test;
 
 import com.ejc.api.context.ApplicationContext;
 import com.ejc.http.HttpMethod;

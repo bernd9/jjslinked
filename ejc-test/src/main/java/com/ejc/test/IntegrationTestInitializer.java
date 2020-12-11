@@ -10,12 +10,11 @@ import org.mockito.internal.util.MockUtil;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-class IntegrationTestInitializer extends SingletonPreProcessor<Object> {
+public class IntegrationTestInitializer extends SingletonPreProcessor<Object> {
     private final Object test;
 
     private Set<Field> injectFields;
@@ -58,7 +57,6 @@ class IntegrationTestInitializer extends SingletonPreProcessor<Object> {
         injectFields.stream()
                 .filter(field -> Collection.class.isAssignableFrom(field.getType()))
                 .forEach(this::bindEmptyCollection);
-
     }
 
     private void bindEmptyCollection(Field field) {
@@ -86,21 +84,12 @@ class IntegrationTestInitializer extends SingletonPreProcessor<Object> {
         addToInjectCollectionField(o);
         return o;
     }
-
-    @SuppressWarnings("unused")
-    void setTestFieldValue(Object o) {
-        Objects.requireNonNull(this.injectFields, "not initialized");
-        injectIntoSimpleField(o);
-        addToInjectCollectionField(o);
-    }
-
-
+    
     private void injectIntoSimpleField(Object o) {
         injectFields.stream()
                 .filter(field -> field.getType().isAssignableFrom(o.getClass()))
                 .forEach(field -> FieldUtils.setFieldValue(test, field, o));
     }
-
 
     private void addToInjectCollectionField(Object o) {
         injectFields.stream()

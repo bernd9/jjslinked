@@ -23,13 +23,15 @@ public class CompoundSingletonPreProcessor extends SingletonPreProcessor<Object>
                 .findFirst();
     }
 
+
     @Override
     public Object afterInstantiation(Object o) {
-        return singletonPreProcessors.stream()
-                .filter(processor -> processor.matches(o.getClass()))
-                .map(singletonProcessor -> singletonProcessor.afterInstantiation(o))
-                .filter(Objects::nonNull)
-                .findFirst().orElseThrow();
+        for (SingletonPreProcessor<Object> processor: singletonPreProcessors) {
+            if (processor.matches(o.getClass())) {
+                o = processor.afterInstantiation(o);
+            }
+        }
+        return o;
     }
 
     void addSingletonProcessor(SingletonPreProcessor singletonPreProcessor) {

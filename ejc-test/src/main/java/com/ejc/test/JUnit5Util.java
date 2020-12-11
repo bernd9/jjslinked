@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 @UtilityClass
 public class JUnit5Util {
-    Object getTestInstance(ExtensionContext context) {
+    public Object getTestInstance(ExtensionContext context) {
         return context.getTestInstance().orElseGet(() -> ClassUtils.createInstance(context.getTestClass().orElseThrow()));
     }
 

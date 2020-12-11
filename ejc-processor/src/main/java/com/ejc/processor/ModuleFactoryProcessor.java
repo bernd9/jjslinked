@@ -9,8 +9,6 @@ import com.ejc.util.CollectorUtils;
 import com.ejc.util.JavaModelUtils;
 import com.ejc.util.ProcessorIOUtils;
 import com.google.auto.service.AutoService;
-import com.google.common.base.Functions;
-import com.google.common.base.Predicate;
 
 import javax.annotation.processing.Processor;
 import javax.annotation.processing.SupportedSourceVersion;
@@ -19,6 +17,8 @@ import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -87,7 +87,7 @@ public class ModuleFactoryProcessor extends ProcessorBase {
     private void processImplementations(QueryResult result) {
         Set<TypeElement> implementations = result.getElements(Implementation.class, TypeElement.class);
         singletons.addAll(implementations);
-        replacements.putAll(implementations.stream().collect(Collectors.toMap(this::getSuperClassToOverride, Functions.identity())));
+        replacements.putAll(implementations.stream().collect(Collectors.toMap(this::getSuperClassToOverride, Function.identity())));
     }
 
     private void processValueFields(QueryResult result) {
@@ -159,7 +159,7 @@ public class ModuleFactoryProcessor extends ProcessorBase {
 
     private ModuleFactoryWriterModel createWriterModel() {
         Map<TypeElement, List<TypeElement>> hierarchy = singletons.stream()
-                .collect(Collectors.toMap(Functions.identity(), this::getClassHierarchy));
+                .collect(Collectors.toMap(Function.identity(), this::getClassHierarchy));
         SingletonElementMapper mapper = new SingletonElementMapper(hierarchy);
         initMethods.forEach((name, methods) -> mapper.putInitMethods(typeForName(name), methods));
         beanMethods.forEach((name, methods) -> mapper.putBeanMethods(typeForName(name), methods));

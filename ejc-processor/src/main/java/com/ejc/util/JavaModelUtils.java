@@ -1,6 +1,5 @@
 package com.ejc.util;
 
-import com.google.common.collect.Iterables;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 
@@ -160,7 +159,7 @@ public class JavaModelUtils {
     }
 
     public static AnnotationMirror getAnnotationMirror(Element annotated, Class<? extends Annotation> annotationClass) {
-        return Iterables.getOnlyElement(annotated.getAnnotationMirrors().stream()
+        return CollectionUtils.getOnlyElement(annotated.getAnnotationMirrors().stream()
                 .filter(mirror -> mirror.getAnnotationType().toString().equals(annotationClass.getName()))
                 .collect(Collectors.toSet()));
     }

@@ -1,14 +1,11 @@
 package com.ejc.processor;
 
-import com.google.auto.service.AutoService;
-import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import lombok.Builder;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.annotation.processing.Processor;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import java.io.IOException;
@@ -27,7 +24,7 @@ class AdviceAnnotationProcessorWriter {
     void write() {
         String processorName = annotation.getQualifiedName() + "Processor";
         TypeSpec typeSpec = classBuilder(getSimpleName(processorName))
-                .addAnnotation(autoService())
+                //.addAnnotation(autoService())
                 .addMethod(constructor(annotation, adviceClass))
                 .addOriginatingElement(annotation)
                 .addModifiers(Modifier.PUBLIC)
@@ -50,10 +47,12 @@ class AdviceAnnotationProcessorWriter {
                 .build();
     }
 
+    /*
     private AnnotationSpec autoService() {
         return AnnotationSpec.builder(AutoService.class)
                 .addMember("value", "$T.class", Processor.class)
                 .build();
     }
+    */
 
 }

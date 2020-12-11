@@ -1,4 +1,4 @@
-package com.ejc.test;
+package com.ejc.http.test;
 
 public class HttpTestResponse {
 }

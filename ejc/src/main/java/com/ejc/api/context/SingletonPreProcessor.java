@@ -20,4 +20,5 @@ public class SingletonPreProcessor<T> {
     public T afterInstantiation(T o) {
         return o;
     }
+
 }

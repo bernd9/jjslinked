@@ -4,6 +4,7 @@ import com.ejc.util.ClassUtils;
 import lombok.RequiredArgsConstructor;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -17,6 +18,7 @@ public class ApplicationContextFactory {
     private Set<SingletonObject> singletonObjects;
     private ApplicationContextImpl applicationContext = new ApplicationContextImpl();
     private CompoundSingletonPreProcessor compoundSingletonProcessor;
+    private Collection<Supplier<Object>> preSuppliers = new HashSet<>();
 
     public ApplicationContextFactory(Class<?> applicationClass) {
         init(applicationClass, new ModuleComposer(loadModules(), applicationClass));
@@ -44,12 +46,16 @@ public class ApplicationContextFactory {
     }
 
     public ApplicationContext createApplicationContext() {
+        addPreInstances();
         runInstantiation();
         applicationContext.setBeans(singletons);
         ApplicationContext.instance = applicationContext;
         return applicationContext;
     }
 
+    private void addPreInstances() {
+        preSuppliers.stream().map(Supplier::get).forEach(this::onSingletonCreated);
+    }
 
     private void runInstantiation() {
         while (!singletonProviders.getProviders().isEmpty()) {
@@ -102,5 +108,9 @@ public class ApplicationContextFactory {
                 .map(SingletonObject::getSimpleDependencyFields)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
+    }
+
+    void addSingletonPreSupplier(Supplier<Object> supplier) {
+        this.preSuppliers.add(supplier);
     }
 }

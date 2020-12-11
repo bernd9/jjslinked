@@ -38,7 +38,7 @@ public class Config {
         if (configFileForProfile != null) {
             property = configFileForProfile.findValue(path, type).orElse(null);
         }
-        if (property == null) {
+        if (property == null && defaultConfigFile != null) {
             property = defaultConfigFile.findValue(path, type).orElse(null);
         }
         if (property == null && !defaultValue.equals("")) {
