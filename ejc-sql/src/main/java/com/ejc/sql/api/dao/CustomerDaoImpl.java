@@ -13,7 +13,7 @@ class CustomerDaoImpl {
     public void save(Customer customer) {
         CustomerImpl customerImpl;
         if (customer.getAddress() == null) {
-            customer.se
+            
         }
         addressDao.save(customer.getAddress());
         if (customer instanceof EntityProxy) {

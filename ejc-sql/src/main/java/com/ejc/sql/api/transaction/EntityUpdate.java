@@ -7,5 +7,5 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class EntityUpdate<E> implements SortableCommand {
     private final E entity;
-    private final int priority;
+    private final Integer priority;
 }

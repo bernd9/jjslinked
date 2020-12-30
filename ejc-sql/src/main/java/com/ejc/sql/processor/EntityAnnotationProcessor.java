@@ -5,7 +5,6 @@ import com.ejc.sql.api.ORNameMapper;
 import com.ejc.util.JavaModelUtils;
 import com.ejc.util.ProcessorLogger;
 import com.google.auto.service.AutoService;
-import com.squareup.javapoet.ClassName;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Processor;
@@ -16,7 +15,6 @@ import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
-import java.io.IOException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -60,11 +58,14 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
         String simpleName = JavaModelUtils.getSimpleName(entityModel.getEntityType());
         String packageName = JavaModelUtils.getPackageName(entityModel.getEntityType());
         Optional<String> packageOptional = packageName.isEmpty() ? Optional.empty() : Optional.of(packageName);
+        /*
         try {
             new EntityImplWriter(simpleName, packageOptional, Optional.of(ClassName.get(entityModel.getEntityType())), processingEnv).write();
         } catch (IOException e) {
             reportError(e);
         }
+
+         */
     }
 
 

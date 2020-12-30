@@ -18,19 +18,19 @@ import static com.ejc.sql.DatabaseVendor.MYSQL;
 @Configuration
 public class DataSourceConfiguration {
 
-    @Value(key = "jdbc.username")
+    @Value("jdbc.username")
     private String user;
 
-    @Value(key = "jdbc.password")
+    @Value("jdbc.password")
     private String password;
 
-    @Value(key = "jdbc.url")
+    @Value("jdbc.url")
     private String url;
 
     // TODO load automatically ?
     private Driver driver;
 
-    @Value(key = "jdbc.driver")
+    @Value("jdbc.driver")
     private String driverName;
 
     @Init
