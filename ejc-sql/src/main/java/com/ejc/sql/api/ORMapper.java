@@ -1,5 +1,6 @@
 package com.ejc.sql.api;
 
+import com.ejc.Singleton;
 import com.ejc.api.context.ClassReference;
 import com.ejc.util.ClassUtils;
 import lombok.Getter;
@@ -11,12 +12,13 @@ import java.util.List;
 import java.util.Map;
 
 @Getter
-public class EntityMapper {
+@Singleton
+public class ORMapper {
 
     private final ClassReference declaringClass;
     private final Map<String, EntityFieldMapper> entityFieldMapperMap = new HashMap<>();
 
-    public EntityMapper(ClassReference declaringClass) {
+    public ORMapper(ClassReference declaringClass) {
         this.declaringClass = declaringClass;
     }
 

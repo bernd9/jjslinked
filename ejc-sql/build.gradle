@@ -10,16 +10,18 @@ repositories {
 }
 
 dependencies {
-    implementation files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
-    //annotationProcessor files('../jjslinked-api/build/libs/jjslinked-api-1.0-SNAPSHOT.jar')
-
-    annotationProcessor(group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7')
-
-
-    compile 'org.projectlombok:lombok:1.18.12'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
-    annotationProcessor files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
+    annotationProcessor group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7'
+    annotationProcessor files('../ejc-processor/build/libs/ejc-processor-1.0-SNAPSHOT.jar')
+
+    implementation files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
+    implementation files('../ejc-processor/build/libs/ejc-processor-1.0-SNAPSHOT.jar')
+    implementation 'org.projectlombok:lombok:1.18.12'
+    implementation group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7'
+
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+    testAnnotationProcessor files('../ejc-test/build/libs/ejc-test-1.0-SNAPSHOT.jar')
+
 
     compile group: 'com.squareup', name: 'javapoet', version: '1.12.1'
 

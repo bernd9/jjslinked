@@ -26,6 +26,16 @@ public class TypeUtils {
         return Optional.ofNullable(PRIMITIVES.get(primitive));
     }
 
+    public static boolean isNonComplex(Class<?> c) {
+        if (isPrimitiveOrWrapper(c)) {
+            return true;
+        }
+        if (c.equals(String.class)) {
+            return true;
+        }
+        return false;
+    }
+
 
     public static boolean isPrimitiveOrWrapper(Class<?> c) {
         if (c.isPrimitive()) {

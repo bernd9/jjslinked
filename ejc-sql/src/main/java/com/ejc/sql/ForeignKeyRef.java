@@ -5,8 +5,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+@Retention(RetentionPolicy.SOURCE)
 @Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface Column {
-    String name() default "";
+public @interface ForeignKeyRef {
+    String table();
+
+    String column();
 }

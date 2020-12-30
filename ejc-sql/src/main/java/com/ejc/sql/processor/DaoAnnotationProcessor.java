@@ -37,7 +37,7 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
     public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
         log("entity-processing ");
         if (!roundEnv.processingOver()) {
-
+            processElements(roundEnv);
         }
         return true;
     }
@@ -60,7 +60,7 @@ public class DaoAnnotationProcessor extends AbstractProcessor {
             ProcessorLogger.reportError(this, processingEnv, e);
         }
     }
-
+    
     private boolean implementsCrudRespository(TypeElement dao) {
         return dao.getInterfaces().stream()
                 .anyMatch(interf -> processingEnv.getTypeUtils().isAssignable(interf, crudRepositoryMirror));

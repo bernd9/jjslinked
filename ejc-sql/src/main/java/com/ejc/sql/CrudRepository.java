@@ -6,7 +6,7 @@ public interface CrudRepository<T> {
 
     int update(T entity);
 
-    void getById(Object... id);
+    T getById(Object... id);
 
     int delete(T entity);
 

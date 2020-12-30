@@ -15,7 +15,7 @@ public class Connector {
 
     @Inject
     private TransactionHolder transactionHolder;
-    
+
     public Connection getConnection() throws SQLException {
         Transaction transaction = transactionHolder.get();
         if (transaction != null) {

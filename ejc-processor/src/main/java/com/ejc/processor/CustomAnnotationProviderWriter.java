@@ -1,6 +1,7 @@
 package com.ejc.processor;
 
 import com.ejc.javapoet.JavaWriter;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import lombok.Builder;
 
@@ -16,7 +17,7 @@ class CustomAnnotationProviderWriter extends JavaWriter {
 
     @Builder
     public CustomAnnotationProviderWriter(TypeElement annotationClass, String providerClassSimpleName, String providerClassPackageName, ProcessingEnvironment processingEnvironment) {
-        super(providerClassSimpleName, Optional.of(providerClassPackageName), Optional.of(CustomSingletonAnnotationProvider.class), processingEnvironment, Collections.emptySet());
+        super(providerClassSimpleName, Optional.of(providerClassPackageName), Optional.of(ClassName.get(CustomSingletonAnnotationProvider.class)), processingEnvironment, Collections.emptySet());
         this.annotationClass = annotationClass;
     }
 

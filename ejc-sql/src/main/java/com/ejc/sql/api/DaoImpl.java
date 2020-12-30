@@ -1,6 +1,7 @@
 package com.ejc.sql.api;
 
-import com.ejc.ApplicationContext;
+import com.ejc.Init;
+import com.ejc.Inject;
 import com.ejc.api.context.ClassReference;
 import com.ejc.sql.CrudRepository;
 
@@ -9,11 +10,9 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class DaoImpl<T> implements CrudRepository<T> {
-    private final EntityMapper entityMapper;
+    private final ORMapper mapper;
     private final List<String> idFieldNames = new ArrayList<>();
     private final List<String> columnFieldNames = new ArrayList<>();
     private final String tableName;
@@ -21,27 +20,34 @@ public class DaoImpl<T> implements CrudRepository<T> {
     private String updateSql;
     private String deleteSql;
 
+    @Inject
+    private Connector connector;
+
+    @Inject
+    private SqlStatements sqlStatements;
+
     public DaoImpl(ClassReference entity, String tableName) {
-        this.entityMapper = new EntityMapper(entity);
+        this.mapper = new ORMapper(entity);
         this.tableName = tableName;
     }
 
+    @Init
+    void init() {
+        insertSql = sqlStatements.createInsertSql(tableName, idFieldNames, columnFieldNames);
+        updateSql = sqlStatements.createUpdateSql(tableName, idFieldNames, columnFieldNames);
+        deleteSql = sqlStatements.createDeleteSql(tableName, idFieldNames, columnFieldNames);
+    }
+
+
     public void addIdField(String fieldName, Class<?> fieldType) {
         idFieldNames.add(fieldName);
-        entityMapper.addField(fieldName, fieldType);
+        mapper.addField(fieldName, fieldType);
     }
 
     public void addColumnField(String fieldName, Class<?> fieldType) {
         columnFieldNames.add(fieldName);
-        entityMapper.addField(fieldName, fieldType);
+        mapper.addField(fieldName, fieldType);
     }
-
-    public void init() {
-        insertSql = createInsertSql();
-        updateSql = createUpdateSql();
-        deleteSql = createDeleteSql();
-    }
-
 
     @Override
     public int insert(T entity) {
@@ -56,7 +62,7 @@ public class DaoImpl<T> implements CrudRepository<T> {
         try (PreparedStatement insert = createInsertStatement(con)) {
             List<String> fieldNames = new ArrayList<>(idFieldNames);
             fieldNames.addAll(columnFieldNames);
-            entityMapper.mapIntoStatement(entity, insert, fieldNames);
+            mapper.mapIntoStatement(entity, insert, fieldNames);
             return insert.executeUpdate();
         }
     }
@@ -71,15 +77,16 @@ public class DaoImpl<T> implements CrudRepository<T> {
     }
 
     @Override
-    public void getById(Object... id) {
+    public T getById(Object... id) {
         // TODO
+        return null;
     }
 
     private int update(T entity, Connection con) throws Exception {
         try (PreparedStatement update = createUpdateStatement(con)) {
             List<String> fieldNames = new ArrayList<>(idFieldNames);
             fieldNames.addAll(columnFieldNames);
-            entityMapper.mapIntoStatement(entity, update, fieldNames);
+            mapper.mapIntoStatement(entity, update, fieldNames);
             return update.executeUpdate();
         }
     }
@@ -95,14 +102,14 @@ public class DaoImpl<T> implements CrudRepository<T> {
 
     private int delete(T entity, Connection con) throws Exception {
         try (PreparedStatement delete = createDeleteStatement(con)) {
-            entityMapper.mapIntoStatement(entity, delete, idFieldNames);
+            mapper.mapIntoStatement(entity, delete, idFieldNames);
             return delete.executeUpdate();
         }
     }
 
     private Connection getConnection() {
         try {
-            return ApplicationContext.getInstance().getBean(Connector.class).getConnection();
+            return connector.getConnection();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
@@ -120,46 +127,4 @@ public class DaoImpl<T> implements CrudRepository<T> {
     private PreparedStatement createDeleteStatement(Connection con) throws SQLException {
         return con.prepareStatement(deleteSql);
     }
-
-
-    private String createInsertSql() {
-        StringBuilder sql = new StringBuilder().append("INSERT INTO `")
-                .append(tableName)
-                .append("` (");
-        sql.append(Stream.concat(idFieldNames.stream(), columnFieldNames.stream())
-                .map(column -> String.format("`%d`", column))
-                .collect(Collectors.joining(", ")));
-        sql.append(") values (");
-        sql.append(Stream.concat(idFieldNames.stream(), columnFieldNames.stream())
-                .map(column -> "?")
-                .collect(Collectors.joining(", ")));
-        sql.append(")");
-        return sql.toString();
-    }
-
-    private String createUpdateSql() {
-        StringBuilder sql = new StringBuilder().append("UPDATE `")
-                .append(tableName)
-                .append("` ");
-        sql.append(columnFieldNames.stream()
-                .map(column -> String.format("SET `%d`=?", column))
-                .collect(Collectors.joining(", ")));
-        sql.append(" WHERE ");
-        sql.append(idFieldNames.stream()
-                .map(column -> String.format("`%d`= ?"))
-                .collect(Collectors.joining(" AND ")));
-        return sql.toString();
-    }
-
-    private String createDeleteSql() {
-        StringBuilder sql = new StringBuilder().append("DELETE FROM `")
-                .append(tableName)
-                .append("` WHERE ");
-        sql.append(idFieldNames.stream()
-                .map(column -> String.format("`%d`= ?"))
-                .collect(Collectors.joining(" AND ")));
-        return sql.toString();
-    }
-
-
 }

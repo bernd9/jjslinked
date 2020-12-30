@@ -3,6 +3,7 @@ package com.ejc.processor;
 import com.ejc.api.context.ApplicationRunnerBase;
 import com.ejc.api.context.ClassReference;
 import com.ejc.javapoet.JavaWriter;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 
@@ -15,7 +16,7 @@ class ApplicationRunnerWriter extends JavaWriter {
     private final String appClassName;
 
     public ApplicationRunnerWriter(String appClassName, ProcessingEnvironment processingEnvironment) {
-        super("ApplicationRunnerImpl", Optional.of("com.ejc"), Optional.of(ApplicationRunnerBase.class), processingEnvironment, Collections.emptySet());
+        super("ApplicationRunnerImpl", Optional.of("com.ejc"), Optional.of(ClassName.get(ApplicationRunnerBase.class)), processingEnvironment, Collections.emptySet());
         this.appClassName = appClassName;
     }
 

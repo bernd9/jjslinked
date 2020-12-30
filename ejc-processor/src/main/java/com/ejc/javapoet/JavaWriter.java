@@ -20,7 +20,7 @@ public abstract class JavaWriter {
 
     private final String simpleName;
     private final Optional<String> packageName;
-    private final Optional<Class<?>> superClass;
+    private final Optional<TypeName> superClass;
     protected final ProcessingEnvironment processingEnvironment;
     private final Collection<Class<?>> superInterfaces;
 

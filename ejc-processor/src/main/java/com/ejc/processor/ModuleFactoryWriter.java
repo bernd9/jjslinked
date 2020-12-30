@@ -7,6 +7,7 @@ import com.ejc.api.context.ParameterReference;
 import com.ejc.api.context.ValueAnnotationReference;
 import com.ejc.javapoet.JavaWriter;
 import com.ejc.util.JavaModelUtils;
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import lombok.Builder;
@@ -35,7 +36,7 @@ public class ModuleFactoryWriter extends JavaWriter {
 
     @Builder
     public ModuleFactoryWriter(ModuleFactoryWriterModel model, String simpleName, Optional<String> packageName, ProcessingEnvironment processingEnvironment) {
-        super(simpleName, packageName, Optional.of(ModuleFactory.class), processingEnvironment, Collections.emptySet());
+        super(simpleName, packageName, Optional.of(ClassName.get(ModuleFactory.class)), processingEnvironment, Collections.emptySet());
         this.model = model;
         this.classReferences = new ClassReferences(processingEnvironment);
         this.parameterReferences = new ParameterReferences(processingEnvironment);

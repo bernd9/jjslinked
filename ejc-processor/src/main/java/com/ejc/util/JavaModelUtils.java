@@ -15,6 +15,29 @@ import java.util.stream.Collectors;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class JavaModelUtils {
 
+
+    public static boolean isNonComplex(TypeMirror typeMirror) {
+        if (typeMirror.getKind().isPrimitive()) {
+            return true;
+        }
+        String name = typeMirror.toString().replaceAll("<.*>$", "");
+        Class<?> c;
+        try {
+            c = ClassUtils.classForName(name);
+        } catch (Exception e) {
+            return false;
+        }
+        return TypeUtils.isNonComplex(c);
+    }
+
+    public static Class<?> nonComplexAsClass(TypeMirror typeMirror) {
+        if (!isNonComplex(typeMirror)) {
+            throw new IllegalArgumentException("can not be used for complex types");
+        }
+        String name = typeMirror.toString().replaceAll("<.*>$", "");
+        return ClassUtils.classForName(name);
+    }
+
     public static String getClassName(TypeElement element) {
         List<Element> parts = new ArrayList<>();
         Element e = element;
@@ -214,6 +237,19 @@ public class JavaModelUtils {
             return qualifiedName;
         }
         return qualifiedName.substring(index + 1);
+    }
+
+    public static String getSimpleName(TypeElement e) {
+        return getSimpleName(e.getQualifiedName());
+    }
+
+    public static String getSimpleName(Name qualifiedName) {
+        return getSimpleName(qualifiedName.toString().replaceAll("<.*>$", ""));
+    }
+
+
+    public static String getPackageName(TypeElement e) {
+        return getPackageName(e.getQualifiedName());
     }
 
 }
