@@ -27,10 +27,11 @@ class EntityProxyWriter extends JavaWriter {
     @Override
     protected void writeTypeBody(TypeSpec.Builder builder) {
         writeWrappedEntityField(builder);
-        writeUpdatedField(builder);
+        writeEditedField(builder);
         writeEntityGetter(builder);
         writeIsEditedMethod(builder);
         writeSimpleFieldSetters(builder);
+        writeSimpleFieldGetters(builder);
     }
 
     @Override
@@ -64,7 +65,7 @@ class EntityProxyWriter extends JavaWriter {
     }
 
 
-    private void writeUpdatedField(TypeSpec.Builder builder) {
+    private void writeEditedField(TypeSpec.Builder builder) {
         builder.addField(FieldSpec.builder(TypeName.BOOLEAN, FIELD_NAME_EDITED, Modifier.PUBLIC).build()).build();
     }
 
@@ -79,10 +80,32 @@ class EntityProxyWriter extends JavaWriter {
                 .forEach(entityField -> writeSimpleFieldSetter(entityField.getSetter().get(), builder));
     }
 
+    private void writeSimpleFieldGetters(TypeSpec.Builder builder) {
+        this.entityModel.getSimpleFields()
+                .stream()
+                .filter(entityField -> entityField.getSetter().isPresent())
+                .forEach(entityField -> writeSimpleFieldGetter(entityField.getSetter().get(), builder));
+    }
+
     private void writeSimpleFieldSetter(ExecutableElement setter, TypeSpec.Builder builder) {
         builder.addMethod(MethodSpec.overriding(setter)
-                .addStatement(createSuperMethodCall(setter))
+                .addStatement(createEntitySetterCall(setter))
                 .addStatement("$L = $L", FIELD_NAME_EDITED, true).build());
+    }
+
+    private void writeSimpleFieldGetter(ExecutableElement getter, TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.overriding(getter)
+                .addStatement("return $L.$L()", FIELD_NAME_ENTITY, getter.getSimpleName())
+                .build());
+    }
+
+    private static CodeBlock createEntitySetterCall(ExecutableElement method) {
+        CodeBlock.Builder codeBlockBuilder = CodeBlock.builder();
+        codeBlockBuilder
+                .add("$L.$L(", FIELD_NAME_ENTITY, method.getSimpleName())
+                .add(JavaModelUtils.parameterNameList(method))
+                .add(")");
+        return codeBlockBuilder.build();
     }
 
     private static CodeBlock createSuperMethodCall(ExecutableElement method) {

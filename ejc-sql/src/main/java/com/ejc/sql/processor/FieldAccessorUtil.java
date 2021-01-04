@@ -20,19 +20,44 @@ class FieldAccessorUtil {
         return getOwner(field).getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
                 .map(ExecutableElement.class::cast)
-                .filter(e -> e.getParameters().isEmpty())
-                .filter(e -> e.getSimpleName().equals(getGetterName(field)))
+                .filter(e -> isGetterForField(e, field))
                 .collect(CollectorUtils.toOnlyOptional());
     }
 
+    // TODO : may be this is to slow. Iteration over all methods for wach field.
+    // TODO : replace with type-reflection instance
     Optional<ExecutableElement> getSetter(VariableElement field) {
         return getOwner(field).getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.METHOD)
                 .map(ExecutableElement.class::cast)
-                .filter(e -> e.getSimpleName().equals(getSetterName(field)))
-                .filter(e -> e.getParameters().size() == 1)
-                .filter(e -> matchesFieldType(e.getParameters().get(0), field))
+                .filter(e -> isSetterForField(e, field))
                 .collect(CollectorUtils.toOnlyOptional());
+    }
+
+    private boolean isSetterForField(ExecutableElement setter, VariableElement field) {
+        if (setter.getParameters().size() != 1) {
+            return false;
+        }
+        if (!matchesFieldType(setter.getParameters().get(0), field)) {
+            return false;
+        }
+        if (!getSetterName(field).equals(setter.getSimpleName().toString())) {
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isGetterForField(ExecutableElement getter, VariableElement field) {
+        if (!getter.getParameters().isEmpty()) {
+            return false;
+        }
+        if (!matchesFieldType(getter.getReturnType(), field.asType())) {
+            return false;
+        }
+        if (!getGetterName(field).equals(getter.getSimpleName().toString())) {
+            return false;
+        }
+        return true;
     }
 
     private boolean matchesFieldType(VariableElement parameter, VariableElement field) {
