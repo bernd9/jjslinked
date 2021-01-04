@@ -2,7 +2,7 @@ package com.ejc.sql.api.entity;
 
 public interface EntityProxy {
 
-    boolean requiresUpdate();
+    boolean isEdited();
 
     Object getEntity();
 }

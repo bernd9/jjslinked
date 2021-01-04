@@ -23,11 +23,12 @@ import java.util.stream.Collectors;
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class EntityAnnotationProcessor extends AbstractProcessor {
 
-    private AccessMethodUtil accessMethodUtil;
+    private FieldAccessorUtil fieldAccessorUtil;
 
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
-        accessMethodUtil = new AccessMethodUtil(processingEnv);
+        fieldAccessorUtil = new FieldAccessorUtil(processingEnv);
+        super.init(processingEnv);
     }
 
     private Set<String> ANNOTATIONS = Set.of(Entity.class).stream().map(Class::getName).collect(Collectors.toSet());
@@ -58,15 +59,15 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
                 .complexEntityCollectionFieldsForeignTable(complexEntityCollectionFieldsForeignTable(entityElement))
                 .complexEntityCollectionFieldsCrossTable(complexEntityCollectionFieldsCrossTable(entityElement))
                 .build();
-        writeEntityImpl(entityModel);
+        writeEntityProxy(entityModel);
     }
 
-    private void writeEntityImpl(EntityModel entityModel) {
-        String simpleName = JavaModelUtils.getSimpleName(entityModel.getEntityType());
+    private void writeEntityProxy(EntityModel entityModel) {
+        String simpleName = JavaModelUtils.getSimpleName(entityModel.getEntityType() + "Proxy");
         String packageName = JavaModelUtils.getPackageName(entityModel.getEntityType());
         Optional<String> packageOptional = packageName.isEmpty() ? Optional.empty() : Optional.of(packageName);
         try {
-            new EntityImplWriter(simpleName, packageOptional, Optional.of(ClassName.get(entityModel.getEntityType())), processingEnv, entityModel).write();
+            new EntityProxyWriter(simpleName, packageOptional, Optional.of(ClassName.get(entityModel.getEntityType())), processingEnv, entityModel).write();
         } catch (IOException e) {
             reportError(e);
         }
@@ -152,11 +153,11 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
     }
 
     private Optional<ExecutableElement> getGetter(VariableElement field) {
-        return accessMethodUtil.getGetter(field);
+        return fieldAccessorUtil.getGetter(field);
     }
 
     private Optional<ExecutableElement> getSetter(VariableElement field) {
-        return accessMethodUtil.getSetter(field);
+        return fieldAccessorUtil.getSetter(field);
     }
 
     private static String getForeignKeyColumnName(VariableElement e) {

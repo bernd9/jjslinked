@@ -13,7 +13,7 @@ import java.util.Optional;
 
 // TODO may better move to somewhere else ?
 @RequiredArgsConstructor
-class AccessMethodUtil {
+class FieldAccessorUtil {
     private final ProcessingEnvironment processingEnvironment;
 
     Optional<ExecutableElement> getGetter(VariableElement field) {
@@ -53,7 +53,7 @@ class AccessMethodUtil {
 
     private String getGetterName(String fieldName) {
         return new StringBuilder("get")
-                .append(firstToUppCase(fieldName))
+                .append(NamingUtil.firstToUpperCase(fieldName))
                 .toString();
     }
 
@@ -63,19 +63,8 @@ class AccessMethodUtil {
 
     private String getSetterName(String fieldName) {
         return new StringBuilder("set")
-                .append(firstToUppCase(fieldName))
+                .append(NamingUtil.firstToUpperCase(fieldName))
                 .toString();
     }
 
-    private String firstToUppCase(String s) {
-        if (s.isEmpty()) {
-            return "";
-        }
-        StringBuilder builder = new StringBuilder();
-        builder.append(Character.toUpperCase(s.charAt(0)));
-        if (s.length() > 1) {
-            builder.append(s.substring(1));
-        }
-        return builder.toString();
-    }
 }
