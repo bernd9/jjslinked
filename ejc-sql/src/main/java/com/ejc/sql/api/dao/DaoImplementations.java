@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class DaoImplementations {
 
-    public static <E> DaoImpl<E> getDao(Class<E> entityClass) {
+    public static <E, ID> DaoImpl<ID, E> getDao(Class<E> entityClass) {
         return null;
     }
 }

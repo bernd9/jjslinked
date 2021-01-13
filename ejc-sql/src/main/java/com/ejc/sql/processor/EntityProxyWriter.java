@@ -63,8 +63,7 @@ class EntityProxyWriter extends JavaWriter {
                 .addStatement("return $L", FIELD_NAME_EDITED)
                 .build();
     }
-
-
+    
     private void writeEditedField(TypeSpec.Builder builder) {
         builder.addField(FieldSpec.builder(TypeName.BOOLEAN, FIELD_NAME_EDITED, Modifier.PUBLIC).build()).build();
     }

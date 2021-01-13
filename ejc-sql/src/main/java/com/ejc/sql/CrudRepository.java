@@ -1,13 +1,10 @@
 package com.ejc.sql;
 
-public interface CrudRepository<T> {
+public interface CrudRepository<ID, E> extends Repository<E> {
 
-    int insert(T entity);
 
-    int update(T entity);
+    E getById(ID id);
 
-    T getById(Object... id);
-
-    int delete(T entity);
+    void deleteById(ID id);
 
 }

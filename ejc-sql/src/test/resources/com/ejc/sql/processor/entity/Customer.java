@@ -1,6 +1,7 @@
 package com.ejc.sql.processor.entity;
 
 import com.ejc.sql.Entity;
+import com.ejc.sql.ForeignKeyRef;
 
 import java.util.Set;
 
@@ -9,6 +10,8 @@ class Customer {
     private String firstName;
     private String lastName;
     private Set<Agent> agents;
+
+    @ForeignKeyRef(table = "customers", column = "address_id")
     private Address address;
 
     public String getFirstName() {

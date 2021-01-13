@@ -11,7 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DaoImpl<T> implements CrudRepository<T> {
+public class DaoImpl<ID, T> implements CrudRepository<ID, T> {
     private final ORMapper mapper;
     private final List<String> idFieldNames = new ArrayList<>();
     private final List<String> columnFieldNames = new ArrayList<>();
@@ -49,7 +49,7 @@ public class DaoImpl<T> implements CrudRepository<T> {
         mapper.addField(fieldName, fieldType);
     }
 
-    @Override
+    //@Override
     public int insert(T entity) {
         try (Connection con = getConnection()) {
             return insert(entity, con);
@@ -67,7 +67,7 @@ public class DaoImpl<T> implements CrudRepository<T> {
         }
     }
 
-    @Override
+    // @Override
     public int update(T entity) {
         try (Connection con = getConnection()) {
             return update(entity, con);
@@ -76,7 +76,7 @@ public class DaoImpl<T> implements CrudRepository<T> {
         }
     }
 
-    @Override
+    //@Override
     public T getById(Object... id) {
         // TODO
         return null;
@@ -92,9 +92,14 @@ public class DaoImpl<T> implements CrudRepository<T> {
     }
 
     @Override
-    public int delete(T entity) {
+    public void save(T entity) {
+
+    }
+
+    @Override
+    public void delete(T entity) {
         try (Connection con = getConnection()) {
-            return delete(entity, con);
+            delete(entity, con);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -126,5 +131,15 @@ public class DaoImpl<T> implements CrudRepository<T> {
 
     private PreparedStatement createDeleteStatement(Connection con) throws SQLException {
         return con.prepareStatement(deleteSql);
+    }
+
+    @Override
+    public T getById(ID id) {
+        return null;
+    }
+
+    @Override
+    public void deleteById(ID id) {
+
     }
 }
