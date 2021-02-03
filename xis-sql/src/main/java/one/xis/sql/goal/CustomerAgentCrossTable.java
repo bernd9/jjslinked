@@ -5,6 +5,8 @@ package one.xis.sql.goal;
 // TODO insert where not in ?
 class CustomerAgentCrossTable {
 
+    private static final String TABLE_NAME = "customers_agents";
+
     void updateReferences(Customer customer, Iterable<Agent> agents) {
 
     }

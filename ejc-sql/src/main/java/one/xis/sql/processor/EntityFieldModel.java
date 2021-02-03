@@ -82,12 +82,15 @@ class EntityFieldModel {
         if (column != null && !column.name().isEmpty()) {
             return column.name();
         }
-        ForeignKeyRef foreignKeyRef = field.getAnnotation(ForeignKeyRef.class);
         return ORNameMapper.toSqlName(getFieldName().toString());
     }
 
-    void validate() {
-        // TODO
+    boolean isInsertBeforeField() {
+        if (isForeignEntityTable()) {
+            ForeignKeyRef foreignKeyRef = field.getAnnotation(ForeignKeyRef.class);
+            return foreignKeyRef.table().equals(entityModel.getTableName());// We need the pk of that entity
+        }
+        return true;
     }
-
+    
 }

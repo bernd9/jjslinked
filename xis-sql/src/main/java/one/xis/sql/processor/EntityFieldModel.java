@@ -5,22 +5,27 @@ import lombok.Getter;
 import one.xis.sql.*;
 import one.xis.util.Pair;
 
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import java.util.Objects;
+import java.util.Optional;
 
 @Getter
 class EntityFieldModel {
-    private final EntityModel entityModel;
     private final VariableElement field;
+    private final Optional<ExecutableElement> getter;
+    private final Optional<ExecutableElement> setter;
     private Types types;
 
-    EntityFieldModel(EntityModel entityModel, VariableElement field, Types types) {
-        this.entityModel = entityModel;
+    EntityFieldModel(VariableElement field, Optional<ExecutableElement> getter, Optional<ExecutableElement> setter) {
         this.field = field;
-        this.types = types;
+        this.getter = getter;
+        this.setter = setter;
+        //this.types = types;
     }
 
     Name getFieldName() {
@@ -51,8 +56,23 @@ class EntityFieldModel {
         return JavaModelUtils.isCollection(field);
     }
 
-    boolean isForeignKey() {
+    boolean isForeignKey() { // TODO validate ForeignKey can not annoate collections, arrays etc
         return field.getAnnotation(ForeignKey.class) != null;
+    }
+
+    Optional<String> getForeignKeyColumnName() {
+        ForeignKey foreignKey = field.getAnnotation(ForeignKey.class);
+        if (foreignKey == null) {
+            return Optional.empty();
+        }
+        if (!foreignKey.columnName().isEmpty()) {
+            return Optional.of(foreignKey.columnName());
+        }
+        EntityModel entityModel = EntityModel.getEntityModel(getFieldType());
+        if (entityModel == null) {
+            return Optional.empty();
+        }
+        return Optional.of(entityModel.getTableName() + "_id");
     }
 
     boolean isUseCrossTable() {
@@ -72,7 +92,19 @@ class EntityFieldModel {
     String getCrossTableColumn() {
         CrossTable crossTable = field.getAnnotation(CrossTable.class);
         Objects.requireNonNull(crossTable);
-        return crossTable.columnName().isEmpty() ? NamingRules.toForeignKeyName(getEntityModel().getType().asType()) : crossTable.columnName();
+        EntityModel fieldEntityModel = getFieldEntityModel();
+        return crossTable.columnName().isEmpty() ? NamingRules.toForeignKeyName(fieldEntityModel.getType().asType()) : crossTable.columnName();
+    }
+
+    EntityModel getFieldEntityModel() {
+        if (!isEntityField()) throw new IllegalStateException("not an entity field");
+        TypeMirror entityType;
+        if (isCollection()) {
+            entityType =  JavaModelUtils.getGenericCollectionType(field);
+        } else {
+            entityType = field.asType();
+        }
+        return EntityModel.getEntityModel(entityType);
     }
 
     String getColumnName() {
@@ -83,7 +115,7 @@ class EntityFieldModel {
         return NamingRules.toSqlName(getFieldName().toString());
     }
 
-    boolean isInsertBeforeField() {
+    boolean isInsertBeforeEntityField   () {
         return isEntityField() && isForeignKey();
     }
     

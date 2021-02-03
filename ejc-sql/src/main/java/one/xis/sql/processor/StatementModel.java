@@ -1,6 +1,11 @@
 package one.xis.sql.processor;
 
-class StatementModel {
-    private String sql;
-    
+import java.util.List;
+
+interface StatementModel {
+
+    String toSql();
+
+    List<EntityFieldModel> parameterFields();
+
 }

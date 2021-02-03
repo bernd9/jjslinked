@@ -1,4 +1,5 @@
 package one.xis.sql;
 
-public interface Repository<E> {
+public @interface Repository {
+
 }
