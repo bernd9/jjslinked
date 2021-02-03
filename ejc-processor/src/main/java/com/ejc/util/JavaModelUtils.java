@@ -2,6 +2,7 @@ package com.ejc.util;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 import javax.lang.model.element.*;
 import javax.lang.model.type.DeclaredType;
@@ -10,6 +11,7 @@ import javax.lang.model.util.SimpleAnnotationValueVisitor9;
 import javax.lang.model.util.SimpleTypeVisitor9;
 import java.lang.annotation.Annotation;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -37,6 +39,7 @@ public class JavaModelUtils {
         String name = typeMirror.toString().replaceAll("<.*>$", "");
         return ClassUtils.classForName(name);
     }
+
 
     public static String getClassName(TypeElement element) {
         List<Element> parts = new ArrayList<>();
@@ -103,10 +106,16 @@ public class JavaModelUtils {
         return collectionVariable.asType().toString().replaceAll("<[^>]+>", "");
     }
 
-    public static TypeMirror getGenericCollectionType(VariableElement collectionVariable) {
+    public static TypeMirror getGenericCollectionType(Element collectionVariable) {
         GenericCollectionTypeVisitor visitor = new GenericCollectionTypeVisitor();
         return collectionVariable.asType().accept(visitor, null).orElseThrow(() -> new IllegalStateException(collectionVariable + " must have generic type"));
     }
+
+    public static TypeMirror getGenericType(Element element, int index) {
+        GenericTypeVisitor visitor = new GenericTypeVisitor();
+        return element.asType().accept(visitor, index).orElseThrow(() -> new IllegalStateException(String.format("%s must have %d generic types", element, index+1)));
+    }
+
 
     public static TypeMirror[] getGenericMapTypes(VariableElement mapVariable) {
         GenericMapTypeVisitor visitor = new GenericMapTypeVisitor();
@@ -126,6 +135,19 @@ public class JavaModelUtils {
         public Optional<TypeMirror> visitDeclared(DeclaredType t, Void aVoid) {
             if (t.getTypeArguments() != null) {
                 return (Optional<TypeMirror>) t.getTypeArguments().stream().findFirst();
+            }
+            return Optional.empty();
+        }
+
+    }
+
+
+    private static class GenericTypeVisitor extends SimpleTypeVisitor9<Optional<TypeMirror>, Integer> {
+
+        @Override
+        public Optional<TypeMirror> visitDeclared(DeclaredType t, @NonNull Integer index) {
+            if (t.getTypeArguments() != null && t.getTypeArguments().size() > index) {
+                return Optional.of(t.getTypeArguments().get(index));
             }
             return Optional.empty();
         }
