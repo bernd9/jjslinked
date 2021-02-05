@@ -19,6 +19,6 @@ public class OrderItem {
     @Column(nullable = false)
     private Double price;
 
-    @ForeignKey
+    @ForeignKey(columnName = "order_id")
     private Order order;
 }

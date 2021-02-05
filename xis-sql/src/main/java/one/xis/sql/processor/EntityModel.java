@@ -25,7 +25,7 @@ class EntityModel {
     private final Map<VariableElement, ExecutableElement> getters;
     private final Map<VariableElement, ExecutableElement> setters;
 
-    private static final Map<String, EntityModel> entityModelsByTableName = new HashMap<>();
+    private static final Set<EntityModel> ENTITY_MODELS = new HashSet<>();
 
 
     EntityModel(TypeElement type, Types types) {
@@ -39,7 +39,7 @@ class EntityModel {
                 .collect(Collectors.toUnmodifiableList());
         getters = gettersAndSetters.getGetters();
         setters = gettersAndSetters.getSetters();
-        entityModelsByTableName.put(this.tableName, this);
+        ENTITY_MODELS.add(this);
     }
 
     String getSimpleName() {
@@ -56,16 +56,17 @@ class EntityModel {
     }
 
     static EntityModel getEntityModel(TypeMirror entityMirror) {
-        return null;
-        //return entityModelsByTableName.get(tableName);
+        return ENTITY_MODELS.stream()
+                .filter(model -> model.getType().asType().equals(entityMirror))
+                .findFirst().orElseThrow();
     }
 
     static Collection<EntityModel> allEntityModels() {
-        return entityModelsByTableName.values();
+        return ENTITY_MODELS;
     }
 
-    static Pair<EntityModel,EntityModel> getEntityModelsByCrossTable(String crossTable) {
-        Pair<EntityModel,EntityModel> models = new Pair<>();
+    static Pair<EntityModel, EntityModel> getEntityModelsByCrossTable(String crossTable) {
+        Pair<EntityModel, EntityModel> models = new Pair<>();
         // TODO
         return models;
     }

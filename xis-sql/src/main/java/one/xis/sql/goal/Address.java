@@ -12,6 +12,6 @@ public class Address {
     @Id
     private Long id;
 
-    @ForeignKey // TODO : 2 columns
+    @ForeignKey(columnName = "city_id") // TODO : 2 columns
     private City city;
 }

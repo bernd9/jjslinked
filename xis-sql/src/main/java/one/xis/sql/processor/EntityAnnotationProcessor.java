@@ -70,7 +70,7 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
     }
 
     private void createEntityModels() {
-        entities.values().forEach(EntityModel::new);
+        entities.values().forEach(type -> new EntityModel(type, processingEnv.getTypeUtils()));
     }
 
     private void processEntityModels() {

@@ -7,8 +7,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.SOURCE)
-public @interface ForeignKey {
-    String columnName();
-
-    ForeignKeyAction onDelete() default ForeignKeyAction.SET_NULL;
+public @interface ReferredByForeignKey {
+    String value();
 }

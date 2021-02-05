@@ -3,11 +3,9 @@ package one.xis.sql.processor;
 import com.ejc.util.JavaModelUtils;
 import lombok.Getter;
 import one.xis.sql.*;
-import one.xis.util.Pair;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
-import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
@@ -56,7 +54,7 @@ class EntityFieldModel {
         return JavaModelUtils.isCollection(field);
     }
 
-    boolean isForeignKey() { // TODO validate ForeignKey can not annoate collections, arrays etc
+    boolean isForeignKey() { // TODO validate ForeignKey can not be used to annotate collections, arrays etc
         return field.getAnnotation(ForeignKey.class) != null;
     }
 
@@ -64,9 +62,6 @@ class EntityFieldModel {
         ForeignKey foreignKey = field.getAnnotation(ForeignKey.class);
         if (foreignKey == null) {
             return Optional.empty();
-        }
-        if (!foreignKey.columnName().isEmpty()) {
-            return Optional.of(foreignKey.columnName());
         }
         EntityModel entityModel = EntityModel.getEntityModel(getFieldType());
         if (entityModel == null) {
@@ -100,7 +95,7 @@ class EntityFieldModel {
         if (!isEntityField()) throw new IllegalStateException("not an entity field");
         TypeMirror entityType;
         if (isCollection()) {
-            entityType =  JavaModelUtils.getGenericCollectionType(field);
+            entityType = JavaModelUtils.getGenericCollectionType(field);
         } else {
             entityType = field.asType();
         }
@@ -115,8 +110,8 @@ class EntityFieldModel {
         return NamingRules.toSqlName(getFieldName().toString());
     }
 
-    boolean isInsertBeforeEntityField   () {
+    boolean isInsertBeforeEntityField() {
         return isEntityField() && isForeignKey();
     }
-    
+
 }

@@ -1,10 +1,7 @@
 package one.xis.sql.goal;
 
 import lombok.Data;
-import one.xis.sql.CrossTable;
-import one.xis.sql.Entity;
-import one.xis.sql.ForeignKey;
-import one.xis.sql.Id;
+import one.xis.sql.*;
 
 import java.util.List;
 
@@ -16,12 +13,14 @@ public class Customer {
     @Id
     private Long id;
     // no annotation required
+
+    @ReferredByForeignKey("customer_id")
     private List<Order> orders;
 
     @CrossTable(tableName = "customers_agents")
     private List<Agent> agents;
 
-    @ForeignKey
+    @ForeignKey(columnName = "address_id", onDelete = ForeignKeyAction.SET_NULL)
     private Address address;
 
 

@@ -13,10 +13,11 @@ import java.io.IOException;
 
 @RequiredArgsConstructor
 public class RepositoryImplWriter {
-    private final EntityHandlerModel entityHandlerModel;
+   //private final EntityHandlerModel entityHandlerModel;
     private final ProcessingEnvironment processingEnvironment;
 
     void write() throws IOException {
+        /*
         TypeSpec.Builder builder = TypeSpec.classBuilder(entityHandlerModel.getHandlerSimpleName())
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(TypeName.get(RepositoryImpl.class))
@@ -24,8 +25,9 @@ public class RepositoryImplWriter {
 
         writeTypeBody(builder);
         TypeSpec typeSpec = builder.build();
-        JavaFile javaFile = JavaFile.builder(entityHandlerModel.getHandlerPackageName(), typeSpec).build();
-        javaFile.writeTo(processingEnvironment.getFiler());
+        */
+     //   JavaFile javaFile = JavaFile.builder(entityHandlerModel.getHandlerPackageName(), typeSpec).build();
+       // javaFile.writeTo(processingEnvironment.getFiler());
     }
 
     private MethodSpec constructor() {
