@@ -1,23 +1,32 @@
 package one.xis.sql.api;
 
-import lombok.RequiredArgsConstructor;
 import one.xis.sql.ForeignKeyAction;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 
-@RequiredArgsConstructor
 abstract class EntityCollectionFieldHandlerExternalFk<E, F, EID> {
 
     private final Class<EID> entityPkType;
     private final Class<F> fieldClass;
+    private final ForeignTableUpdateAction<F, EID> foreignTableUpdateAction;
+    private final ForeignKeyToNullAction<F, EID> foreignKeyToNullAction;
+    private final DeleteAction<F, EID> deleteAction;
+
+    protected EntityCollectionFieldHandlerExternalFk(Class<EID> entityPkType, Class<F> fieldClass) {
+        this.entityPkType = entityPkType;
+        this.fieldClass = fieldClass;
+        this.foreignTableUpdateAction = new ForeignTableUpdateAction<>(fieldClass, entityPkType, getReferringKeyColumn());
+        this.foreignKeyToNullAction = new ForeignKeyToNullAction<>(fieldClass, getReferringKeyColumn(), entityPkType);
+        this.deleteAction = new DeleteAction<>(fieldClass, getForeignKeyName());
+    }
 
     boolean isBeforeEntity() {
         return false;
     }
 
-    void saveFieldValue(E entity) {
+    void onSaveEntity(E entity) {
         EID pk = getEntityPk(entity);
         Collection<F> fieldValues = getFieldValue(entity);
         if (fieldValues == null) {
@@ -26,7 +35,7 @@ abstract class EntityCollectionFieldHandlerExternalFk<E, F, EID> {
         updateExternal(pk, fieldValues);
     }
 
-    void deleteFieldValue(E entity) {
+    void onDeleteEntity(E entity) {
         Objects.requireNonNull(getEntityPk(entity), "trying to delete non-persistent entity " + entity);
         Collection<F> fieldValue = getFieldValue(entity);
         if (fieldValue != null) {
@@ -39,19 +48,15 @@ abstract class EntityCollectionFieldHandlerExternalFk<E, F, EID> {
     }
 
     private void doFieldEntityDeleteAction(E entity) {
-        DeleteAction<F, EID> deleteAction = new DeleteAction<>(fieldClass, getForeignKeyName(), getEntityPk(entity));
-        deleteAction.doDelete();
+        deleteAction.doDelete(getEntityPk(entity));
     }
 
     private void doSetFieldEntityFkToNullAction(E entity) {
-        ColumnUpdateAction<F, EID> columnUpdateAction = new ColumnUpdateAction<>(fieldClass, getReferringKeyColumn(), entityPkType, getEntityPk(entity), null);
-        columnUpdateAction.doUpdate();
+        foreignKeyToNullAction.doSetToNull(getEntityPk(entity));
     }
 
-
     private void updateExternal(EID pk, Collection<F> retainOrCreate) {
-        ForeignTableUpdateAction<F, EID> action = new ForeignTableUpdateAction<>(fieldClass, getReferringKeyColumn(), pk, retainOrCreate);
-        action.doUpdate();
+        foreignTableUpdateAction.doUpdate(pk, retainOrCreate);
     }
 
     protected abstract Collection<F> getFieldValue(E entity);

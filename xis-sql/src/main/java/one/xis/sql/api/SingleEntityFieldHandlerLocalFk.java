@@ -14,7 +14,7 @@ abstract class SingleEntityFieldHandlerLocalFk<E, F, FID> {
         return true;
     }
 
-    void saveFieldValue(E entity, SaveAction<E> entitySaveAction) {
+    void onSaveEntity(E entity, SaveAction<E> entitySaveAction) {
         F fieldValue = getFieldValue(entity);
         FID fieldValuePk;
         if (fieldValue == null) {
@@ -29,7 +29,7 @@ abstract class SingleEntityFieldHandlerLocalFk<E, F, FID> {
         entitySaveAction.doSave();
     }
 
-    void deleteFieldValue(E entity) {
+    void onDeleteEntity(E entity) {
         // NOOP
     }
 
