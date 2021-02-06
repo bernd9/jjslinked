@@ -11,4 +11,12 @@ public class NamingRules {
     public static String toForeignKeyName(TypeMirror referencedType) {
         return toSqlName(referencedType.toString()) + "_id";
     }
+
+    public static String underscoresToCamelCase(String sqlName) {
+        return null; // TODO
+    }
+
+    public static String crossTableAccessorName(String tableName, String columnName) {
+        return underscoresToCamelCase(String.format("one.xis.generated.%s_%sCrossTableAccessor", tableName, columnName));
+    }
 }

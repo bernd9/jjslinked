@@ -1,25 +1,28 @@
 package one.xis.sql.api;
 
+import one.xis.sql.CrudRepository;
 import one.xis.sql.ForeignKeyAction;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
 
-abstract class EntityCollectionFieldHandlerExternalFk<E, F, EID> {
+abstract class EntityCollectionFieldHandlerExternalFk<E, F, EID, FID> {
 
-    private final Class<EID> entityPkType;
-    private final Class<F> fieldClass;
-    private final ForeignTableUpdateAction<F, EID> foreignTableUpdateAction;
-    private final ForeignKeyToNullAction<F, EID> foreignKeyToNullAction;
-    private final DeleteAction<F, EID> deleteAction;
+    private final ForeignTableUpdateAction<EID, F, FID> foreignTableUpdateAction;
+    private final ForeignKeyOnDeleteAction<EID, FID> foreignKeyOnDeleteAction;
 
-    protected EntityCollectionFieldHandlerExternalFk(Class<EID> entityPkType, Class<F> fieldClass) {
-        this.entityPkType = entityPkType;
-        this.fieldClass = fieldClass;
-        this.foreignTableUpdateAction = new ForeignTableUpdateAction<>(fieldClass, entityPkType, getReferringKeyColumn());
-        this.foreignKeyToNullAction = new ForeignKeyToNullAction<>(fieldClass, getReferringKeyColumn(), entityPkType);
-        this.deleteAction = new DeleteAction<>(fieldClass, getForeignKeyName());
+    protected EntityCollectionFieldHandlerExternalFk(Class<EID> entityPkType, Class<F> fieldClass,
+                                                     ForeignKeyAccessor<EID, FID> foreignKeyAccessor,
+                                                     CrudRepository<F, FID> fieldCrudRepository) {
+        this.foreignTableUpdateAction = new ForeignTableUpdateAction<>(getForeignKeyAction(),
+                getGetFieldPkFunction(),
+                getSetFieldFkBiConsumer(),
+                foreignKeyAccessor,
+                fieldCrudRepository);
+        this.foreignKeyOnDeleteAction = new ForeignKeyOnDeleteAction<>(getForeignKeyAction(), foreignKeyAccessor);
     }
 
     boolean isBeforeEntity() {
@@ -39,20 +42,12 @@ abstract class EntityCollectionFieldHandlerExternalFk<E, F, EID> {
         Objects.requireNonNull(getEntityPk(entity), "trying to delete non-persistent entity " + entity);
         Collection<F> fieldValue = getFieldValue(entity);
         if (fieldValue != null) {
-            if (getForeignKeyAction() == ForeignKeyAction.CASCADE_API) {
-                doFieldEntityDeleteAction(entity);
-            } else if (getForeignKeyAction() == ForeignKeyAction.SET_NULL_API) {
-                doSetFieldEntityFkToNullAction(entity);
-            }
+            foreignKeyOnDelete(entity);
         }
     }
 
-    private void doFieldEntityDeleteAction(E entity) {
-        deleteAction.doDelete(getEntityPk(entity));
-    }
-
-    private void doSetFieldEntityFkToNullAction(E entity) {
-        foreignKeyToNullAction.doSetToNull(getEntityPk(entity));
+    private void foreignKeyOnDelete(E entity) {
+        foreignKeyOnDeleteAction.doAction(getEntityPk(entity));
     }
 
     private void updateExternal(EID pk, Collection<F> retainOrCreate) {
@@ -65,10 +60,11 @@ abstract class EntityCollectionFieldHandlerExternalFk<E, F, EID> {
 
     protected abstract void save(F fieldValue);
 
-    protected abstract String getReferringKeyColumn();
-
-    protected abstract String getForeignKeyName();
-
     protected abstract ForeignKeyAction getForeignKeyAction();
+
+    protected abstract Function<F, FID> getGetFieldPkFunction();
+
+    protected abstract BiConsumer<F, EID> getSetFieldFkBiConsumer();
+
 
 }

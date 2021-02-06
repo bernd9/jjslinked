@@ -4,12 +4,10 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-class CrossTableDeleteAction<EID> {
-    private final String crossTableName;
-    private final String entityKeyColumnName;
-    private final Class<EID> entityKeyColumnType;
+class CrossTableDeleteAction<EID, FID> {
+    private final CrossTableAccessor<EID, FID> crossTableAccessor;
 
     void doAction(@NonNull EID entityPk) {
-
+        crossTableAccessor.removeReferences(entityPk);
     }
 }

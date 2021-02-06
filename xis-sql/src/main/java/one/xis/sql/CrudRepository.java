@@ -1,10 +1,13 @@
 package one.xis.sql;
 
+import java.util.Collection;
 import java.util.List;
 
-public interface CrudRepository<E,ID> {
+public interface CrudRepository<E, ID> {
 
     void save(E entity);
+
+    void saveAll(Collection<E> entities);
 
     E findById(ID id);
 
