@@ -1,11 +1,18 @@
 package one.xis.sql.goal;
 
+import java.util.Collection;
 import java.util.List;
 
 public class AgentRepositoryImpl implements AgentRepository {
 
     @Override
-    public void save(Agent agent) {}
+    public void save(Agent agent) {
+    }
+
+    @Override
+    public void saveAll(Collection<Agent> entities) {
+        
+    }
 
     @Override
     public Agent findById(Long aLong) {
@@ -22,5 +29,6 @@ public class AgentRepositoryImpl implements AgentRepository {
 
     }
 
-    void saveImpl(AgentImpl agent) {}
+    void saveImpl(AgentImpl agent) {
+    }
 }

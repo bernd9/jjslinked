@@ -48,7 +48,7 @@ abstract class MySQLTest {
     private void startContainer(String version) throws ClassNotFoundException {
         container = new MySQLContainer("mysql:" + version);
         container.start();
-        Class.forName("com.mysql.jdbc.Driver");
+        //Class.forName("com.mysql.cj.jdbc.Driver");
     }
 
 

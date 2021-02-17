@@ -1,18 +1,19 @@
 package one.xis.sql.mysql;
 
+import com.mysql.cj.MysqlType;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInstance;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.List;
 
-@Testcontainers
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+
 class MySQLSimpleValueMapperTest extends MySQLTest {
 
+    private static final String TABLE_NAME = "test1";
 
     MySQLSimpleValueMapperTest(String version) {
         super(version);
@@ -21,7 +22,7 @@ class MySQLSimpleValueMapperTest extends MySQLTest {
     @Test
     void test() throws SQLException {
         DatabaseMetaData metaData = getConnection().getMetaData();
-        ResultSet columns = metaData.getColumns(getConnection().getCatalog(), null, "map_test", "%");
+        ResultSet columns = metaData.getColumns(getConnection().getCatalog(), null, TABLE_NAME, "%");
         while (columns.next()) {
             String columnName = columns.getString("COLUMN_NAME");
             int columnType = columns.getInt("DATA_TYPE");
@@ -36,7 +37,33 @@ class MySQLSimpleValueMapperTest extends MySQLTest {
     }
 
     private void createTable() throws SQLException {
-        execute("create table map_test(i1 tinyint, i2 int, i3 bigint, i4 decimal)");
+        StringBuilder createTable = new StringBuilder("create table ");
+        // createTable.append("`");
+        createTable.append(TABLE_NAME);
+        // createTable.append("`");
+        createTable.append(" (");
+
+        //Iterator<MysqlType> typeIterator = Set.of(INT, BIT).iterator();
+
+        Iterator<MysqlType> typeIterator = List.of(MysqlType)
+                .iterator();
+
+
+        int index = 0;
+        while (typeIterator.hasNext()) {
+            MysqlType mysqlType = typeIterator.next();
+            // createTable.append("`");
+            createTable.append("col_");
+            createTable.append(index++);
+            // createTable.append("`");
+            createTable.append(" ");
+            createTable.append(mysqlType.getName());
+            if (typeIterator.hasNext()) {
+                createTable.append(",");
+            }
+        }
+        createTable.append(")");
+        execute(createTable.toString());
     }
 
     @Override
@@ -45,6 +72,6 @@ class MySQLSimpleValueMapperTest extends MySQLTest {
     }
 
     private void dropTable() throws SQLException {
-        execute("drop table map_test");
+        execute("drop table " + TABLE_NAME);
     }
 }

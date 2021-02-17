@@ -5,8 +5,8 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 @Testcontainers
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-public class MySQLSimpleValueMapperTest_5_7_22 extends MySQLSimpleValueMapperTest {
-    MySQLSimpleValueMapperTest_5_7_22() {
-        super("5.7.22");
+public class MySQLSimpleValueMapperTest_8 extends MySQLSimpleValueMapperTest {
+    MySQLSimpleValueMapperTest_8() {
+        super("8");
     }
 }

@@ -34,31 +34,31 @@ class EntityCollections {
         return processingEnvironment.getElementUtils().getTypeElement(c.getName()).asType();
     }
 
-    @SuppressWarnings("unchecked")
-    Class<? extends Collection<?>> getCollectionWrapperType(TypeMirror collectionClass) {
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    Class getCollectionWrapperType(TypeMirror collectionClass) {
         // order is important, here !
         if (isAssignable(collectionClass, arrayListTypeMirror)) {
-            return (Class<? extends Collection<?>>) EntityArrayList.class;
+            return EntityArrayList.class;
         }
         if (isAssignable(collectionClass, linkedListTypeMirror)) {
             throw new UnsupportedOperationException(); // TODO
         }
         if (isAssignable(collectionClass, hashSetTypeMirror)) {
-            return (Class<? extends Collection<?>>) EntityHashSet.class;
+            return EntityHashSet.class;
         }
         if (isAssignable(collectionClass, treeSetTypeMirror)) {
             throw new UnsupportedOperationException(); // TODO
         }
         if (isAssignable(collectionClass, setTypeMirror)) {
-            return (Class<? extends Collection<?>>) EntityHashSet.class;
+            return EntityHashSet.class;
         }
         if (isAssignable(collectionClass, listTypeMirror)) {
-            return (Class<? extends Collection<?>>) EntityArrayList.class;
+            return EntityArrayList.class;
         }
         if (isAssignable(collectionClass, collectionTypeMirror)) {
-            return (Class<? extends Collection<?>>) EntityHashSet.class;
+            return EntityHashSet.class;
         }
-        return null;
+        throw new IllegalStateException("unsupported collection type " + collectionClass);
     }
 
     private boolean isAssignable(TypeMirror candidate, TypeMirror type) {

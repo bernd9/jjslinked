@@ -10,5 +10,5 @@ import java.lang.annotation.Target;
 public @interface ForeignKey {
     String columnName();
 
-    ForeignKeyAction onDelete() default ForeignKeyAction.SET_NULL;
+    ForeignKeyAction onDelete() default ForeignKeyAction.SET_NULL_DBMS;
 }
