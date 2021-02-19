@@ -1,7 +1,6 @@
-package one.xis.sql.mysql;
+package one.xis.sql.mariadb;
 
 import com.mysql.cj.MysqlType;
-import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -11,16 +10,15 @@ import java.util.Iterator;
 import java.util.List;
 
 
-class MySQLSimpleValueMapperTest extends MySQLTest {
+class MariaDBSimpleValueMapperTest extends MariaDBTest {
 
     private static final String TABLE_NAME = "test1";
 
-    MySQLSimpleValueMapperTest(String version) {
+    MariaDBSimpleValueMapperTest(String version) {
         super(version);
     }
 
-    @Test
-    void test() throws SQLException {
+    protected void runTest() throws SQLException {
         DatabaseMetaData metaData = getConnection().getMetaData();
         ResultSet columns = metaData.getColumns(getConnection().getCatalog(), null, TABLE_NAME, "%");
         while (columns.next()) {
@@ -45,7 +43,7 @@ class MySQLSimpleValueMapperTest extends MySQLTest {
 
         //Iterator<MysqlType> typeIterator = Set.of(INT, BIT).iterator();
 
-        Iterator<MysqlType> typeIterator = List.of(MysqlType)
+        Iterator<MysqlType> typeIterator = List.of(MysqlType.BIGINT, MysqlType.DATE)
                 .iterator();
 
 

@@ -1,9 +1,12 @@
 package one.xis.sql.processor;
 
+import com.ejc.util.CollectorUtils;
 import com.ejc.util.JavaModelUtils;
 import com.ejc.util.StringUtils;
 import lombok.Getter;
+import one.xis.sql.CrossTable;
 import one.xis.sql.Entity;
+import one.xis.sql.Id;
 import one.xis.sql.NamingRules;
 import one.xis.util.Pair;
 
@@ -13,14 +16,21 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Getter
 class EntityModel {
 
     private final TypeElement type;
-    private final List<EntityFieldModel> entityFields;
+    //private final List<EntityFieldModel> entityFields;
+    private final EntityFieldModel idField;
+    private final Set<CrossTableFieldModel> crossTableFields;
+
+
     private final String tableName;
     private final Map<VariableElement, ExecutableElement> getters;
     private final Map<VariableElement, ExecutableElement> setters;
@@ -31,12 +41,21 @@ class EntityModel {
     EntityModel(TypeElement type, Types types) {
         this.type = type;
         this.tableName = tableName(type);
-        GettersAndSetters gettersAndSetters = new GettersAndSetters(type, types);
-        this.entityFields = type.getEnclosedElements().stream()
+        Set<VariableElement> fields = type.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.FIELD)
                 .map(VariableElement.class::cast)
-                .map(field -> new EntityFieldModel(field, gettersAndSetters.getGetter(field), gettersAndSetters.getSetter(field)))
-                .collect(Collectors.toUnmodifiableList());
+                .collect(Collectors.toSet());
+
+        GettersAndSetters gettersAndSetters = new GettersAndSetters(type, types);
+        crossTableFields = fields.stream()
+                .filter(field -> field.getAnnotation(CrossTable.class) != null)
+                .map(field -> new CrossTableFieldModel(this, field, gettersAndSetters.getGetter(field), gettersAndSetters.getSetter(field)))
+                .collect(Collectors.toUnmodifiableSet());
+        idField = fields.stream()
+                .filter(field -> field.getAnnotation(Id.class) != null)
+                .map(field -> new CrossTableFieldModel(this, field, gettersAndSetters.getGetter(field), gettersAndSetters.getSetter(field)))
+                .collect(CollectorUtils.toOnlyElement("@Id in " + type));
+
         getters = gettersAndSetters.getGetters();
         setters = gettersAndSetters.getSetters();
         ENTITY_MODELS.add(this);
@@ -71,18 +90,6 @@ class EntityModel {
         return models;
     }
 
-    List<EntityFieldModel> getIdFields() {
-        return entityFields.stream()
-                .filter(EntityFieldModel::isId)
-                .collect(Collectors.toList());
-    }
-
-    List<EntityFieldModel> getNonIdFields() {
-        return entityFields.stream()
-                .filter(EntityFieldModel::isId)
-                .collect(Collectors.toList());
-    }
-
     String getVarName() {
         return StringUtils.firstToLowerCase(getType().getSimpleName().toString());
     }
@@ -91,4 +98,10 @@ class EntityModel {
         return StringUtils.firstToLowerCase(getType().getSimpleName().toString()) + "Impl";
     }
 
+    public Collection<EntityFieldModel> getEntityFields() {
+        Set<EntityFieldModel> set = new HashSet<>();
+        set.add(idField);
+        set.addAll(crossTableFields);
+        return set; // TODO collect all types of field here
+    }
 }

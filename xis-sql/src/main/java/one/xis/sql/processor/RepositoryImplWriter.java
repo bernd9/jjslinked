@@ -1,24 +1,20 @@
 package one.xis.sql.processor;
 
-import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import lombok.RequiredArgsConstructor;
-import one.xis.sql.RepositoryImpl;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.Modifier;
 import java.io.IOException;
 
 @RequiredArgsConstructor
 public class RepositoryImplWriter {
-   //private final EntityHandlerModel entityHandlerModel;
+    private final EntityModel entityModel;
     private final ProcessingEnvironment processingEnvironment;
 
     void write() throws IOException {
         /*
-        TypeSpec.Builder builder = TypeSpec.classBuilder(entityHandlerModel.getHandlerSimpleName())
+        TypeSpec.Builder builder = TypeSpec.classBuilder(entityModel.getHandlerSimpleName())
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(TypeName.get(RepositoryImpl.class))
                 .addMethod(constructor());
@@ -26,8 +22,8 @@ public class RepositoryImplWriter {
         writeTypeBody(builder);
         TypeSpec typeSpec = builder.build();
         */
-     //   JavaFile javaFile = JavaFile.builder(entityHandlerModel.getHandlerPackageName(), typeSpec).build();
-       // javaFile.writeTo(processingEnvironment.getFiler());
+        //   JavaFile javaFile = JavaFile.builder(entityHandlerModel.getHandlerPackageName(), typeSpec).build();
+        // javaFile.writeTo(processingEnvironment.getFiler());
     }
 
     private MethodSpec constructor() {

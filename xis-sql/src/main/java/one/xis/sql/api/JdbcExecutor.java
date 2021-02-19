@@ -8,8 +8,17 @@ import java.sql.SQLException;
 
 class JdbcExecutor {
 
-    
-    PreparedStatement prepare(String sql) {
+
+    protected String escapedStatementParameter(Object o) {
+        if (o instanceof String) {
+            String s = (String) o;
+            return s.replace("'", "\'").replace("\"", "\\\"");
+        }
+        return o.toString();
+    }
+
+
+    protected PreparedStatement prepare(String sql) {
         try {
             return getConnection().prepareStatement(sql);
         } catch (SQLException e) {

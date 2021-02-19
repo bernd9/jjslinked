@@ -1,10 +1,8 @@
-package one.xis.sql.mysql;
+package one.xis.sql;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,17 +10,16 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 @RequiredArgsConstructor
-abstract class MySQLTest {
+public abstract class DBTest<C extends JdbcDatabaseContainer> {
 
     private final String version;
-    private MySQLContainer container;
+    private C container;
 
     @Getter
     protected Connection connection;
 
-    @BeforeAll
-    final void init() throws Exception {
-        startContainer(version);
+    protected void doInit() throws Exception {
+        startContainer();
         connect();
         init(connection);
     }
@@ -31,8 +28,7 @@ abstract class MySQLTest {
     protected abstract void init(Connection con) throws SQLException;
 
 
-    @AfterAll
-    final void destroy() throws SQLException {
+    protected void doDestroy() throws SQLException {
         destroy(connection);
         disconnect();
         stopContainer();
@@ -45,11 +41,12 @@ abstract class MySQLTest {
     }
 
 
-    private void startContainer(String version) throws ClassNotFoundException {
-        container = new MySQLContainer("mysql:" + version);
+    private void startContainer() {
+        container = getContainer(version);
         container.start();
-        //Class.forName("com.mysql.cj.jdbc.Driver");
     }
+
+    protected abstract C getContainer(String imageName);
 
 
     private void connect() throws SQLException {

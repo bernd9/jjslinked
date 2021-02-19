@@ -30,10 +30,14 @@ dependencies {
 
     testCompile "org.testcontainers:testcontainers:1.15.1"
     testCompile "org.testcontainers:junit-jupiter:1.15.1"
-    testCompile 'org.testcontainers:mysql:1.15.1'
+
     testCompile group: 'org.assertj', name: 'assertj-core', version: '3.16.1'
     testCompile("org.junit.jupiter:junit-jupiter-params:5.7.0")
 
+    testCompile 'org.testcontainers:mysql:1.15.1'
+    testCompile "org.testcontainers:mariadb:1.15.2"
+
+    testCompile group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '2.7.2'
 
 }
 

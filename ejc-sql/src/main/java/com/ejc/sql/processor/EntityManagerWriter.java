@@ -1,7 +1,6 @@
 package com.ejc.sql.processor;
 
 import com.ejc.javapoet.JavaWriter;
-import com.ejc.sql.api.entity.EntityProxy;
 import com.ejc.util.JavaModelUtils;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
@@ -16,14 +15,14 @@ import java.util.Optional;
 import static java.util.Collections.singleton;
 
 class EntityManagerWriter extends JavaWriter {
-    private final EntityModel entityModel;
+    //private final EntityModel entityModel;
     private static final String FIELD_NAME_INSERT = "INSERT";
     private static final String FIELD_NAME_UPDATE = "UPDATE";
     private static final String FIELD_NAME_DELETE = "DELETE";
 
     EntityManagerWriter(String simpleName, Optional<String> packageName, Optional<TypeName> superClass, ProcessingEnvironment processingEnvironment, EntityModel entityModel) {
-        super(simpleName, packageName, superClass, processingEnvironment, singleton(EntityProxy.class));
-        this.entityModel = entityModel;
+        super(simpleName, packageName, superClass, processingEnvironment, singleton(Object.class));
+        // this.entityModel = entityModel;
     }
 
     @Override

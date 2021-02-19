@@ -11,8 +11,6 @@ import javax.annotation.processing.Processor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeMirror;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -79,19 +77,9 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
 
 
     private void processEntityModel(EntityModel entityModel) {
-        writeSaveHandler(entityModel);
-        writeDeleteHandler(entityModel);
         writeRepositoryImpl(entityModel);
     }
-
-
-    private void writeSaveHandler(EntityModel entityModel) {
-
-    }
-
-    private void writeDeleteHandler(EntityModel entityModel) {
-
-    }
+    
 
     private void writeRepositoryImpl(EntityModel entityModel) {
 

@@ -4,7 +4,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-class CrossTableDeleteAction<EID, FID> {
+class CrossTableDelete<EID, FID> {
     private final CrossTableAccessor<EID, FID> crossTableAccessor;
 
     void doAction(@NonNull EID entityPk) {

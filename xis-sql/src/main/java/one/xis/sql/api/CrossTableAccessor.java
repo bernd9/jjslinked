@@ -5,34 +5,62 @@ import one.xis.sql.JdbcException;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.Collection;
+import java.util.List;
 
-// TODO generate 2x
+@SuppressWarnings("unused")
 @RequiredArgsConstructor
-abstract class CrossTableAccessor<K1, K2> extends JdbcExecutor {
+abstract class CrossTableAccessor<EID, FID> extends JdbcExecutor {
+    private final String fieldColumnName;
+    private final Class<EID> entityKeyType;
+    private final Class<FID> fieldKeyType;
 
-    private final String tableName;
-    private final String columnName;
-    private final Class<K1> keyType1;
-    private final Class<K2> keyType2;
-    private PreparedStatement removeReferencesStatement;
-
-    void removeReferences(K1 key) {
-        try (PreparedStatement st = prepare(getRemoveReferencesSql())) {
-           
-
+    void removeReferences(EID key) {
+        try (PreparedStatement st = prepare(getDeleteReferencesSql())) {
+            setEntityKey(st, key);
         } catch (SQLException e) {
             throw new JdbcException("failed to close statement");
         }
     }
 
-    void replaceValues(K1 entityKey, Collection<K2> valueKeys) {
+    void replaceValues(EID entityKey, List<FID> valueKeys) {
+        try (PreparedStatement st = prepare(createDeleteWhereNotInSql(valueKeys.size()))) {
+            setEntityKey(st, entityKey);
+            for (int i = 0; i < valueKeys.size(); i++) {
+                setFieldKey(st, valueKeys.get(i));
+            }
+            st.executeUpdate();
+        } catch (SQLException e) {
+            throw new JdbcException("failed to close statement");
+        }
+    }
 
+
+    private String createDeleteWhereNotInSql(int valueCount) {
+        StringBuilder s = new StringBuilder();
+        s.append(getDeleteReferencesSql());
+        s.append(" AND ");
+        s.append("`");
+        s.append(fieldColumnName);
+        s.append("`");
+        s.append(" NOT IN ");
+        s.append("(");
+        for (int i = 0; i < valueCount; i++) {
+            s.append("?");
+            if (s.length() < valueCount) {
+                s.append(",");
+            }
+        }
+        s.append(")");
+        return s.toString();
     }
 
 
     // delete from [TABLE] where [key] = ?
-    abstract String getRemoveReferencesSql();
+    abstract String getDeleteReferencesSql();
+
+    abstract void setEntityKey(PreparedStatement st, EID key);
+
+    abstract void setFieldKey(PreparedStatement st, FID key);
 
 
 }
