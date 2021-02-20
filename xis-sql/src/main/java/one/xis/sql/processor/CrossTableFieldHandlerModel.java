@@ -15,7 +15,7 @@ class CrossTableFieldHandlerModel {
     }
 
     String getInstanceName() {
-        return StringUtils.firstToLowerCase(getInstanceName());
+        return StringUtils.firstToLowerCase(getInnerClassName());
     }
 
     TypeElement getEntityType() {

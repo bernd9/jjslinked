@@ -55,7 +55,7 @@ class EntityModel {
                 .filter(field -> field.getAnnotation(Id.class) != null)
                 .map(field -> new CrossTableFieldModel(this, field, gettersAndSetters.getGetter(field), gettersAndSetters.getSetter(field)))
                 .collect(CollectorUtils.toOnlyElement("@Id in " + type));
-
+        // TODO other field types
         getters = gettersAndSetters.getGetters();
         setters = gettersAndSetters.getSetters();
         ENTITY_MODELS.add(this);

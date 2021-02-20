@@ -3,7 +3,10 @@ package one.xis.sql.processor;
 import com.ejc.util.JavaModelUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import one.xis.sql.*;
+import one.xis.sql.Column;
+import one.xis.sql.Entity;
+import one.xis.sql.ForeignKey;
+import one.xis.sql.NamingRules;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
@@ -61,10 +64,6 @@ class EntityFieldModel {
             return Optional.empty();
         }
         return Optional.of(fieldEntityModel.getTableName() + "_" + NamingRules.toSqlName(fieldEntityModel.getIdField().getFieldName().toString()));
-    }
-
-    boolean isId() {
-        return field.getAnnotation(Id.class) != null;
     }
 
     EntityModel getFieldEntityModel() {

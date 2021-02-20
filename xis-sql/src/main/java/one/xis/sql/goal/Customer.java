@@ -14,7 +14,7 @@ public class Customer {
     private Long id;
     // no annotation required
 
-    @ReferredByForeignKey("customer_id")
+    @Referred("customer_id")
     private List<Order> orders;
 
     @CrossTable(tableName = "customers_agents")

@@ -2,19 +2,17 @@ package one.xis.sql.api;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class CrossTableFieldHandler<E, F, EID, FID, A extends CrossTableAccessor<EID, FID>> {
     // TODO validate crosstable field must be a collection
 
-    private final CrossTableUpdate<EID, F, FID> crossTableUpdate;
-    private final CrossTableDelete<EID, FID> crossTableDelete;
+    private final CrossTableAccessor<EID, FID> crossTableAccessor;
 
     public CrossTableFieldHandler(CrossTableAccessor<EID, FID> crossTableAccessor) {
-        this.crossTableDelete = new CrossTableDelete<>(crossTableAccessor);
-        this.crossTableUpdate = new CrossTableUpdate<>(crossTableAccessor);
+        this.crossTableAccessor = crossTableAccessor;
     }
 
     // TODO may be remove these methods. order may be static in generated code.
@@ -29,21 +27,21 @@ public abstract class CrossTableFieldHandler<E, F, EID, FID, A extends CrossTabl
         if (fieldValues == null) {
             fieldValues = Collections.emptySet();
         }
-        crossTableUpdate.doUpdate(pk, getFieldValuesPks(fieldValues));
+        Set<FID> fieldValuePks = getFieldValuesPks(fieldValues);
+        crossTableAccessor.updateByFieldReferences(pk, fieldValuePks);
     }
 
     void onDeleteEntity(E entity) {
-        crossTableDelete.doAction(getEntityPk(entity));
+        crossTableAccessor.removeAllReferences(getEntityPk(entity));
     }
 
     protected abstract Collection<F> getFieldValues(E entity);
 
-    private List<FID> getFieldValuesPks(Collection<F> fieldValues) {
-        return fieldValues.stream().map(this::getFieldValuePk).collect(Collectors.toList());
+    private Set<FID> getFieldValuesPks(Collection<F> fieldValues) {
+        return fieldValues.stream().map(this::getFieldValuePk).collect(Collectors.toSet());
     }
 
     protected abstract EID getEntityPk(E entity);
 
     protected abstract FID getFieldValuePk(F fieldValue);
-
 }
