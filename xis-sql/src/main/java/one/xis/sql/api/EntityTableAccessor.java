@@ -15,12 +15,12 @@ abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     private static final String TEXT_NO_PK = "Entity has no primary key. Consider to set ";// TODO
 
-    Optional<E> getById(EID id) {
+    Optional<EntityProxy<E, EID>> getById(EID id) {
         try (PreparedStatement st = prepare(getSelectByPkSql())) {
             setId(st, 1, id);
             try (ResultSet rs = st.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(toEntity(rs));
+                    return Optional.of(toEntityProxy(rs));
                 }
                 return Optional.empty();
             }
@@ -34,11 +34,35 @@ abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     abstract void insert(Collection<E> entities);
 
+    public void save(Collection<E> entities) {
+        List<E> list = entities instanceof List ? ((List<E>) entities) : new ArrayList<>(entities);
+        Set<EntityProxy<E, EID>> proxies = new HashSet<>();
+        Set<E> nonProxies = new HashSet<>();
+        for (int i = 0; i < list.size(); i++) {
+            E entity = list.get(0);
+            if (entity instanceof EntityProxy) {
+                proxies.add((EntityProxy<E, EID>) entity);
+            } else {
+                nonProxies.add(entity);
+            }
+        }
+        insert(nonProxies);
+        updateProxies(proxies);
+    }
 
-    public boolean update(E entity) {
+    public void updateProxy(EntityProxy<E, EID> entityProxy) {
+        if (entityProxy.isDirty()) {
+            update(entityProxy.getEntity());
+        }
+    }
+
+    public void updateProxies(Collection<EntityProxy<E, EID>> entityProxy) {
+
+    }
+
+    public void update(E entity) {
         try (PreparedStatement st = prepare(getUpdateSql())) {
             setUpdateStatementParameters(st, entity);
-            return st.executeUpdate() > 0;
         } catch (SQLException e) {
             throw new JdbcException("failed to execute update", e);
         }
@@ -208,6 +232,10 @@ abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
         return ids;
     }
 
+    private EntityProxy<E, EID> toEntityProxy(ResultSet rs) {
+        return toEntityProxy(toEntity(rs));
+    }
+    
     abstract String getInsertSql();
 
     abstract String getInsertSql(int elementCount);
@@ -239,5 +267,7 @@ abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     abstract EID generateKey();
 
     abstract E toEntity(ResultSet rs);
+
+    abstract EntityProxy<E, EID> toEntityProxy(E entity);
 
 }
