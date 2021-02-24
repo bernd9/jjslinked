@@ -20,7 +20,7 @@ abstract class CrossTableAccessor<EID, FID> extends JdbcExecutor {
             setEntityKey(st, 1, key);
             st.executeUpdate();
         } catch (SQLException e) {
-            throw new JdbcException("failed to close statement");
+            throw new JdbcException("failed to execute " + getDeleteAllReferencesSql(), e);
         }
     }
 
@@ -51,7 +51,7 @@ abstract class CrossTableAccessor<EID, FID> extends JdbcExecutor {
             }
             st.executeBatch();
         } catch (SQLException e) {
-            throw new JdbcException("delete references failed ", e);
+            throw new JdbcException("insert new references failed ", e);
         }
     }
 

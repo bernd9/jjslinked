@@ -1,14 +1,11 @@
 package one.xis.sql.processor;
 
-import com.squareup.javapoet.JavaFile;
-import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.TypeName;
-import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
-import one.xis.sql.RepositoryImpl;
+import one.xis.sql.api.EntitySaveHandler;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.Modifier;
+import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
 
 @RequiredArgsConstructor
@@ -18,7 +15,7 @@ public class SaveHandlerWriter {
 
     void write() throws IOException {
         TypeSpec.Builder builder = TypeSpec.classBuilder(saveHandlerModel.getSimpleName())
-                .addModifiers(Modifier.DEFAULT)
+                .superclass(TypeName.get(EntitySaveHandler.class))
                 .addMethod(constructor());
 
         writeTypeBody(builder);
@@ -28,7 +25,10 @@ public class SaveHandlerWriter {
     }
 
     private MethodSpec constructor() {
-        return MethodSpec.constructorBuilder().build();
+        return MethodSpec.constructorBuilder()
+                .addTypeVariable(TypeVariableName.get("E", TypeName.get(entityModel().getType().asType())))
+                .addTypeVariable(TypeVariableName.get("EID", TypeName.get(entityModel().getIdField().getFieldType())))
+                .build();
     }
 
     private void writeTypeBody(TypeSpec.Builder builder) {
@@ -38,6 +38,21 @@ public class SaveHandlerWriter {
     private MethodSpec saveMethod() {
         return MethodSpec.methodBuilder("save")
                 .build();
+    }
+
+
+    private TypeMirror getProxyType() {
+        return processingEnvironment.getElementUtils()
+                .getTypeElement(getProxyQualifiedName())
+                .asType();
+    }
+
+    private String getProxyQualifiedName() {
+        return String.format("$s.%s", entityModel().getPackageName(), entityModel().getProxySimpleName());
+    }
+
+    private EntityModel entityModel() {
+        return saveHandlerModel.getEntityModel();
     }
 
 }

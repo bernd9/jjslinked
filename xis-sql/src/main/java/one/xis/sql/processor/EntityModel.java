@@ -53,12 +53,16 @@ class EntityModel {
                 .collect(Collectors.toUnmodifiableSet());
         idField = fields.stream()
                 .filter(field -> field.getAnnotation(Id.class) != null)
-                .map(field -> new CrossTableFieldModel(this, field, gettersAndSetters.getGetter(field), gettersAndSetters.getSetter(field)))
+                .map(field -> new EntityFieldModel(this, field, gettersAndSetters.getGetter(field), gettersAndSetters.getSetter(field)))
                 .collect(CollectorUtils.toOnlyElement("@Id in " + type));
         // TODO other field types
         getters = gettersAndSetters.getGetters();
         setters = gettersAndSetters.getSetters();
         ENTITY_MODELS.add(this);
+    }
+
+    String getProxySimpleName() {
+        return getSimpleName() + "Proxy";
     }
 
     String getSimpleName() {

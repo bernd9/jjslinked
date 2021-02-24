@@ -20,7 +20,7 @@ class EntityProxyWriter {
     }
 
     void write() throws IOException {
-        TypeSpec.Builder builder = TypeSpec.classBuilder(entityModel.getSimpleName() + "Proxy")
+        TypeSpec.Builder builder = TypeSpec.classBuilder(entityModel.getProxySimpleName())
                 .addModifiers(Modifier.DEFAULT)
                 .superclass(entityModel.getType().asType())
                 .addMethod(constructor());
@@ -41,9 +41,12 @@ class EntityProxyWriter {
 
     private void writeTypeBody(TypeSpec.Builder builder) {
         addWrappedEntityField(builder);
+        /*
+        addWrappedEntityField(builder);
         addEditedFlagField(builder);
         addGetters(builder);
         addSetters(builder);
+         */
     }
 
     private void addEditedFlagField(TypeSpec.Builder builder) {
