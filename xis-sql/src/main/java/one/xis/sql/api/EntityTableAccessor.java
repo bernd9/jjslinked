@@ -15,8 +15,83 @@ abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     private static final String TEXT_NO_PK = "Entity has no primary key. Consider to set ";// TODO
 
+    Optional<E> getById(EID id) {
+        try (PreparedStatement st = prepare(getSelectByPkSql())) {
+            setId(st, 1, id);
+            try (ResultSet rs = st.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(toEntity(rs));
+                }
+                return Optional.empty();
+            }
+        } catch (SQLException e) {
+            throw new JdbcException("failed to execute delete", e);
+        }
+    }
+
+
     abstract void insert(E entity);
 
+    abstract void insert(Collection<E> entities);
+
+
+    public boolean update(E entity) {
+        try (PreparedStatement st = prepare(getUpdateSql())) {
+            setUpdateStatementParameters(st, entity);
+            return st.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new JdbcException("failed to execute update", e);
+        }
+    }
+
+    public void update(Collection<E> entities) {
+        ChunkedList<E> chunkedList = new ChunkedList<>(entities);
+        while (!chunkedList.isEmpty()) {
+            List<E> chunk = chunkedList.removeChunk(50);
+            try (PreparedStatement st = prepare(getUpdateSql(chunk.size()))) {
+                Iterator<E> chunkIterator = chunk.iterator();
+                while (chunkIterator.hasNext()) {
+                    E entity = chunkIterator.next();
+                    setInsertStatementParameters(st, entity);
+                    st.addBatch();
+                }
+                st.executeBatch();
+            } catch (SQLException e) {
+                throw new JdbcException("failed to execute update", e);
+            }
+        }
+    }
+
+    public boolean deleteById(E entity) {
+        return delete(getId(entity));
+    }
+
+    public boolean delete(EID id) {
+        try (PreparedStatement st = prepare(getDeleteSql())) {
+            setId(st, 1, id);
+            return st.executeUpdate() > 0;
+        } catch (SQLException e) {
+            throw new JdbcException("failed to execute delete", e);
+        }
+    }
+
+    public void delete(Collection<E> entities) {
+        ChunkedList<E> chunkedList = new ChunkedList<>(entities);
+        while (!chunkedList.isEmpty()) {
+            List<E> chunk = chunkedList.removeChunk(50);
+            try (PreparedStatement st = prepare(getDeleteSql(chunk.size()))) {
+                Iterator<E> chunkIterator = chunk.iterator();
+                while (chunkIterator.hasNext()) {
+                    E entity = chunkIterator.next();
+                    setInsertStatementParameters(st, entity);
+                    st.addBatch();
+                }
+                st.executeBatch();
+            } catch (SQLException e) {
+                throw new JdbcException("failed to execute delete", e);
+            }
+        }
+    }
 
     private EID insertWithDbmsGeneratedKey(E entity) {
         try (PreparedStatement st = prepare(getInsertSql(), Statement.RETURN_GENERATED_KEYS)) {
@@ -139,7 +214,21 @@ abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     abstract void setInsertStatementParameters(PreparedStatement st, E entity);
 
+    abstract String getUpdateSql();
+
+    abstract String getUpdateSql(int elementCount);
+
+    abstract void setUpdateStatementParameters(PreparedStatement st, E entity);
+
+    abstract String getDeleteSql();
+
+    abstract String getDeleteSql(int elementCount);
+
+    abstract String getSelectByPkSql();
+
     abstract void setId(E entity, EID id);
+
+    abstract void setId(PreparedStatement st, int index, EID id);
 
     abstract EID getId(E entity);
 
@@ -148,5 +237,7 @@ abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     abstract PrimaryKeySource getPrimaryKeySource();
 
     abstract EID generateKey();
+
+    abstract E toEntity(ResultSet rs);
 
 }
