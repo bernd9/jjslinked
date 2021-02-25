@@ -32,7 +32,7 @@ public class CustomerSaveHandler {
         addressRepository.save(customerImpl.getAddress());
         customerImpl.setAddressId(customerImpl.getAddress().getId());
 
-        if (customerImpl.getPk() == null) {
+        if (customerImpl.getId() == null) {
             customerInsert.execute(customerImpl);
         } else {
             customerUpdate.execute(customerImpl);
@@ -46,7 +46,7 @@ public class CustomerSaveHandler {
             }
 
         } else {
-            for (Order order: customerImpl.getOrders()) {
+            for (Order order : customerImpl.getOrders()) {
                 OrderImpl orderImpl = new OrderImpl(order);
                 orderImpl.setCustomerId(customerImpl.getId());
                 orderRepository.saveImpl(orderImpl);

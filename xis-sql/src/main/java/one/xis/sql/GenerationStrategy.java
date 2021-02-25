@@ -1,6 +1,6 @@
 package one.xis.sql;
 
-public enum Generated {
+public enum GenerationStrategy {
     NONE,
     DBMS,
     API

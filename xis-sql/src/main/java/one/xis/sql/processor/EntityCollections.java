@@ -1,8 +1,5 @@
 package one.xis.sql.processor;
 
-import one.xis.sql.api.EntityArrayList;
-import one.xis.sql.api.EntityHashSet;
-
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.type.TypeMirror;
 import java.util.*;
@@ -37,27 +34,6 @@ class EntityCollections {
     @SuppressWarnings({"unchecked", "rawtypes"})
     Class getCollectionWrapperType(TypeMirror collectionClass) {
         // order is important, here !
-        if (isAssignable(collectionClass, arrayListTypeMirror)) {
-            return EntityArrayList.class;
-        }
-        if (isAssignable(collectionClass, linkedListTypeMirror)) {
-            throw new UnsupportedOperationException(); // TODO
-        }
-        if (isAssignable(collectionClass, hashSetTypeMirror)) {
-            return EntityHashSet.class;
-        }
-        if (isAssignable(collectionClass, treeSetTypeMirror)) {
-            throw new UnsupportedOperationException(); // TODO
-        }
-        if (isAssignable(collectionClass, setTypeMirror)) {
-            return EntityHashSet.class;
-        }
-        if (isAssignable(collectionClass, listTypeMirror)) {
-            return EntityArrayList.class;
-        }
-        if (isAssignable(collectionClass, collectionTypeMirror)) {
-            return EntityHashSet.class;
-        }
         throw new IllegalStateException("unsupported collection type " + collectionClass);
     }
 

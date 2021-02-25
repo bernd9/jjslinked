@@ -14,10 +14,30 @@ public class CustomerImpl extends Customer implements EntityProxy {
 
     private final Customer entity;
     private final boolean orphanDelete = true;
+    
+    @Override
+    public Object pk() {
+        return entity.getId();
+    }
 
     @Override
-    public Object getPk() {
-        return entity.getId();
+    public boolean isDirty() {
+        return false;
+    }
+
+    @Override
+    public void setClean() {
+
+    }
+
+    @Override
+    public void setPkPrivileged(Object o) {
+
+    }
+
+    @Override
+    public Object getForeignKeyValue(String fieldName) {
+        return null;
     }
 
     @Override

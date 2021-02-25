@@ -1,8 +1,7 @@
 package one.xis.sql.api;
 
-import one.xis.sql.Generated;
+import one.xis.sql.GenerationStrategy;
 import one.xis.sql.JdbcException;
-import one.xis.util.ChunkedList;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,17 +10,17 @@ import java.sql.Statement;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("unused")
 abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     private static final String TEXT_NO_PK = "Entity has no primary key. Consider to set ";// TODO
 
-    Optional<EntityProxy<E, EID>> getById(EID id) {
+    @SuppressWarnings("unchecked")
+    Optional<E> getById(EID id) {
         try (PreparedStatement st = prepare(getSelectByPkSql())) {
             setId(st, 1, id);
             try (ResultSet rs = st.executeQuery()) {
                 if (rs.next()) {
-                    return Optional.of(toEntityProxy(rs));
+                    return Optional.of((E) toEntityProxy(rs));
                 }
                 return Optional.empty();
             }
@@ -30,34 +29,81 @@ abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
         }
     }
 
-    abstract EntityProxy<E, EID> insert(E entity);
+    List<E> lazyLoadAll() {
+        return new LazyLoadingEntityArrayList<>(() -> {
+            final List<E> list = new ArrayList<>();
+            findAll(list);
+            return list;
+        });
+    }
 
-    abstract Set<EntityProxy<E, EID>> insert(Collection<E> entities);
+    @SuppressWarnings("unchecked")
+    List<E> findAll() {
+        EntityArrayList<E> list = new EntityArrayList<>();
+        findAll(list);
+        return list;
+    }
 
-    public List<EntityProxy<E, EID>> save(Collection<E> entities) {
-        List<E> list = entities instanceof List ? ((List<E>) entities) : new ArrayList<>(entities);
-        Set<EntityProxy<E, EID>> proxies = new HashSet<>();
-        Set<E> nonProxies = new HashSet<>();
-        List<EntityProxy<E, EID>> rv = new ArrayList<>();
-        for (int i = 0; i < list.size(); i++) {
-            E entity = list.get(0);
-            if (entity instanceof EntityProxy) {
-                proxies.add((EntityProxy<E, EID>) entity);
-                rv.add((EntityProxy<E, EID>) entity);
-            } else {
-                nonProxies.add(entity);
-                rv.add(toEntityProxy(entity));
+    @SuppressWarnings("unchecked")
+    private void findAll(Collection<E> coll) {
+        try (PreparedStatement st = prepare(getSelectAllSql())) {
+            try (ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    coll.add((E) toEntityProxy(rs));
+                }
+            }
+        } catch (SQLException e) {
+            throw new JdbcException("failed to execute delete", e);
+        }
+    }
+
+    protected abstract E insert(EntityProxy<E, EID> entityProxy);
+
+    protected abstract Set<E> insert(Collection<EntityProxy<E, EID>> entityProxies);
+
+    @SuppressWarnings("unchecked")
+    public Collection<EntityProxy<E, EID>> save(Collection<E> entities) {
+        if (entities instanceof EntityCollection) {
+            if (!((EntityCollection<?>) entities).isDirty()) {
+                return (Collection<EntityProxy<E, EID>>) entities;
             }
         }
-        updateProxies(proxies);
-        insert(nonProxies);
+        Collection<EntityProxy<E, EID>> rv;
+        if (entities instanceof ArrayList) {
+            rv = new EntityArrayList<>();
+            save(entities, rv);
+        } else if (entities instanceof List) {
+            rv = new EntityArrayList<>();
+            save(entities, rv);
+        } else {
+            throw new IllegalArgumentException();
+        }
         return rv;
     }
 
-    public void updateProxy(EntityProxy<E, EID> entityProxy) {
-        if (entityProxy.isDirty()) {
-            update(entityProxy.getEntity());
+    @SuppressWarnings("unchecked")
+    private void save(Collection<E> entities, Collection<EntityProxy<E, EID>> saved) {
+        Set<EntityProxy<E, EID>> proxiesForUpdate = new HashSet<>();
+        List<EntityProxy<E, EID>> proxiesForInsert = new ArrayList<>();
+        Iterator<E> entityIterator = entities.iterator();
+        while (entityIterator.hasNext()) {
+            E entity = entityIterator.next();
+            EntityProxy<E, EID> entityProxy;
+            if (entity instanceof EntityProxy) {
+                entityProxy = (EntityProxy<E, EID>) entity;
+                if (entityProxy.isDirty()) {
+                    proxiesForUpdate.add(entityProxy);
+                    entityProxy.setClean();
+                }
+                saved.add((EntityProxy<E, EID>) entity);
+            } else {
+                entityProxy = toEntityProxy(entity);
+                proxiesForInsert.add(entityProxy);
+                saved.add(entityProxy);
+            }
         }
+        updateProxies(proxiesForUpdate);
+        insert(proxiesForInsert);
     }
 
     public void updateProxies(Collection<EntityProxy<E, EID>> entityProxies) {
@@ -67,46 +113,30 @@ abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
                 .collect(Collectors.toSet()));
     }
 
-    public EntityProxy<E, EID> update(E entity) {
+
+    private void update(Collection<E> entities) {
+        Iterator<E> entityIterator = entities.iterator();
         try (PreparedStatement st = prepare(getUpdateSql())) {
-            setUpdateStatementParameters(st, entity);
-            st.executeUpdate();
-            return toEntityProxy(entity);
+            while (entityIterator.hasNext()) {
+                E entity = entityIterator.next();
+                st.clearParameters();
+                setUpdateStatementParameters(st, entity);
+                st.addBatch();
+                if (entity instanceof EntityProxy) {
+                    throw new IllegalStateException();
+                }
+            }
+            st.executeBatch();
         } catch (SQLException e) {
             throw new JdbcException("failed to execute update", e);
         }
     }
 
-    // TODO order may be important. Fix this here. Better list
-    public Set<EntityProxy<E, EID>> update(Collection<E> entities) {
-        ChunkedList<E> chunkedList = new ChunkedList<>(entities);
-        Set<EntityProxy<E, EID>> proxies = new HashSet<>();
-        while (!chunkedList.isEmpty()) {
-            List<E> chunk = chunkedList.removeChunk(50);
-            try (PreparedStatement st = prepare(getUpdateSql(chunk.size()))) {
-                Iterator<E> chunkIterator = chunk.iterator();
-                while (chunkIterator.hasNext()) {
-                    E entity = chunkIterator.next();
-                    setInsertStatementParameters(st, entity);
-                    st.addBatch();
-                    if (entity instanceof EntityProxy) {
-                        throw new IllegalStateException();
-                    }
-                    proxies.add(toEntityProxy(entity));
-                }
-                st.executeBatch();
-            } catch (SQLException e) {
-                throw new JdbcException("failed to execute update", e);
-            }
-        }
-        return proxies;
+    public boolean delete(E entity) {
+        return deleteById(getId(entity));
     }
 
-    public boolean deleteById(E entity) {
-        return delete(getId(entity));
-    }
-
-    public boolean delete(EID id) {
+    public boolean deleteById(EID id) {
         try (PreparedStatement st = prepare(getDeleteSql())) {
             setId(st, 1, id);
             return st.executeUpdate() > 0;
@@ -116,23 +146,21 @@ abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     }
 
     public void delete(Collection<E> entities) {
-        ChunkedList<E> chunkedList = new ChunkedList<>(entities);
-        while (!chunkedList.isEmpty()) {
-            List<E> chunk = chunkedList.removeChunk(50);
-            try (PreparedStatement st = prepare(getDeleteSql(chunk.size()))) {
-                Iterator<E> chunkIterator = chunk.iterator();
-                while (chunkIterator.hasNext()) {
-                    E entity = chunkIterator.next();
-                    setInsertStatementParameters(st, entity);
-                    st.addBatch();
-                }
-                st.executeBatch();
-            } catch (SQLException e) {
-                throw new JdbcException("failed to execute delete", e);
+        Iterator<E> entityIterator = entities.iterator();
+        try (PreparedStatement st = prepare(getDeleteSql())) {
+            while (entityIterator.hasNext()) {
+                st.clearParameters();
+                E entity = entityIterator.next();
+                setId(st, 1, getId(entity));
+                st.addBatch();
             }
+            st.executeBatch();
+        } catch (SQLException e) {
+            throw new JdbcException("failed to execute delete", e);
         }
     }
 
+    @SuppressWarnings("unused")
     private EntityProxy<E, EID> insertWithDbmsGeneratedKey(E entity) {
         try (PreparedStatement st = prepare(getInsertSql(), Statement.RETURN_GENERATED_KEYS)) {
             setInsertStatementParameters(st, entity);
@@ -149,6 +177,7 @@ abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
         }
     }
 
+    @SuppressWarnings("unused")
     private EntityProxy<E, EID> insertWithManuallyPlacedKey(E entity) {
         try (PreparedStatement st = prepare(getInsertSql())) {
             setInsertStatementParameters(st, entity);
@@ -163,6 +192,7 @@ abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
         }
     }
 
+    @SuppressWarnings("unused")
     private EntityProxy<E, EID> insertWithApiGeneratedKey(E entity) {
         try (PreparedStatement st = prepare(getInsertSql(), Statement.RETURN_GENERATED_KEYS)) {
             EID id = generateKey();
@@ -180,102 +210,92 @@ abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     }
 
     // TODO order may be important. Fix this here. Better list
-    private Set<EntityProxy<E, EID>> insertWithDbmsGeneratedKeys(Collection<E> entities) throws SQLException {
+    @SuppressWarnings("unused")
+    private Set<EntityProxy<E, EID>> insertWithDbmsGeneratedKeys(Collection<EntityProxy<E, EID>> entities) throws SQLException {
+        Iterator<EntityProxy<E, EID>> entityIterator = entities.iterator();
         Set<EntityProxy<E, EID>> proxies = new HashSet<>();
-        ChunkedList<E> chunkedList = new ChunkedList<>(entities);
-        while (!chunkedList.isEmpty()) {
-            List<E> chunk = chunkedList.removeChunk(50);
-            try (PreparedStatement st = prepare(getInsertSql(chunk.size()))) {
-                Iterator<E> chunkIterator = chunk.iterator();
-                while (chunkIterator.hasNext()) {
-                    E entity = chunkIterator.next();
-                    setInsertStatementParameters(st, entity);
-                    st.addBatch();
-                }
-                st.executeBatch();
-                ResultSet keys = st.getGeneratedKeys();
-                chunkIterator = chunk.iterator();
-                while (chunkIterator.hasNext()) {
-                    if (!keys.next()) {
-                        throw new JdbcException("number of keys does not match");
-                    }
-                    EID id = getId(keys, 1);
-                    if (id == null) {
-                        throw new JdbcException(""); // TODO
-                    }
-                    E entity = chunkIterator.next();
-                    setId(entity, id);
-                    proxies.add(toEntityProxy(entity));
-                }
+        try (PreparedStatement st = prepare(getInsertSql())) {
+            while (entityIterator.hasNext()) {
+                EntityProxy<E, EID> entityProxy = entityIterator.next();
+                st.clearParameters();
+                setInsertStatementParameters(st, entityProxy.getEntity());
+                st.addBatch();
             }
+            st.executeBatch();
+            ResultSet keys = st.getGeneratedKeys();
+            entityIterator = entities.iterator();
+            while (entityIterator.hasNext()) {
+                if (!keys.next()) {
+                    throw new JdbcException("number of keys does not match");
+                }
+                EID id = getId(keys, 1);
+                if (id == null) {
+                    throw new JdbcException(""); // TODO
+                }
+                EntityProxy<E, EID> entityProxy = entityIterator.next();
+                E entity = entityProxy.getEntity();
+                setId(entity, id);
+                proxies.add(toEntityProxy(entity));
+            }
+
         }
         return proxies;
     }
 
-    private Set<EntityProxy<E, EID>> insertWithManuallyPlacedKeys(Collection<E> entities) throws SQLException {
+    @SuppressWarnings("unused")
+    private Set<EntityProxy<E, EID>> insertWithManuallyPlacedKeys(Collection<EntityProxy<E, EID>> entities) throws SQLException {
+        Iterator<EntityProxy<E, EID>> entityIterator = entities.iterator();
         Set<EntityProxy<E, EID>> proxies = new HashSet<>();
-        ChunkedList<E> chunkedList = new ChunkedList<>(entities);
-        while (!chunkedList.isEmpty()) {
-            List<E> chunk = chunkedList.removeChunk(50);
-            try (PreparedStatement st = prepare(getInsertSql(chunk.size()))) {
-                Iterator<E> chunkIterator = chunk.iterator();
-                while (chunkIterator.hasNext()) {
-                    E entity = chunkIterator.next();
-                    EID id = getId(entity);
-                    if (id == null) {
-                        throw new JdbcException(""); // TODO
-                    }
-                    setInsertStatementParameters(st, entity);
-                    st.addBatch();
-                    proxies.add(toEntityProxy(entity));
-                }
-                st.executeBatch();
+        try (PreparedStatement st = prepare(getInsertSql())) {
+            while (entityIterator.hasNext()) {
+                EntityProxy<E, EID> entityProxy = entityIterator.next();
+                st.clearParameters();
+                setInsertStatementParameters(st, entityProxy.getEntity());
+                st.addBatch();
+                proxies.add(entityProxy);
+
             }
+            st.executeBatch();
         }
         return proxies;
     }
 
-    protected Set<EntityProxy<E, EID>> insertWithApiGeneratedKeys(Collection<E> entities) throws SQLException {
+    @SuppressWarnings("unused")
+    protected Set<EntityProxy<E, EID>> insertWithApiGeneratedKeys(Collection<EntityProxy<E, EID>> entities) throws SQLException {
+        Iterator<EntityProxy<E, EID>> entityIterator = entities.iterator();
         Set<EntityProxy<E, EID>> proxies = new HashSet<>();
-        ChunkedList<E> chunkedList = new ChunkedList<>(entities);
-        while (!chunkedList.isEmpty()) {
-            List<E> chunk = chunkedList.removeChunk(50);
-            try (PreparedStatement st = prepare(getInsertSql(chunk.size()))) {
-                Iterator<E> chunkIterator = chunk.iterator();
-                while (chunkIterator.hasNext()) {
-                    E entity = chunkIterator.next();
-                    EID id = generateKey();
-                    setId(entity, id);
-                    setInsertStatementParameters(st, entity);
-                    st.addBatch();
-                    proxies.add(toEntityProxy(entity));
-                }
+        try (PreparedStatement st = prepare(getInsertSql())) {
+            while (entityIterator.hasNext()) {
+                EntityProxy<E, EID> entityProxy = entityIterator.next();
+                entityProxy.setPkPrivileged(generateKey());
+                st.clearParameters();
+                setInsertStatementParameters(st, entityProxy.getEntity());
+                st.addBatch();
+                proxies.add(entityProxy);
+
             }
+            st.executeBatch();
         }
         return proxies;
     }
 
     abstract EntityProxy<E, EID> toEntityProxy(E entity);
 
-    abstract EntityProxy<E, EID> toEntityProxy(ResultSet rs);
+    abstract EntityProxy<E, EID> toEntityProxy(ResultSet rs) throws SQLException;
 
     abstract String getInsertSql();
-
-    abstract String getInsertSql(int elementCount);
 
     abstract void setInsertStatementParameters(PreparedStatement st, E entity);
 
     abstract String getUpdateSql();
 
-    abstract String getUpdateSql(int elementCount);
-
     abstract void setUpdateStatementParameters(PreparedStatement st, E entity);
 
     abstract String getDeleteSql();
 
-    abstract String getDeleteSql(int elementCount);
-
     abstract String getSelectByPkSql();
+
+    abstract String getSelectAllSql();
 
     abstract void setId(E entity, EID id);
 
@@ -283,9 +303,9 @@ abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     abstract EID getId(E entity);
 
-    abstract EID getId(ResultSet rs, int index);
+    abstract EID getId(ResultSet rs, int index) throws SQLException;
 
-    abstract Generated getPrimaryKeySource();
+    abstract GenerationStrategy getPrimaryKeySource();
 
     abstract EID generateKey();
 

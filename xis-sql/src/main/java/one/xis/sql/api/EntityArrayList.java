@@ -1,7 +1,6 @@
 package one.xis.sql.api;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,16 +10,58 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 @Getter
-@RequiredArgsConstructor
-public class EntityArrayList<E> extends ArrayList<E> {
+class EntityArrayList<E> extends ArrayList<E> implements EntityCollection<E> {
 
     protected final List<E> deletedValues = new ArrayList<>();
+    protected final List<E> newValues = new ArrayList<>();
+    private boolean dirty;
+
+    EntityArrayList(int initialCapacity) {
+        super(initialCapacity);
+    }
+
+    EntityArrayList() {
+    }
+
+    EntityArrayList(Collection<? extends E> c) {
+        super(c);
+    }
+
+    @Override
+    public boolean add(E e) {
+        dirty = true;
+        newValues.add(e);
+        return super.add(e);
+    }
+
+    @Override
+    public void add(int index, E element) {
+        dirty = true;
+        newValues.add(element);
+        super.add(index, element);
+    }
+
+
+    @Override
+    public boolean addAll(Collection<? extends E> c) {
+        dirty = true;
+        newValues.addAll(c);
+        return super.addAll(c);
+    }
+
+    @Override
+    public boolean addAll(int index, Collection<? extends E> c) {
+        dirty = true;
+        newValues.addAll(c);
+        return super.addAll(index, c);
+    }
 
     @Override
     public boolean remove(Object o) {
         if (contains(o)) {
             super.remove(o);
             deletedValues.add((E) o);
+            dirty = true;
             return true;
         }
         return false;
@@ -32,6 +73,7 @@ public class EntityArrayList<E> extends ArrayList<E> {
         for (Object o : c) {
             if (super.remove(o)) {
                 rv = true;
+                dirty = true;
                 deletedValues.add((E) o);
             }
         }
@@ -42,8 +84,10 @@ public class EntityArrayList<E> extends ArrayList<E> {
     public E set(int index, E element) {
         E o = super.get(index);
         if (o != null) {
+            dirty = true;
             deletedValues.add(o);
         }
+        newValues.add(element);
         return super.set(index, element);
     }
 
@@ -51,6 +95,7 @@ public class EntityArrayList<E> extends ArrayList<E> {
     public E remove(int index) {
         E o = super.remove(index);
         if (o != null) {
+            dirty = true;
             deletedValues.add(o);
         }
         return o;
@@ -59,18 +104,19 @@ public class EntityArrayList<E> extends ArrayList<E> {
     @Override
     protected void removeRange(int fromIndex, int toIndex) {
         this.subList(fromIndex, toIndex).stream()
-            .filter(Objects::nonNull)
-            .forEach(deletedValues::add);
+                .filter(Objects::nonNull)
+                .peek(e -> dirty = true)
+                .forEach(deletedValues::add);
         super.removeRange(fromIndex, toIndex);
     }
 
     @Override
     public void replaceAll(UnaryOperator<E> operator) {
         stream().filter(Objects::nonNull)
+                .peek(e -> dirty = true)
                 .forEach(deletedValues::add);
         super.replaceAll(operator);
-        stream().filter(Objects::nonNull)
-                .forEach(deletedValues::remove);
+        newValues.addAll(this);
     }
 
     @Override
@@ -92,7 +138,7 @@ public class EntityArrayList<E> extends ArrayList<E> {
     public boolean retainAll(Collection<?> c) {
         boolean rv = false;
         for (Object o : c) {
-            if (contains(o)) {
+            if (!contains(o)) {
                 rv = true;
                 super.remove(o);
                 deletedValues.add((E) o);
@@ -105,5 +151,10 @@ public class EntityArrayList<E> extends ArrayList<E> {
     public void clear() {
         deletedValues.addAll(this);
         super.clear();
+    }
+
+    @Override
+    public void addSilently(E entity) {
+        super.add(entity);
     }
 }

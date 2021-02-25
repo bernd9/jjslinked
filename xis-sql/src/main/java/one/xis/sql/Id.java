@@ -5,10 +5,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import static one.xis.sql.Generated.DBMS;
+import static one.xis.sql.GenerationStrategy.DBMS;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.SOURCE)
 public @interface Id {
-    Generated generatedBy() default DBMS;
+    GenerationStrategy generationStrategy() default DBMS;
 }
