@@ -1,15 +1,13 @@
 package one.xis.sql.api;
 
-public interface EntityProxy<E, ID> {
-    ID pk();
+public interface EntityProxy<E, EID> {
+    EID pk();
 
     E getEntity();
-
-    <T> T getForeignKeyValue(String fieldName);
 
     boolean isDirty();
 
     void setClean();
 
-    void setPkPrivileged(ID id);
+    void setPkPrivileged(EID id);
 }

@@ -7,14 +7,17 @@ import lombok.RequiredArgsConstructor;
 class EntityProxyModel {
     @Getter
     private final EntityModel entityModel;
-
-
+    
     String getEntityProxySimpleName() {
-        return entityModel.getSimpleName() + "Proxy";
+        return getEntityProxySimpleName(entityModel);
     }
 
     String getEntityProxyPackageName() {
         return entityModel.getPackageName();
+    }
+
+    static String getEntityProxySimpleName(EntityModel entityModel) {
+        return entityModel.getSimpleName() + "Proxy";
     }
 
 }

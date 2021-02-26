@@ -17,5 +17,9 @@ class EntityTableAccessorModel {
         return entityModel.getPackageName();
     }
 
+    String getEntityProxySimpleName() {
+        return EntityProxyModel.getEntityProxySimpleName(entityModel);
+    }
+
 
 }

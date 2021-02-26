@@ -9,14 +9,14 @@ import java.util.List;
 
 @Generated("xis-sql")
 @Data
-public class CustomerImpl extends Customer implements EntityProxy {
+public class CustomerImpl extends Customer implements EntityProxy<Customer, Long> {
     private Long addressId;
 
     private final Customer entity;
     private final boolean orphanDelete = true;
-    
+
     @Override
-    public Object pk() {
+    public Long pk() {
         return entity.getId();
     }
 
@@ -31,15 +31,10 @@ public class CustomerImpl extends Customer implements EntityProxy {
     }
 
     @Override
-    public void setPkPrivileged(Object o) {
+    public void setPkPrivileged(Long o) {
 
     }
-
-    @Override
-    public Object getForeignKeyValue(String fieldName) {
-        return null;
-    }
-
+    
     @Override
     public Address getAddress() {
         Address value = entity.getAddress();

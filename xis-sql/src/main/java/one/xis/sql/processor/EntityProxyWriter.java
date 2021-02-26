@@ -1,6 +1,8 @@
 package one.xis.sql.processor;
 
+import com.ejc.util.FieldUtils;
 import com.squareup.javapoet.*;
+import one.xis.sql.api.EntityProxy;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
@@ -22,8 +24,9 @@ class EntityProxyWriter {
     void write() throws IOException {
         TypeSpec.Builder builder = TypeSpec.classBuilder(entityProxyModel.getEntityProxySimpleName())
                 .addModifiers(Modifier.PUBLIC)
-                .addModifiers(Modifier.ABSTRACT) // TODO
                 .superclass(entityProxyModel.getEntityModel().getType().asType())
+                .addSuperinterface(ParameterizedTypeName.get(ClassName.get(EntityProxy.class),
+                        entityTypeName(), entityIdTypeName()))
                 .addMethod(constructor());
 
         writeTypeBody(builder);
@@ -42,6 +45,8 @@ class EntityProxyWriter {
 
     private void writeTypeBody(TypeSpec.Builder builder) {
         addWrappedEntityField(builder);
+        addDirtyFlag(builder);
+        implementProxyInterfaceMethods(builder);
         /*
         addWrappedEntityField(builder);
         addEditedFlagField(builder);
@@ -50,8 +55,82 @@ class EntityProxyWriter {
          */
     }
 
-    private void addEditedFlagField(TypeSpec.Builder builder) {
-        builder.addField(FieldSpec.builder(TypeName.BOOLEAN, "edited", Modifier.PUBLIC).build());
+    private void implementProxyInterfaceMethods(TypeSpec.Builder builder) {
+        builder.addMethod(implementGetPkMethod());
+        builder.addMethod(implementGetEntityMethod());
+        builder.addMethod(implementIsDirtyMethod());
+        builder.addMethod(implementSetCleanMethod());
+        builder.addMethod(implementSetPkMethod());
+    }
+
+    private MethodSpec implementGetPkMethod() {
+        return entityModel().getIdField().getGetter().map(this::implementGetPkMethodWithGetter)
+                .orElse(implementGetPkMethodWithFieldAccess());
+    }
+
+    private MethodSpec implementGetPkMethodWithGetter(ExecutableElement getter) {
+        return MethodSpec.methodBuilder("pk")
+                .returns(entityIdTypeName())
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("return entity.$L()", getter.getSimpleName())
+                .build();
+    }
+
+    private MethodSpec implementGetPkMethodWithFieldAccess() {
+        return MethodSpec.methodBuilder("pk")
+                .returns(entityIdTypeName())
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("return $T.getFieldValue(this, \"$L\"", FieldUtils.class, entityModel().getIdField().getFieldName())
+                .build();
+    }
+
+    private MethodSpec implementGetEntityMethod() {
+        return MethodSpec.methodBuilder("getEntity")
+                .addModifiers(Modifier.PUBLIC)
+                .returns(entityTypeName())
+                .addStatement("return entity")
+                .build();
+    }
+
+    private MethodSpec implementIsDirtyMethod() {
+        return MethodSpec.methodBuilder("isDirty")
+                .addModifiers(Modifier.PUBLIC)
+                .returns(TypeName.BOOLEAN)
+                .addStatement("return dirty")
+                .build();
+    }
+
+    private MethodSpec implementSetCleanMethod() {
+        return MethodSpec.methodBuilder("setClean")
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("dirty = false")
+                .build();
+    }
+
+
+    private MethodSpec implementSetPkMethod() {
+        return entityModel().getIdField().getSetter().map(this::implementSetPkMethodWithSetter)
+                .orElse(implementSetPkMethodWithFieldAccess());
+    }
+
+    private MethodSpec implementSetPkMethodWithSetter(ExecutableElement setter) {
+        return MethodSpec.methodBuilder("setPkPrivileged")
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(ParameterSpec.builder(entityIdTypeName(), "id").build())
+                .addStatement("entity.$L(id)", setter.getSimpleName())
+                .build();
+    }
+
+    private MethodSpec implementSetPkMethodWithFieldAccess() {
+        return MethodSpec.methodBuilder("setPkPrivileged")
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(ParameterSpec.builder(entityIdTypeName(), "id").build())
+                .addStatement("$T.setFieldValue(this, \"$L\", id)", FieldUtils.class, entityModel().getIdField().getFieldName())
+                .build();
+    }
+
+    private void addDirtyFlag(TypeSpec.Builder builder) {
+        builder.addField(FieldSpec.builder(TypeName.BOOLEAN, "dirty", Modifier.PUBLIC).build());
     }
 
     private void addWrappedEntityField(TypeSpec.Builder builder) {
@@ -161,11 +240,21 @@ class EntityProxyWriter {
         builder.addMethod(methodBuilder.build());
     }
 
+    private EntityModel entityModel() {
+        return entityProxyModel.getEntityModel();
+    }
+
     private TypeName entityTypeName() {
-        return TypeName.get(entityProxyModel.getEntityModel().getType().asType());
+        return TypeName.get(entityModel().getType().asType());
+    }
+
+
+    private TypeName entityIdTypeName() {
+        return TypeName.get(entityModel().getIdField().getFieldType());
     }
 
     private static TypeName parameterTypeName(ExecutableElement method, int paramIndex) {
         return TypeName.get(method.getParameters().get(paramIndex).asType());
     }
+
 }
