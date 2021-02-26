@@ -11,12 +11,7 @@ public class ForeignKeyFieldModel extends EntityFieldModel {
     public ForeignKeyFieldModel(EntityModel entityModel, VariableElement field, GettersAndSetters gettersAndSetters) {
         super(entityModel, field, gettersAndSetters);
     }
-
-    @Override
-    boolean isForeignKey() { // TODO validate ForeignKey can not be used to annotate collections, arrays etc
-        return true;
-    }
-
+    
     Optional<String> getForeignKeyColumnName() {
         ForeignKey foreignKey = field.getAnnotation(ForeignKey.class);
         if (foreignKey == null) {
