@@ -10,7 +10,7 @@ import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 @Getter
-class EntityArrayList<E> extends ArrayList<E> implements EntityCollection<E> {
+public class EntityArrayList<E> extends ArrayList<E> implements EntityCollection<E> {
 
     protected final List<E> deletedValues = new ArrayList<>();
     protected final List<E> newValues = new ArrayList<>();

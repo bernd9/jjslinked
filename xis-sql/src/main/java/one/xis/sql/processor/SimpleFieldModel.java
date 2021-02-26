@@ -6,6 +6,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
+import java.lang.annotation.Annotation;
 import java.util.Optional;
 
 class SimpleFieldModel {
@@ -39,6 +40,10 @@ class SimpleFieldModel {
 
     TypeMirror getFieldType() {
         return field.asType();
+    }
+
+    <A extends Annotation> A getAnnotation(Class<A> annotationType) {
+        return field.getAnnotation(annotationType);
     }
 
 }

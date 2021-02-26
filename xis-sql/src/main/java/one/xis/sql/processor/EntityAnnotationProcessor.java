@@ -65,19 +65,31 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
     }
 
     private void processEntityModel(EntityModel entityModel) {
-        writeSaveHandler(entityModel);
+        writeEntityProxy(entityModel);
+        writeEntityTableAccessor(entityModel);
         writeRepositoryImpl(entityModel);
     }
 
-    private void writeSaveHandler(EntityModel entityModel) {
-        SaveHandlerModel saveHandlerModel = new SaveHandlerModel(entityModel);
-        SaveHandlerWriter saveHandlerWriter = new SaveHandlerWriter(saveHandlerModel, processingEnv);
+    private void writeEntityProxy(EntityModel entityModel) {
+        EntityProxyModel model = new EntityProxyModel(entityModel);
+        EntityProxyWriter writer = new EntityProxyWriter(model, processingEnv);
         try {
-            saveHandlerWriter.write();
+            writer.write();
         } catch (IOException e) {
             ProcessorLogger.reportError(this, processingEnv, e);
         }
     }
+
+    private void writeEntityTableAccessor(EntityModel entityModel) {
+        EntityTableAccessorModel model = new EntityTableAccessorModel(entityModel);
+        EntityTableAccessorWriter writer = new EntityTableAccessorWriter(model, processingEnv);
+        try {
+            writer.write();
+        } catch (IOException e) {
+            ProcessorLogger.reportError(this, processingEnv, e);
+        }
+    }
+
 
     private void writeRepositoryImpl(EntityModel entityModel) {
 

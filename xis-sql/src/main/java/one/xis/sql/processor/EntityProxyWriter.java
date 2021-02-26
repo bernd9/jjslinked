@@ -9,31 +9,32 @@ import java.io.IOException;
 
 
 class EntityProxyWriter {
-    private final EntityModel entityModel;
+    private final EntityProxyModel entityProxyModel;
     private final ProcessingEnvironment processingEnvironment;
     private final EntityCollections entityCollections;
 
-    EntityProxyWriter(EntityModel entityModel, ProcessingEnvironment processingEnvironment) {
-        this.entityModel = entityModel;
+    EntityProxyWriter(EntityProxyModel entityProxyModel, ProcessingEnvironment processingEnvironment) {
+        this.entityProxyModel = entityProxyModel;
         this.processingEnvironment = processingEnvironment;
         this.entityCollections = new EntityCollections(processingEnvironment);
     }
 
     void write() throws IOException {
-        TypeSpec.Builder builder = TypeSpec.classBuilder(entityModel.getProxySimpleName())
-                .addModifiers(Modifier.DEFAULT)
-                .superclass(entityModel.getType().asType())
+        TypeSpec.Builder builder = TypeSpec.classBuilder(entityProxyModel.getEntityProxySimpleName())
+                .addModifiers(Modifier.PUBLIC)
+                .addModifiers(Modifier.ABSTRACT) // TODO
+                .superclass(entityProxyModel.getEntityModel().getType().asType())
                 .addMethod(constructor());
 
         writeTypeBody(builder);
         TypeSpec typeSpec = builder.build();
-        JavaFile javaFile = JavaFile.builder(entityModel.getPackageName(), typeSpec).build();
+        JavaFile javaFile = JavaFile.builder(entityProxyModel.getEntityProxyPackageName(), typeSpec).build();
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
     private MethodSpec constructor() {
         return MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.DEFAULT)
+                .addModifiers(Modifier.PUBLIC)
                 .addParameter(ParameterSpec.builder(entityTypeName(), "entity").build())
                 .addStatement("this.entity = entity")
                 .build();
@@ -57,11 +58,13 @@ class EntityProxyWriter {
         builder.addField(FieldSpec.builder(entityTypeName(), "entity", Modifier.PRIVATE, Modifier.FINAL).build());
     }
 
+    /*
     private void addGetters(TypeSpec.Builder builder) {
-        entityModel.getAllFields().stream()
+        entityProxyModel.getAllFields().stream()
                 .filter(field -> field.getGetter().isPresent())
                 .forEach(field -> addGetter(field, builder));
     }
+    */
 
     private void addGetter(SimpleFieldModel fieldModel, TypeSpec.Builder builder) {
         if (fieldModel instanceof EntityFieldModel) {
@@ -103,11 +106,14 @@ class EntityProxyWriter {
                 .build());
     }
 
+    /*
     private void addSetters(TypeSpec.Builder builder) {
-        entityModel.getAllFields().stream()
+        entityProxyModel.getAllFields().stream()
                 .filter(field -> field.getSetter().isPresent())
                 .forEach(field -> addSetter(field, builder));
     }
+
+     */
 
     private void addSetter(SimpleFieldModel fieldModel, TypeSpec.Builder builder) {
         if (fieldModel instanceof EntityFieldModel) {
@@ -156,7 +162,7 @@ class EntityProxyWriter {
     }
 
     private TypeName entityTypeName() {
-        return TypeName.get(entityModel.getType().asType());
+        return TypeName.get(entityProxyModel.getEntityModel().getType().asType());
     }
 
     private static TypeName parameterTypeName(ExecutableElement method, int paramIndex) {
