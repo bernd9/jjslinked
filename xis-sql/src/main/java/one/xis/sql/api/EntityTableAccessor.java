@@ -272,9 +272,15 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
         }
     }
 
+
+    private EntityProxy<E, EID> toEntityProxy(ResultSet rs) throws SQLException {
+        return toEntityProxy(toEntity(rs));
+    }
+
+
     protected abstract EntityProxy<E, EID> toEntityProxy(E entity);
 
-    protected abstract EntityProxy<E, EID> toEntityProxy(ResultSet rs) throws SQLException;
+    protected abstract E toEntity(ResultSet rs) throws SQLException;
 
     protected abstract String getInsertSql();
 
@@ -289,8 +295,6 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     protected abstract String getSelectByPkSql();
 
     protected abstract String getSelectAllSql();
-
-    protected abstract void setId(E entity, EID id);
 
     protected abstract void setId(PreparedStatement st, int index, EID id);
 
