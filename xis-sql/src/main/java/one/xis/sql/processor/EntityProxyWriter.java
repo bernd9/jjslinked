@@ -58,20 +58,20 @@ class EntityProxyWriter {
     }
 
     private void addGetters(TypeSpec.Builder builder) {
-        entityModel.getEntityFields().stream()
+        entityModel.getAllFields().stream()
                 .filter(field -> field.getGetter().isPresent())
                 .forEach(field -> addGetter(field, builder));
     }
 
-    private void addGetter(EntityFieldModel fieldModel, TypeSpec.Builder builder) {
-        if (fieldModel.isEntityField()) {
-            addEntityGetter(fieldModel, builder);
-        } else {
+    private void addGetter(SimpleFieldModel fieldModel, TypeSpec.Builder builder) {
+        if (fieldModel instanceof EntityFieldModel) {
+            addEntityGetter((EntityFieldModel) fieldModel, builder);
+        } else if (fieldModel instanceof SimpleFieldModel) {
             addSimpleGetter(fieldModel, builder);
         }
     }
 
-    private void addSimpleGetter(EntityFieldModel fieldModel, TypeSpec.Builder builder) {
+    private void addSimpleGetter(SimpleFieldModel fieldModel, TypeSpec.Builder builder) {
         ExecutableElement getter = fieldModel.getGetter().orElseThrow();
         builder.addMethod(MethodSpec.methodBuilder(getter.getSimpleName().toString())
                 .addStatement("return entity.$L()", getter.getSimpleName())
@@ -104,14 +104,14 @@ class EntityProxyWriter {
     }
 
     private void addSetters(TypeSpec.Builder builder) {
-        entityModel.getEntityFields().stream()
+        entityModel.getAllFields().stream()
                 .filter(field -> field.getSetter().isPresent())
                 .forEach(field -> addSetter(field, builder));
     }
 
-    private void addSetter(EntityFieldModel fieldModel, TypeSpec.Builder builder) {
-        if (fieldModel.isEntityField()) {
-            addEntitySetter(fieldModel, builder);
+    private void addSetter(SimpleFieldModel fieldModel, TypeSpec.Builder builder) {
+        if (fieldModel instanceof EntityFieldModel) {
+            addEntitySetter((EntityFieldModel) fieldModel, builder);
         } else {
             addSimpleSetter(fieldModel, builder);
         }
@@ -125,7 +125,7 @@ class EntityProxyWriter {
         }
     }
 
-    private void addSimpleSetter(EntityFieldModel fieldModel, TypeSpec.Builder builder) {
+    private void addSimpleSetter(SimpleFieldModel fieldModel, TypeSpec.Builder builder) {
         ExecutableElement setter = fieldModel.getSetter().orElseThrow();
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(setter.getSimpleName().toString())
                 .addParameter(ParameterSpec.builder(parameterTypeName(setter, 0), "value").build())

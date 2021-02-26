@@ -5,13 +5,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
+/**
+ * Indicates a value is stored as JSON.
+ */
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.SOURCE)
-public @interface Column {
-    boolean nullable() default true;
-
-    String name() default "";
-
-    String sqlAttributes() default "";
+public @interface Json {
+    String charset() default "UTF-8";
 }

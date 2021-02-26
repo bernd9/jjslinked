@@ -279,34 +279,34 @@ abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
         return proxies;
     }
 
-    abstract EntityProxy<E, EID> toEntityProxy(E entity);
+    protected abstract EntityProxy<E, EID> toEntityProxy(E entity);
 
-    abstract EntityProxy<E, EID> toEntityProxy(ResultSet rs) throws SQLException;
+    protected abstract EntityProxy<E, EID> toEntityProxy(ResultSet rs) throws SQLException;
 
-    abstract String getInsertSql();
+    protected abstract String getInsertSql();
 
-    abstract void setInsertStatementParameters(PreparedStatement st, E entity);
+    protected abstract void setInsertStatementParameters(PreparedStatement st, E entity);
 
-    abstract String getUpdateSql();
+    protected abstract String getUpdateSql();
 
-    abstract void setUpdateStatementParameters(PreparedStatement st, E entity);
+    protected abstract void setUpdateStatementParameters(PreparedStatement st, E entity);
 
-    abstract String getDeleteSql();
+    protected abstract String getDeleteSql();
 
-    abstract String getSelectByPkSql();
+    protected abstract String getSelectByPkSql();
 
-    abstract String getSelectAllSql();
+    protected abstract String getSelectAllSql();
 
-    abstract void setId(E entity, EID id);
+    protected abstract void setId(E entity, EID id);
 
-    abstract void setId(PreparedStatement st, int index, EID id);
+    protected abstract void setId(PreparedStatement st, int index, EID id);
 
-    abstract EID getId(E entity);
+    protected abstract EID getId(E entity);
 
-    abstract EID getId(ResultSet rs, int index) throws SQLException;
+    protected abstract EID getId(ResultSet rs, int index) throws SQLException;
 
-    abstract GenerationStrategy getPrimaryKeySource();
+    protected abstract GenerationStrategy getPrimaryKeySource();
 
-    abstract EID generateKey();
+    protected abstract EID generateKey();
 
 }

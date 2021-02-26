@@ -2,32 +2,18 @@ package one.xis.sql.processor;
 
 import com.ejc.util.JavaModelUtils;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import one.xis.sql.Column;
 import one.xis.sql.Entity;
-import one.xis.sql.ForeignKey;
 import one.xis.sql.NamingRules;
 
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Name;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
-import java.util.Optional;
 
 @Getter
-@RequiredArgsConstructor
-class EntityFieldModel {
-    protected final EntityModel entityModel;
-    protected final VariableElement field;
-    private final Optional<ExecutableElement> getter;
-    private final Optional<ExecutableElement> setter;
+class EntityFieldModel extends SimpleFieldModel {
 
-    Name getFieldName() {
-        return field.getSimpleName();
-    }
-
-    TypeMirror getFieldType() {
-        return field.asType();
+    public EntityFieldModel(EntityModel entityModel, VariableElement field, GettersAndSetters gettersAndSetters) {
+        super(entityModel, field, gettersAndSetters);
     }
 
     boolean isNonComplex() {
@@ -49,23 +35,7 @@ class EntityFieldModel {
     boolean isCollection() {
         return JavaModelUtils.isCollection(field);
     }
-
-    boolean isForeignKey() { // TODO validate ForeignKey can not be used to annotate collections, arrays etc
-        return field.getAnnotation(ForeignKey.class) != null;
-    }
-
-    Optional<String> getForeignKeyColumnName() {
-        ForeignKey foreignKey = field.getAnnotation(ForeignKey.class);
-        if (foreignKey == null) {
-            return Optional.empty();
-        }
-        EntityModel fieldEntityModel = EntityModel.getEntityModel(getFieldType());
-        if (fieldEntityModel == null) {
-            return Optional.empty();
-        }
-        return Optional.of(fieldEntityModel.getTableName() + "_" + NamingRules.toSqlName(fieldEntityModel.getIdField().getFieldName().toString()));
-    }
-
+    
     EntityModel getFieldEntityModel() {
         if (!isEntityField()) throw new IllegalStateException("not an entity field");
         TypeMirror entityType;
@@ -83,10 +53,6 @@ class EntityFieldModel {
             return column.name();
         }
         return NamingRules.toSqlName(getFieldName().toString());
-    }
-
-    boolean isInsertBeforeEntityField() {
-        return isEntityField() && isForeignKey();
     }
 
 }
