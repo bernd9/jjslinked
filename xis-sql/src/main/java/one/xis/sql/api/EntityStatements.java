@@ -4,4 +4,5 @@ public interface EntityStatements<E, EID> {
 
     String getInsertSql();
     
+
 }

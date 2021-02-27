@@ -16,7 +16,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     private static final String TEXT_NO_PK = "Entity has no primary key. Consider to set ";// TODO
 
     Optional<E> getById(EID id) {
-        try (PreparedStatement st = prepare(getSelectByPkSql())) {
+        try (PreparedStatementWrapper st = prepare(getSelectByPkSql())) {
             setId(st, 1, id);
             try (ResultSet rs = st.executeQuery()) {
                 if (rs.next()) {

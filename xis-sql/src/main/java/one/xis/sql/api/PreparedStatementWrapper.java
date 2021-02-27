@@ -11,7 +11,7 @@ import java.time.*;
 import java.util.Date;
 
 @RequiredArgsConstructor
-public class PreparedStatementWrapper {
+public class PreparedStatementWrapper implements PreparedStatement {
 
     @Delegate
     private final PreparedStatement st;
@@ -269,5 +269,5 @@ public class PreparedStatementWrapper {
             throw new JdbcException("can not set value: " + value, e);
         }
     }
-    
+
 }
