@@ -13,8 +13,60 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class PreparedStatementWrapper implements PreparedStatement {
 
+    // TODO Blobs byte[], tiemstampt, time
     @Delegate
     private final PreparedStatement st;
+
+
+    public void set(int index, Object o) {
+        if (o == null) {
+            try {
+                st.setNull(index, Types.NULL); // TODO check if this works fine
+            } catch (SQLException e) {
+                throw new JdbcException("can not set value: " + o, e);
+            }
+        } else {
+            if (o.getClass().equals(BigDecimal.class)) {
+                set(index, (BigDecimal) o);
+            } else if (o.getClass().equals(BigInteger.class)) {
+                set(index, (BigInteger) o);
+            } else if (o.getClass().equals(Boolean.class)) {
+                set(index, (Boolean) o);
+            } else if (o.getClass().equals(Byte.class)) {
+                set(index, (Byte) o);
+            } else if (o.getClass().equals(Character.class)) {
+                set(index, (Character) o);
+            } else if (o.getClass().equals(Date.class)) {
+                set(index, (Date) o);
+            } else if (o.getClass().equals(Double.class)) {
+                set(index, (Double) o);
+            } else if (o.getClass().equals(Float.class)) {
+                set(index, (Float) o);
+            } else if (o.getClass().equals(Integer.class)) {
+                set(index, (Integer) o);
+            } else if (o.getClass().equals(java.sql.Date.class)) {
+                set(index, (java.sql.Date) o);
+            } else if (o.getClass().equals(LocalDate.class)) {
+                set(index, (LocalDate) o);
+            } else if (o.getClass().equals(LocalDateTime.class)) {
+                set(index, (LocalDateTime) o);
+            } else if (o.getClass().equals(Long.class)) {
+                set(index, (Long) o);
+            } else if (o.getClass().equals(OffsetDateTime.class)) {
+                set(index, (OffsetDateTime) o);
+            } else if (o.getClass().equals(OffsetTime.class)) {
+                set(index, (OffsetTime) o);
+            } else if (o.getClass().equals(Short.class)) {
+                set(index, (Short) o);
+            } else if (o.getClass().equals(ZonedDateTime.class)) {
+                set(index, (ZonedDateTime) o);
+            } else if (o.getClass().equals(BigDecimal.class)) {
+                set(index, (BigDecimal) o);
+            }
+        }
+
+    }
+
 
     public void set(int index, int value) {
         try {
@@ -178,7 +230,11 @@ public class PreparedStatementWrapper implements PreparedStatement {
 
     public void set(int index, BigInteger value) {
         try { // TODO check if this really works fine
-            st.setObject(index, value, Types.BIGINT);
+            if (value == null) {
+                st.setNull(index, Types.BIGINT);
+            } else {
+                st.setObject(index, value, Types.BIGINT);
+            }
         } catch (SQLException e) {
             throw new JdbcException("can not set value: " + value, e);
         }
@@ -186,7 +242,11 @@ public class PreparedStatementWrapper implements PreparedStatement {
 
     public void set(int index, BigDecimal value) {
         try {
-            st.setBigDecimal(index, value);
+            if (value == null) {
+                st.setNull(index, Types.DECIMAL);
+            } else {
+                st.setBigDecimal(index, value);
+            }
         } catch (SQLException e) {
             throw new JdbcException("can not set value: " + value, e);
         }
@@ -206,7 +266,11 @@ public class PreparedStatementWrapper implements PreparedStatement {
 
     public void set(int index, java.sql.Date value) {
         try {
-            st.setDate(index, value);
+            if (value == null) {
+                st.setNull(index, Types.DATE);
+            } else {
+                st.setDate(index, value);
+            }
         } catch (SQLException e) {
             throw new JdbcException("can not set value: " + value, e);
         }
@@ -228,8 +292,9 @@ public class PreparedStatementWrapper implements PreparedStatement {
         try {
             if (value == null) {
                 st.setNull(index, Types.TIMESTAMP);
+            } else {
+                st.setTimestamp(index, Timestamp.valueOf(value));
             }
-            st.setTimestamp(index, java.sql.Timestamp.valueOf(value));
         } catch (SQLException e) {
             throw new JdbcException("can not set value: " + value, e);
         }
@@ -239,8 +304,9 @@ public class PreparedStatementWrapper implements PreparedStatement {
         try {
             if (value == null) {
                 st.setNull(index, Types.TIME);
+            } else {
+                st.setTime(index, Time.valueOf(value.toLocalTime()));
             }
-            st.setTime(index, Time.valueOf(value.toLocalTime()));
         } catch (SQLException e) {
             throw new JdbcException("can not set value: " + value, e);
         }
@@ -251,8 +317,9 @@ public class PreparedStatementWrapper implements PreparedStatement {
         try {
             if (value == null) {
                 st.setNull(index, Types.TIME);
+            } else {
+                st.setTimestamp(index, Timestamp.valueOf(value.toLocalDateTime()));
             }
-            st.setTimestamp(index, Timestamp.valueOf(value.toLocalDateTime()));
         } catch (SQLException e) {
             throw new JdbcException("can not set value: " + value, e);
         }
@@ -263,8 +330,57 @@ public class PreparedStatementWrapper implements PreparedStatement {
         try {
             if (value == null) {
                 st.setNull(index, Types.TIME);
+            } else {
+                st.setTimestamp(index, Timestamp.valueOf(value.toLocalDateTime()));
             }
-            st.setTimestamp(index, Timestamp.valueOf(value.toLocalDateTime()));
+        } catch (SQLException e) {
+            throw new JdbcException("can not set value: " + value, e);
+        }
+    }
+
+    public void set(int index, byte[] value) {
+        try {
+            if (value == null) {
+                st.setNull(index, Types.BLOB);
+            } else {
+                st.setBytes(index, value);
+            }
+        } catch (SQLException e) {
+            throw new JdbcException("can not set value: " + value, e);
+        }
+    }
+
+    public void set(int index, Timestamp value) {
+        try {
+            if (value == null) {
+                st.setNull(index, Types.BLOB);
+            } else {
+                st.setTimestamp(index, value);
+            }
+        } catch (SQLException e) {
+            throw new JdbcException("can not set value: " + value, e);
+        }
+    }
+
+    public void set(int index, Time value) {
+        try {
+            if (value == null) {
+                st.setNull(index, Types.TIME);
+            } else {
+                st.setTime(index, value);
+            }
+        } catch (SQLException e) {
+            throw new JdbcException("can not set value: " + value, e);
+        }
+    }
+
+    public void set(int index, String value) {
+        try {
+            if (value == null) {
+                st.setNull(index, Types.VARCHAR);
+            } else {
+                st.setString(index, value);
+            }
         } catch (SQLException e) {
             throw new JdbcException("can not set value: " + value, e);
         }
