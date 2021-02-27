@@ -15,6 +15,7 @@ abstract class CrossTableAccessor<EID, FID> extends JdbcExecutor {
     private final Class<EID> entityKeyType;
     private final Class<FID> fieldKeyType;
 
+    // TODO remove-all with single statement if collection is empty
     void removeAllReferences(EID key) {
         try (PreparedStatement st = prepare(getDeleteAllReferencesSql())) {
             setEntityKey(st, 1, key);
@@ -40,6 +41,7 @@ abstract class CrossTableAccessor<EID, FID> extends JdbcExecutor {
     private void insertNewReferences(EID entityId, Collection<FID> newFieldReferences) {
         int index = 0;
         Iterator<FID> fieldIdFieldIterator = newFieldReferences.iterator();
+        // TODO replace with simple batch-insert
         try (PreparedStatement st = prepare(getInsertReferencesSql20())) {
             setEntityKey(st, ++index, entityId);
             while (fieldIdFieldIterator.hasNext()) {

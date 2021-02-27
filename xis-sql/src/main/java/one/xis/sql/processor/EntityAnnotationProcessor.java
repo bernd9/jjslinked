@@ -45,8 +45,8 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
                 throw new IllegalStateException("processor does not support multiple processing-rounds");
             }
             processed = true;
-            entities.stream().map(this::createEntityModel)
-                    .forEach(this::processEntityModel);
+            Set<EntityModel> allModels = entities.stream().map(this::createEntityModel).collect(Collectors.toSet());
+            allModels.forEach(model -> processEntityModel(model, allModels));
         }
         return true;
     }
@@ -64,13 +64,19 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
         return new EntityModel(entityType, processingEnv.getTypeUtils());
     }
 
-    private void processEntityModel(EntityModel entityModel) {
-        writeEntityProxy(entityModel);
-        writeEntityTableAccessor(entityModel);
-        writeRepositoryImpl(entityModel);
+    private void processEntityModel(EntityModel entityModel, Set<EntityModel> allModels) {
+        try {
+            writeEntityProxy(entityModel, allModels);
+            writeEntityStatements(entityModel);
+            writeEntityTableAccessor(entityModel, allModels);
+            writeRepositoryImpl(entityModel, allModels);
+        } catch (ModelValidationException | IOException e) {
+            ProcessorLogger.reportError(this, processingEnv, e);
+        }
+
     }
 
-    private void writeEntityProxy(EntityModel entityModel) {
+    private void writeEntityProxy(EntityModel entityModel, Set<EntityModel> allModels) {
         EntityProxyModel model = new EntityProxyModel(entityModel);
         EntityProxyWriter writer = new EntityProxyWriter(model, processingEnv);
         try {
@@ -80,18 +86,21 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
         }
     }
 
-    private void writeEntityTableAccessor(EntityModel entityModel) {
-        EntityTableAccessorModel model = new EntityTableAccessorModel(entityModel);
-        EntityTableAccessorWriter writer = new EntityTableAccessorWriter(model, processingEnv);
-        try {
-            writer.write();
-        } catch (IOException e) {
-            ProcessorLogger.reportError(this, processingEnv, e);
-        }
+    private void writeEntityStatements(EntityModel entityModel) throws ModelValidationException, IOException {
+        EntityStatementsModel model = new EntityStatementsModel(entityModel, processingEnv);
+        new EntityStatementsValidator(model).validate();
+        new EntityStatementsWriter(model, processingEnv).write();
     }
 
 
-    private void writeRepositoryImpl(EntityModel entityModel) {
+    private void writeEntityTableAccessor(EntityModel entityModel, Set<EntityModel> allModels) throws ModelValidationException, IOException {
+        EntityTableAccessorModel model = new EntityTableAccessorModel(entityModel);
+        new EntityTableAccessorModelValidator(model, allModels).validate();
+        new EntityTableAccessorWriter(model, processingEnv).write();
+    }
+
+
+    private void writeRepositoryImpl(EntityModel entityModel, Set<EntityModel> allModels) {
 
     }
 

@@ -1,13 +1,18 @@
 package one.xis.sql.api;
 
+/**
+ * Do not add Getters or Setter here. This might lead to conflict
+ * with methods of the entity.
+ */
 public interface EntityProxy<E, EID> {
+
     EID pk();
 
-    E getEntity();
+    E entity();
 
-    boolean isDirty();
+    boolean dirty();
 
-    void setClean();
+    void clean();
 
-    void setPkPrivileged(EID id);
+    void pk(EID id);
 }

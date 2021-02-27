@@ -1,6 +1,7 @@
 package one.xis.sql.processor;
 
 import com.google.testing.compile.Compilation;
+import com.google.testing.compile.CompilationSubject;
 import com.google.testing.compile.Compiler;
 import com.google.testing.compile.JavaFileObjects;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,24 +15,26 @@ import java.io.StringWriter;
 
 import static com.google.testing.compile.Compiler.javac;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class EntityAnnotationProcessorTest {
 
     private Compiler compiler;
     private JavaFileObject entity;
+    private Compilation compilation;
 
     @BeforeEach
     void init() {
         compiler = javac().withProcessors(new EntityAnnotationProcessor());
         entity = JavaFileObjects.forResource("one/xis/sql/processor/Customer.java");
+
+        compilation = compiler.compile(entity);
+        assertThat(compilation.status()).isEqualTo(Compilation.Status.SUCCESS);
     }
 
     @Test
-    void test() {
-        Compilation compilation = compiler.compile(entity);
-        assertThat(compilation.status()).isEqualTo(Compilation.Status.SUCCESS);
-        assertEquals(1, compilation.generatedSourceFiles().size());
+    void entityStatements() {
+        CompilationSubject.assertThat(compilation).generatedSourceFile("one.xis.sql.processor.CustomerStatements")
+                .hasSourceEquivalentTo(JavaFileObjects.forResource("one/xis/sql/processor/CustomerStatements.java"));
     }
 
     public String getSource(JavaFileObject fileObject) {

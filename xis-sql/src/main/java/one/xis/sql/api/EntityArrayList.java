@@ -12,8 +12,9 @@ import java.util.function.UnaryOperator;
 @Getter
 public class EntityArrayList<E> extends ArrayList<E> implements EntityCollection<E> {
 
-    protected final List<E> deletedValues = new ArrayList<>();
-    protected final List<E> newValues = new ArrayList<>();
+    private final List<E> deletedValues = new ArrayList<>();
+    private final List<E> newValues = new ArrayList<>();
+    private final List<E> updateValues = new ArrayList<>();
     private boolean dirty;
 
     EntityArrayList(int initialCapacity) {

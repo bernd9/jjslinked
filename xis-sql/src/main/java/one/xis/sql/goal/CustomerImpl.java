@@ -21,20 +21,25 @@ public class CustomerImpl extends Customer implements EntityProxy<Customer, Long
     }
 
     @Override
-    public boolean isDirty() {
+    public Customer entity() {
+        return null;
+    }
+
+    @Override
+    public boolean dirty() {
         return false;
     }
 
     @Override
-    public void setClean() {
+    public void clean() {
 
     }
 
     @Override
-    public void setPkPrivileged(Long o) {
+    public void pk(Long o) {
 
     }
-    
+
     @Override
     public Address getAddress() {
         Address value = entity.getAddress();

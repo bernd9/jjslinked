@@ -23,12 +23,12 @@ import java.util.stream.Collectors;
 class EntityModel {
 
     private final TypeElement type;
-    private final SimpleFieldModel idField;
+    private final SimpleEntityFieldModel idField;
     private final Set<CrossTableFieldModel> crossTableFields;
     private final Set<ForeignKeyFieldModel> foreignKeyFields;
     private final Set<ReferredFieldModel> referredFields;
     private final Set<CollectionTableFieldModel> collectionTableFields;
-    private final Map<String, SimpleFieldModel> nonComplexFields;
+    private final Map<String, SimpleEntityFieldModel> nonComplexFields;
     private final Set<JsonFieldModel> jsonFields;
 
     private final String tableName;
@@ -57,7 +57,7 @@ class EntityModel {
                 .collect(Collectors.toSet());
     }
 
-    private SimpleFieldModel idField(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
+    private SimpleEntityFieldModel idField(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
         return fields.stream()
                 .filter(field -> field.getAnnotation(Id.class) != null)
                 .map(field -> new EntityFieldModel(this, field, gettersAndSetters))
@@ -71,12 +71,12 @@ class EntityModel {
                 .collect(Collectors.toSet());
     }
 
-    private Map<String, SimpleFieldModel> nonComplexFields(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
+    private Map<String, SimpleEntityFieldModel> nonComplexFields(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
         return fields.stream()
                 .filter(field -> JavaModelUtils.isNonComplex(field.asType()))
                 .filter(field -> !JavaModelUtils.isCollection(field))
                 .filter(field -> field.getAnnotation(Json.class) == null)
-                .map(field -> new SimpleFieldModel(this, field, gettersAndSetters))
+                .map(field -> new SimpleEntityFieldModel(this, field, gettersAndSetters))
                 .collect(Collectors.toUnmodifiableMap(field -> field.getFieldName().toString(), Function.identity()));
     }
 
@@ -150,8 +150,8 @@ class EntityModel {
         return StringUtils.firstToLowerCase(getType().getSimpleName().toString()) + "Impl";
     }
 
-    public Collection<? extends SimpleFieldModel> getAllFields() {
-        Set<SimpleFieldModel> set = new HashSet<>();
+    public Collection<? extends SimpleEntityFieldModel> getAllFields() {
+        Set<SimpleEntityFieldModel> set = new HashSet<>();
         set.addAll(nonComplexFields.values()); // contains @Id field
         set.addAll(foreignKeyFields);
         set.addAll(referredFields);
