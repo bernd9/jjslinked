@@ -2,11 +2,22 @@ package one.xis.sql.api;
 
 import lombok.experimental.UtilityClass;
 
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
 @UtilityClass
 public class NonComplexMapper {
-    // TODO move to util class
+
+    // TODO use reflection getmethod to check if conversio can be done
+    public byte toByte(String v) {
+        if (v == null) throw new FailedConversionException(null, byte.class);
+        byte[] bytes = v.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length > 1 ) {
+            throw new FailedConversionException(v,  byte.class);
+        }
+        return bytes[0];
+    }
+
     public byte toByte(byte v) {
         return v;
     }
@@ -22,12 +33,15 @@ public class NonComplexMapper {
     public byte toByte(long v) {
         return toByte(Long.toString(v));
     }
+
     public byte toByte(float v) {
         return toByte(Float.toString(v));
     }
+
     public byte toByte(double v) {
         return toByte(Double.toString(v));
     }
+
     public byte toByte(char v) {
         return toByte(Integer.toString(v));
     }
@@ -63,16 +77,6 @@ public class NonComplexMapper {
         if (v == null) throw new FailedConversionException(null, byte.class);
         return toByte(Integer.toString(v));
     }
-
-    public byte toByte(String v) {
-        if (v == null) throw new FailedConversionException(null, byte.class);
-        byte[] bytes = v.getBytes(StandardCharsets.UTF_8);
-        if (bytes.length > 1 ) {
-            throw new FailedConversionException(v,  byte.class);
-        }
-        return bytes[0];
-    }
-
 
     public Byte toByteObj(byte v) {
         return v;
@@ -125,10 +129,16 @@ public class NonComplexMapper {
         if (v == null) return null;
         return toByte(Double.toString(v));
     }
+
     public Byte toByteObj(Character v) {
         if (v == null) return null;
         return toByte(Integer.toString(v));
     }
 
- 
+    public Byte toByteObj(BigInteger v) {
+        if (v == null) return null;
+        return toByte(v.toString());
+    }
+
+
 }
