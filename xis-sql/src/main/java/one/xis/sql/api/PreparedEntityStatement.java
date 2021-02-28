@@ -11,12 +11,11 @@ import java.time.*;
 import java.util.Date;
 
 @RequiredArgsConstructor
-public class PreparedStatementWrapper implements PreparedStatement {
+public class PreparedEntityStatement implements PreparedStatement {
 
     // TODO Blobs byte[], tiemstampt, time
-    @Delegate
+    @Delegate(types = {PreparedStatement.class, Wrapper.class})
     private final PreparedStatement st;
-
 
     public void set(int index, Object o) {
         if (o == null) {
@@ -385,5 +384,6 @@ public class PreparedStatementWrapper implements PreparedStatement {
             throw new JdbcException("can not set value: " + value, e);
         }
     }
+
 
 }

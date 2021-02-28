@@ -64,10 +64,6 @@ class EntityStatementsModel implements Comparator<FieldModel> {
         return fieldModels;
     }
 
-    int getInsertSqlFieldCount() {
-        return getInsertSqlFields().size();
-    }
-
     /*
     String getInsertSqlSetParameterMethod(int index) {
         FieldModel fieldModel = getInsertSqlFields().get(index - 1);
@@ -136,8 +132,9 @@ class EntityStatementsModel implements Comparator<FieldModel> {
         }
         return update
                 .append(" WHERE ")
+                .append("`")
                 .append(getPkColumnName())
-                .append("` ")
+                .append("`")
                 .append("=?")
                 .toString();
 
@@ -150,23 +147,23 @@ class EntityStatementsModel implements Comparator<FieldModel> {
         return fieldModels;
     }
 
-    String getDeleteByIdSql() {
+    String getDeleteSql() {
         return new StringBuilder()
-                .append("DELETE FROM `")
+                .append("DELETE FROM ")
                 .append("`")
                 .append(entityModel.getTableName())
                 .append("`")
                 .append(" WHERE ")
                 .append("`")
                 .append(getPkColumnName())
-                .append("` ")
+                .append("`")
                 .append("=?")
                 .toString();
     }
 
     String getDeleteAllSql() {
         return new StringBuilder()
-                .append("DELETE FROM `")
+                .append("DELETE FROM ")
                 .append("`")
                 .append(entityModel.getTableName())
                 .append("`")
@@ -176,7 +173,7 @@ class EntityStatementsModel implements Comparator<FieldModel> {
     String getSelectByIdSql() {
         List<FieldModel> fieldModels = getSelectByIdSqlFields();
         return new StringBuilder()
-                .append("SELECT  ")
+                .append("SELECT ")
                 .append(columnList(fieldModels))
                 .append(" FROM ")
                 .append("`")
@@ -185,22 +182,22 @@ class EntityStatementsModel implements Comparator<FieldModel> {
                 .append(" WHERE ")
                 .append("`")
                 .append(getPkColumnName())
-                .append("` ")
+                .append("`")
                 .append("=?")
                 .toString();
     }
 
     List<FieldModel> getSelectByIdSqlFields() {
         List<FieldModel> fieldModels = new ArrayList<>();
-        fieldModels.addAll(nonPkColumnFields);
         fieldModels.add(entityModel.getIdField());
+        fieldModels.addAll(nonPkColumnFields);
         return fieldModels;
     }
 
     String getSelectAllSql() {
         List<FieldModel> fieldModels = getSelectByIdSqlFields();
         return new StringBuilder()
-                .append("SELECT  ")
+                .append("SELECT ")
                 .append(columnList(fieldModels))
                 .append(" FROM ")
                 .append("`")
@@ -208,15 +205,7 @@ class EntityStatementsModel implements Comparator<FieldModel> {
                 .append("`")
                 .toString();
     }
-
-    List<FieldModel> getSelectAllSqlFields() {
-        List<FieldModel> fieldModels = new ArrayList<>();
-        fieldModels.add(entityModel.getIdField());
-        fieldModels.addAll(nonPkColumnFields);
-        return fieldModels;
-    }
-
-
+    
     private String columnList(List<FieldModel> fieldModels) {
         return fieldModels.stream()
                 .map(FieldModel::getColumnName)

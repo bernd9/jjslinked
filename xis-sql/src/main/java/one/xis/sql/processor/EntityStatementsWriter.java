@@ -1,13 +1,14 @@
 package one.xis.sql.processor;
 
+import com.ejc.util.FieldUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.api.EntityStatements;
+import one.xis.sql.api.PreparedEntityStatement;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
-import java.sql.PreparedStatement;
 
 @RequiredArgsConstructor
 class EntityStatementsWriter {
@@ -37,26 +38,84 @@ class EntityStatementsWriter {
 
     private void implementMethods(TypeSpec.Builder builder) {
         builder.addMethod(implementGetInsertSql());
-        //builder.addMethod(implementSetInsertSqlParameters());
+        builder.addMethod(implementGetSelectByIdSql());
+        builder.addMethod(implementGetUpdateSql());
+        builder.addMethod(implementGetDeleteSql());
+        builder.addMethod(implementGetSelectAllSql());
+        builder.addMethod(implementGetDeleteAllSql());
+        builder.addMethod(implementSetInsertSqlParameters());
+        builder.addMethod(implementSetUpdateSqlParameters());
     }
 
     private MethodSpec implementGetInsertSql() {
-        return MethodSpec.methodBuilder("getInsertSql")
+        return implementSimpleStringGetter("getInsertSql", statementsModel.getInsertSql());
+    }
+
+    private MethodSpec implementGetSelectByIdSql() {
+        return implementSimpleStringGetter("getSelectByIdSql", statementsModel.getSelectByIdSql());
+    }
+
+    private MethodSpec implementGetUpdateSql() {
+        return implementSimpleStringGetter("getUpdateSql", statementsModel.getUpdateSql());
+    }
+
+    private MethodSpec implementGetDeleteSql() {
+        return implementSimpleStringGetter("getDeleteSql", statementsModel.getDeleteSql());
+    }
+
+    private MethodSpec implementGetSelectAllSql() {
+        return implementSimpleStringGetter("getSelectAllSql", statementsModel.getSelectAllSql());
+    }
+
+    private MethodSpec implementGetDeleteAllSql() {
+        return implementSimpleStringGetter("getDeleteAllSql", statementsModel.getDeleteAllSql());
+    }
+
+
+    private MethodSpec implementSimpleStringGetter(String methodName, String returnValue) {
+        return MethodSpec.methodBuilder(methodName)
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
                 .returns(TypeName.get(String.class))
-                .addStatement("return \"$L\"", statementsModel.getInsertSql())
+                .addStatement("return \"$L\"", returnValue)
                 .build();
     }
-
 
     private MethodSpec implementSetInsertSqlParameters() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("setInsertSqlParameters")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addParameter(ParameterSpec.builder(TypeName.get(PreparedStatement.class), "st").build())
+                .addParameter(ParameterSpec.builder(TypeName.get(PreparedEntityStatement.class), "st").build())
                 .addParameter(ParameterSpec.builder(TypeName.get(statementsModel.getEntityModel().getType().asType()), "entity").build());
+        int paramIndex = 1;
+        for (FieldModel fieldModel : statementsModel.getInsertSqlFields()) {
+            if (fieldModel.getGetter().isPresent()) {
+                builder.addStatement("st.set($L, entity.$L())", paramIndex++, fieldModel.getGetter().get().getSimpleName());
+            } else {
+                // TODO test for this case
+                builder.addStatement("st.set($L, ($T)$T.getFieldValue(entity, \"$L\"))", paramIndex++, fieldModel.getFieldType(), FieldUtils.class, fieldModel.getFieldName());
+            }
 
+        }
+        return builder.build();
+    }
+
+    private MethodSpec implementSetUpdateSqlParameters() {
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("setUpdateSqlParameters")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .addParameter(ParameterSpec.builder(TypeName.get(PreparedEntityStatement.class), "st").build())
+                .addParameter(ParameterSpec.builder(TypeName.get(statementsModel.getEntityModel().getType().asType()), "entity").build());
+        int paramIndex = 1;
+        for (FieldModel fieldModel : statementsModel.getUpdateSqlFields()) {
+            if (fieldModel.getGetter().isPresent()) {
+                builder.addStatement("st.set($L, entity.$L())", paramIndex++, fieldModel.getGetter().get().getSimpleName());
+            } else {
+                // TODO test for this case
+                builder.addStatement("st.set($L, ($T)$T.getFieldValue(entity, \"$L\"))", paramIndex++, fieldModel.getFieldType(), FieldUtils.class, fieldModel.getFieldName());
+            }
+
+        }
         return builder.build();
     }
 
