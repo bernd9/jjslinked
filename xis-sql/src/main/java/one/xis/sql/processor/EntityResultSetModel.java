@@ -22,4 +22,5 @@ class EntityResultSetModel {
     static String getSimpleName(EntityModel entityModel) {
         return EntityProxyModel.getEntityProxySimpleName(entityModel);
     }
+
 }
