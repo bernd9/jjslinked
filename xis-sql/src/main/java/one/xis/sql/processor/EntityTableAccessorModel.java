@@ -10,16 +10,18 @@ class EntityTableAccessorModel {
     private final EntityModel entityModel;
 
     String getEntityTableAccessorSimpleName() {
-        return entityModel.getSimpleName() + "TableAccessor";
+        return getEntityTableAccessorSimpleName(entityModel);
     }
 
     String getEntityTableAccessorPackageName() {
         return entityModel.getPackageName();
     }
 
+    static String getEntityTableAccessorSimpleName(EntityModel entityModel) {
+        return entityModel.getSimpleName() + "TableAccessor";
+    }
+    
     String getEntityProxySimpleName() {
         return EntityProxyModel.getEntityProxySimpleName(entityModel);
     }
-
-
 }

@@ -68,6 +68,7 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
         try {
             writeEntityProxy(entityModel, allModels);
             writeEntityStatements(entityModel);
+            writeEntityResultSet(entityModel);
             writeEntityTableAccessor(entityModel, allModels);
             writeRepositoryImpl(entityModel, allModels);
         } catch (ModelValidationException | IOException e) {
@@ -77,7 +78,7 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
     }
 
     private void writeEntityProxy(EntityModel entityModel, Set<EntityModel> allModels) {
-        EntityProxyModel model = new EntityProxyModel(entityModel);
+        EntityProxyModel model = new EntityProxyModel(entityModel); // TODO Validation
         EntityProxyWriter writer = new EntityProxyWriter(model, processingEnv);
         try {
             writer.write();
@@ -93,6 +94,12 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
     }
 
 
+    private void writeEntityResultSet(EntityModel entityModel) throws ModelValidationException, IOException {
+        EntityResultSetModel model = new EntityResultSetModel(entityModel, processingEnv);
+        new EntityResultSetValidator(model).validate();
+        new EntityResultSetWriter(model, processingEnv).write();
+    }
+    
     private void writeEntityTableAccessor(EntityModel entityModel, Set<EntityModel> allModels) throws ModelValidationException, IOException {
         EntityTableAccessorModel model = new EntityTableAccessorModel(entityModel);
         new EntityTableAccessorModelValidator(model, allModels).validate();
