@@ -3,7 +3,6 @@ package one.xis.sql.api;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,49 +20,49 @@ public abstract class EntityResultSet<E> implements ResultSet {
 
     public abstract E getEntity() throws SQLException;
 
-    char getChar(int columnIndex) throws SQLException{
-        String s = getString(columnIndex);
+    char getChar(String columnName) throws SQLException{
+        String s = getString(columnName);
         if (s == null || s.length() > 1) {
             throw new FailedConversionException(s, char.class);
         }
         return s.toCharArray()[0];
     }
 
-    Boolean getBooleanObject(int columnIndex) throws SQLException{
-        return getObject(columnIndex) == null ? null : getBoolean(columnIndex);
+    Boolean getBooleanObject(String columnName) throws SQLException{
+        return getObject(columnName) == null ? null : getBoolean(columnName);
     }
 
-    Character getCharacter(int columnIndex) throws SQLException{
-        return getObject(columnIndex) == null ? null : getChar(columnIndex);
+    Character getCharacter(String columnName) throws SQLException{
+        return getObject(columnName) == null ? null : getChar(columnName);
     }
 
-    Byte getByteObject(int columnIndex) throws SQLException{
-        return getObject(columnIndex) == null ? null : getByte(columnIndex);
+    Byte getByteObject(String columnName) throws SQLException{
+        return getObject(columnName) == null ? null : getByte(columnName);
     }
 
-    Short getShortObject(int columnIndex)  throws SQLException{
-        return getObject(columnIndex) == null ? null : getShort(columnIndex);
+    Short getShortObject(String columnName)  throws SQLException{
+        return getObject(columnName) == null ? null : getShort(columnName);
     }
 
-    Integer getInteger(int columnIndex)  throws SQLException{
-        return getObject(columnIndex) == null ? null : getInt(columnIndex);
+    Integer getInteger(String columnName)  throws SQLException{
+        return getObject(columnName) == null ? null : getInt(columnName);
     }
 
-    Float getFloatObject(int columnIndex)  throws SQLException{
-        return getObject(columnIndex) == null ? null : getFloat(columnIndex);
+    Float getFloatObject(String columnName)  throws SQLException{
+        return getObject(columnName) == null ? null : getFloat(columnName);
     }
 
-    Double getDoubleObject(int columnIndex)  throws SQLException {
-        return getObject(columnIndex) == null ? null : getDouble(columnIndex);
+    Double getDoubleObject(String columnName)  throws SQLException {
+        return getObject(columnName) == null ? null : getDouble(columnName);
     }
 
-    BigInteger getBigInteger(int columnIndex) throws SQLException {
-        return new BigInteger(getString(columnIndex)); // TODO does it work ?
+    BigInteger getBigInteger(String columnName) throws SQLException {
+        return new BigInteger(getString(columnName)); // TODO does it work ?
     }
 
 
-    LocalDate getLocalDate(int columnIndex) throws SQLException {
-        Date date =  getDate(columnIndex);
+    LocalDate getLocalDate(String columnName) throws SQLException {
+        Date date =  getDate(columnName);
         if (date == null) return null;
         return Instant.ofEpochMilli(date.getTime())
                 .atZone(ZoneId.systemDefault())

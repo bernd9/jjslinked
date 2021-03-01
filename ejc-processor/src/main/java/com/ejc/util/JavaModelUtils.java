@@ -269,6 +269,10 @@ public class JavaModelUtils {
         return getSimpleName(qualifiedName.toString().replaceAll("<.*>$", ""));
     }
 
+    public static String getSimpleName(TypeMirror typeMirror) {
+        return getSimpleName(typeMirror.toString().replaceAll("<.*>$", ""));
+    }
+
 
     public static String getPackageName(TypeElement e) {
         return getPackageName(e.getQualifiedName());

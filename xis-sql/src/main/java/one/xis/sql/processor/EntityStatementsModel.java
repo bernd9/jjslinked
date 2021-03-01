@@ -18,7 +18,7 @@ class EntityStatementsModel implements Comparator<FieldModel> {
         this.entityModel = entityModel;
         this.processingEnvironment = processingEnvironment;
         nonPkColumnFields = new TreeSet<>(this);
-        nonPkColumnFields.addAll(entityModel.getNonComplexFields().values());
+        nonPkColumnFields.addAll(entityModel.getNonComplexFields());
         nonPkColumnFields.addAll(entityModel.getForeignKeyFields());
         nonPkColumnFields.addAll(entityModel.getJsonFields());
         nonPkColumnFields.remove(entityModel.getIdField());

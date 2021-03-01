@@ -28,7 +28,7 @@ class EntityModel {
     private final Set<ForeignKeyFieldModel> foreignKeyFields;
     private final Set<ReferredFieldModel> referredFields;
     private final Set<CollectionTableFieldModel> collectionTableFields;
-    private final Map<String, SimpleEntityFieldModel> nonComplexFields;
+    private final Set<SimpleEntityFieldModel> nonComplexFields;
     private final Set<JsonFieldModel> jsonFields;
 
     private final String tableName;
@@ -71,13 +71,13 @@ class EntityModel {
                 .collect(Collectors.toSet());
     }
 
-    private Map<String, SimpleEntityFieldModel> nonComplexFields(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
+    private Set<SimpleEntityFieldModel> nonComplexFields(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
         return fields.stream()
                 .filter(field -> JavaModelUtils.isNonComplex(field.asType()))
                 .filter(field -> !JavaModelUtils.isCollection(field))
                 .filter(field -> field.getAnnotation(Json.class) == null)
                 .map(field -> new SimpleEntityFieldModel(this, field, gettersAndSetters))
-                .collect(Collectors.toUnmodifiableMap(field -> field.getFieldName().toString(), Function.identity()));
+                .collect(Collectors.toSet());
     }
 
     private Set<ForeignKeyFieldModel> foreignKeyFields(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
@@ -152,7 +152,7 @@ class EntityModel {
 
     public Collection<? extends SimpleEntityFieldModel> getAllFields() {
         Set<SimpleEntityFieldModel> set = new HashSet<>();
-        set.addAll(nonComplexFields.values()); // contains @Id field
+        set.addAll(nonComplexFields); // contains @Id field
         set.addAll(foreignKeyFields);
         set.addAll(referredFields);
         set.addAll(crossTableFields);
