@@ -81,13 +81,9 @@ public class EntityResultSetWriter {
 
     private String getResultGetter(FieldModel fieldModel) {
         String simpleName = JavaModelUtils.getSimpleName(fieldModel.getField().asType());
-        String name = String.format("get%s", StringUtils.firstToUpperCase(simpleName));
+        String name = String.format("get_%s", StringUtils.firstToUpperCase(simpleName));
         if (EntityResultSetModel.getResultGetters().contains(name)) {
           return name;
-        }
-        name = String.format("get%sObject", StringUtils.firstToUpperCase(simpleName));
-        if (EntityResultSetModel.getResultGetters().contains(name)) {
-            return name;
         }
        throw new IllegalStateException("should be caught in validation"); // TODO
     }

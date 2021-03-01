@@ -34,7 +34,7 @@ class EntityResultSetModel {
         return Arrays.stream(resultSetClass.getDeclaredMethods())
                 .filter(m -> m.getParameters().length == 1)
                 .filter(m -> m.getParameters()[0].getType() == String.class)
-                .filter(m -> m.getName().matches("get.*(Object)?"))
+                .filter(m -> m.getName().matches("get_.*"))
                 .map(Method::getName)
                 .collect(Collectors.toSet());
     }

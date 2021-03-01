@@ -13,9 +13,9 @@ public class CustomerResultSet extends EntityResultSet<Customer> {
     @Override
     public Customer getEntity() throws SQLException {
         Customer entity = new Customer();
-        entity.setFirstName(getString("first_name"));
-        entity.setId(getLong("id"));
-        entity.setLastName(getString("last_name"));
+        entity.setFirstName(get_String("first_name"));
+        entity.setId(get_Long("id"));
+        entity.setLastName(get_String("last_name"));
         return entity;
     }
 

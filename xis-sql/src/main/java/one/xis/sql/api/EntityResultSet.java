@@ -20,7 +20,11 @@ public abstract class EntityResultSet<E> implements ResultSet {
 
     public abstract E getEntity() throws SQLException;
 
-    char getChar(String columnName) throws SQLException{
+    protected String get_String(String columnName) throws SQLException {
+        return getString(columnName);
+    }
+
+    protected char get_char(String columnName) throws SQLException{
         String s = getString(columnName);
         if (s == null || s.length() > 1) {
             throw new FailedConversionException(s, char.class);
@@ -28,40 +32,72 @@ public abstract class EntityResultSet<E> implements ResultSet {
         return s.toCharArray()[0];
     }
 
-    Boolean getBooleanObject(String columnName) throws SQLException{
+    protected Boolean get_Boolean(String columnName) throws SQLException{
         return getObject(columnName) == null ? null : getBoolean(columnName);
     }
 
-    Character getCharacter(String columnName) throws SQLException{
-        return getObject(columnName) == null ? null : getChar(columnName);
+    protected boolean get_boolean(String columnName) throws SQLException{
+        return getObject(columnName) == null ? null : getBoolean(columnName);
     }
 
-    Byte getByteObject(String columnName) throws SQLException{
+
+    protected Character get_Character(String columnName) throws SQLException{
+        return getObject(columnName) == null ? null : get_char(columnName);
+    }
+
+    protected Byte get_Byte(String columnName) throws SQLException{
         return getObject(columnName) == null ? null : getByte(columnName);
     }
 
-    Short getShortObject(String columnName)  throws SQLException{
+    protected byte get_byte(String columnName) throws SQLException{
+        return getByte(columnName);
+    }
+
+    protected  Short get_Short(String columnName)  throws SQLException{
         return getObject(columnName) == null ? null : getShort(columnName);
     }
 
-    Integer getInteger(String columnName)  throws SQLException{
+    protected short get_short(String columnName)  throws SQLException{
+        return getShort(columnName);
+    }
+
+    protected Integer get_Integer(String columnName)  throws SQLException{
         return getObject(columnName) == null ? null : getInt(columnName);
     }
 
-    Float getFloatObject(String columnName)  throws SQLException{
+
+    protected long get_long(String columnName)  throws SQLException{
+        return getLong(columnName);
+    }
+
+    protected Long get_Long(String columnName)  throws SQLException{
+        return getObject(columnName) == null ? null : getLong(columnName);
+    }
+
+
+
+    protected Float get_Float(String columnName)  throws SQLException{
         return getObject(columnName) == null ? null : getFloat(columnName);
     }
 
-    Double getDoubleObject(String columnName)  throws SQLException {
+    protected float get_float(String columnName)  throws SQLException{
+        return getFloat(columnName);
+    }
+
+    protected Double get_Double(String columnName)  throws SQLException {
         return getObject(columnName) == null ? null : getDouble(columnName);
     }
 
-    BigInteger getBigInteger(String columnName) throws SQLException {
+    protected double get_double(String columnName)  throws SQLException {
+        return getDouble(columnName);
+    }
+
+    protected BigInteger get_BigInteger(String columnName) throws SQLException {
         return new BigInteger(getString(columnName)); // TODO does it work ?
     }
 
 
-    LocalDate getLocalDate(String columnName) throws SQLException {
+    protected LocalDate get_LocalDate(String columnName) throws SQLException {
         Date date =  getDate(columnName);
         if (date == null) return null;
         return Instant.ofEpochMilli(date.getTime())
