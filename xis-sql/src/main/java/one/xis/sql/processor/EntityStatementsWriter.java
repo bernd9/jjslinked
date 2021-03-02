@@ -2,13 +2,17 @@ package one.xis.sql.processor;
 
 import com.ejc.util.FieldUtils;
 import com.squareup.javapoet.*;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.api.EntityStatements;
 import one.xis.sql.api.PreparedEntityStatement;
 
 import javax.annotation.processing.ProcessingEnvironment;
+import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
+import java.util.*;
 
 @RequiredArgsConstructor
 class EntityStatementsWriter {
@@ -82,50 +86,42 @@ class EntityStatementsWriter {
     }
 
     private MethodSpec implementSetInsertSqlParameters() {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("setInsertSqlParameters")
+        return MethodSpec.methodBuilder("setInsertSqlParameters")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
                 .addParameter(ParameterSpec.builder(TypeName.get(PreparedEntityStatement.class), "st").build())
-                .addParameter(ParameterSpec.builder(TypeName.get(statementsModel.getEntityModel().getType().asType()), "entity").build());
-        int paramIndex = 1;
-        for (FieldModel fieldModel : statementsModel.getInsertSqlFields()) {
-            if (fieldModel.getGetter().isPresent()) {
-                builder.addStatement("st.set($L, entity.$L())", paramIndex++, fieldModel.getGetter().get().getSimpleName());
-            } else {
-                // TODO test for this case
-                builder.addStatement("st.set($L, ($T)$T.getFieldValue(entity, \"$L\"))", paramIndex++, fieldModel.getFieldType(), FieldUtils.class, fieldModel.getFieldName());
-            }
-
-        }
-        return builder.build();
+                .addParameter(ParameterSpec.builder(TypeName.get(statementsModel.getEntityModel().getType().asType()), "entity").build())
+                .addCode(createParametersCodeBlock(statementsModel.getInsertSqlFields()).toString())
+                .build();
     }
 
     private MethodSpec implementSetUpdateSqlParameters() {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("setUpdateSqlParameters")
+        return MethodSpec.methodBuilder("setUpdateSqlParameters")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
                 .addParameter(ParameterSpec.builder(TypeName.get(PreparedEntityStatement.class), "st").build())
-                .addParameter(ParameterSpec.builder(TypeName.get(statementsModel.getEntityModel().getType().asType()), "entity").build());
-        int paramIndex = 1;
-        for (FieldModel fieldModel : statementsModel.getUpdateSqlFields()) {
-            if (fieldModel.getGetter().isPresent()) {
-                builder.addStatement("st.set($L, entity.$L())", paramIndex++, fieldModel.getGetter().get().getSimpleName());
-            } else {
-                // TODO test for this case
-                builder.addStatement("st.set($L, ($T)$T.getFieldValue(entity, \"$L\"))", paramIndex++, fieldModel.getFieldType(), FieldUtils.class, fieldModel.getFieldName());
-            }
+                .addParameter(ParameterSpec.builder(TypeName.get(statementsModel.getEntityModel().getType().asType()), "entity").build())
+                .addCode(createParametersCodeBlock(statementsModel.getUpdateSqlFields()).toString())
+                .build();
+    }
 
+    private CodeBlock createParametersCodeBlock(List<FieldModel> fieldModels) {
+        CodeBlock.Builder builder = CodeBlock.builder();
+        int paramIndex = 1;
+        for (FieldModel fieldModel : sortedByColumnName(fieldModels)) {
+            ColumnValueExtractorCodeFactory<?> extractorCodeFactory = null;
+            if (fieldModel instanceof ForeignKeyFieldModel) {
+                ForeignKeyFieldModel foreignKeyFieldModel = (ForeignKeyFieldModel) fieldModel;
+                extractorCodeFactory = new ForeignKeyColumnValueExtractorCodeFactory(foreignKeyFieldModel, "entity");
+            } else  if (fieldModel instanceof SimpleEntityFieldModel) {
+                // TODO more field types
+                SimpleEntityFieldModel simpleEntityFieldModel = (SimpleEntityFieldModel) fieldModel;
+                extractorCodeFactory = new SimpleColumnValueExtractorCodeFactory(simpleEntityFieldModel, "entity");
+            }
+            // TODO extractorCodeFactory can be null
+            builder.addStatement("st.set($L, $L)", paramIndex++, extractorCodeFactory.getExtractorCode());
         }
         return builder.build();
-    }
-
-
-    private TypeVariableName entityTypeVariableName() {
-        return TypeVariableName.get("E", TypeName.get(entityModel().getType().asType()));
-    }
-
-    private TypeVariableName entityIdTypeVariableName() {
-        return TypeVariableName.get("EID", TypeName.get(entityModel().getIdField().getFieldType()));
     }
 
     private TypeName entityTypeName() {
@@ -138,5 +134,109 @@ class EntityStatementsWriter {
 
     private EntityModel entityModel() {
         return statementsModel.getEntityModel();
+    }
+
+    /**
+     * Class for code we need to get value from entity to execute an sql-statement.
+     *
+     * @param <M>
+     */
+    @Getter
+    @RequiredArgsConstructor
+    abstract static class ColumnValueExtractorCodeFactory<M extends FieldModel> {
+        private final M model;
+        private final String entityVariableName;
+
+        abstract CodeBlock getExtractorCode();
+
+
+    }
+
+    /**
+     * Reads simple field-value (not another  entity) from entity.
+     *
+     * a.) by calling a getter
+     * b.) by accessing the field
+     */
+    static class SimpleColumnValueExtractorCodeFactory extends ColumnValueExtractorCodeFactory<SimpleEntityFieldModel> {
+
+        public SimpleColumnValueExtractorCodeFactory(SimpleEntityFieldModel model, String entityVariableName) {
+            super(model, entityVariableName);
+        }
+
+        @Override
+        CodeBlock getExtractorCode() {
+            return getModel().getGetter().map(this::getExtractorCodeGetter).orElseGet(() -> getExtractorCodeFieldAccess());
+        }
+
+        private CodeBlock getExtractorCodeFieldAccess() {
+            return CodeBlock.builder()
+                    .add("$T.getFieldValue($L, \"$L\")", FieldUtils.class, getEntityVariableName(), getModel().getFieldName())
+                    .build();
+        }
+
+        private CodeBlock getExtractorCodeGetter(ExecutableElement executableElement) {
+            return CodeBlock.builder()
+                    .add("$L.$L()", getEntityVariableName(), executableElement.getSimpleName())
+                    .build();
+        }
+    }
+
+    /**
+     * Reads values for field annotated with {@link one.xis.sql.ForeignKey}. This means getting the primary key
+     * from the file value (an entity).
+     */
+    static class ForeignKeyColumnValueExtractorCodeFactory extends ColumnValueExtractorCodeFactory<ForeignKeyFieldModel> {
+
+        public ForeignKeyColumnValueExtractorCodeFactory(ForeignKeyFieldModel model, String entityVariableName) {
+            super(model, entityVariableName);
+        }
+
+        @Override
+        CodeBlock getExtractorCode() {
+            return getModel().getGetter().map(this::getExtractorCodeGetter).orElseGet(() -> getExtractorCodeFieldAccess());
+        }
+
+        private CodeBlock getExtractorCodeFieldAccess() {
+            return new CodeBlockBuilder("pk($T.getFieldValue($L, \"$L\"), $T.class)")
+                    .withVar(FieldUtils.class)
+                    .withVar(getEntityVariableName())
+                    .withVar(getFieldEntityIdType())
+                    .build();
+        }
+
+        private CodeBlock getExtractorCodeGetter(ExecutableElement executableElement) {
+            return new CodeBlockBuilder("pk($L.$L(), $T.class)")
+                    .withVar(getEntityVariableName())
+                    .withVar(executableElement.getSimpleName())
+                    .withVar(getFieldEntityIdType())
+                    .build();
+        }
+
+        private TypeMirror getFieldEntityIdType() {
+            return getModel().getFieldEntityModel().getIdField().getFieldType();
+        }
+    }
+
+
+    @RequiredArgsConstructor
+   static  class CodeBlockBuilder {
+        private final String source;
+        private final List<Object> vars = new ArrayList<>();
+
+        CodeBlockBuilder withVar(Object var) {
+            vars.add(var);
+            return this;
+        }
+
+        CodeBlock build() {
+            return CodeBlock.builder().add(source, vars.toArray()).build();
+        }
+    }
+
+    private <T extends FieldModel> List<T> sortedByColumnName(Collection<T> values) {
+        List<T> rv = new ArrayList<>(values);
+        Collections.sort(rv, Comparator.comparing(FieldModel::getColumnName));
+        return rv;
     }
 }

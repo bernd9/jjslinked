@@ -10,13 +10,10 @@ import one.xis.sql.api.EntityResultSet;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
-import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 @RequiredArgsConstructor
@@ -62,20 +59,30 @@ public class EntityResultSetWriter {
                 .returns(entityTypeName())
                 .addException(SQLException.class)
                 .addStatement("$T entity = new $T()", entityTypeName(), entityTypeName());
-        for (SimpleEntityFieldModel fieldModel : sortedByColumnName(resultSetModel.getEntityModel().getNonComplexFields())) {
-            fieldModel.getSetter().ifPresentOrElse(setter -> addSetterExecution(setter, fieldModel, builder),
-                    () -> addSettingFieldValue(fieldModel, builder)); // TODO test for field-setter
-
-        }
+        addSettingNonComplexValuesGetEntity(builder);
+        addSettingForeignKeyEntities(builder);
         return builder.addStatement("return entity").build();
     }
 
-    private void addSetterExecution(ExecutableElement setter, FieldModel fieldModel, MethodSpec.Builder builder) {
+    private void addSettingNonComplexValuesGetEntity(MethodSpec.Builder builder) {
+        for (SimpleEntityFieldModel fieldModel : sortedByColumnName(resultSetModel.getEntityModel().getNonComplexFields())) {
+            fieldModel.getSetter().ifPresentOrElse(setter -> addNonComplexSetterExecutionGetEntity(setter, fieldModel, builder),
+                    () -> addSettingNonComplexFieldValueGetEntity(fieldModel, builder)); // TODO test for field-setter
+        }
+    }
+
+    private void addSettingForeignKeyEntities(MethodSpec.Builder builder) {
+        for (EntityFieldModel entityFieldModel : sortedByColumnName(resultSetModel.getEntityModel().getForeignKeyFields())) {
+            
+        }
+    }
+
+    private void addNonComplexSetterExecutionGetEntity(ExecutableElement setter, FieldModel fieldModel, MethodSpec.Builder builder) {
         builder.addStatement("entity.$L($L(\"$L\"))", setter.getSimpleName(), getResultGetter(fieldModel), fieldModel.getColumnName());
     }
 
-    private void addSettingFieldValue(FieldModel fieldModel, MethodSpec.Builder builder) {
-        builder.addStatement("$T.setFieldValue(entity, \"$L\", $L($L))", FieldUtils.class, fieldModel.getFieldName(),
+    private void addSettingNonComplexFieldValueGetEntity(FieldModel fieldModel, MethodSpec.Builder builder) {
+        builder.addStatement("$T.setFieldValue(entity, \"$L\", $L(\"$L\"))", FieldUtils.class, fieldModel.getFieldName(),
                 getResultGetter(fieldModel), fieldModel.getColumnName());
     }
 
@@ -84,6 +91,9 @@ public class EntityResultSetWriter {
         String name = String.format("get_%s", StringUtils.firstToUpperCase(simpleName));
         if (EntityResultSetModel.getResultGetters().contains(name)) {
           return name;
+        }
+        if (JavaModelUtils.isByteArray(fieldModel.getFieldType())) {
+            return "get_bytes"; // TODO add this to validation, too
         }
        throw new IllegalStateException("should be caught in validation"); // TODO
     }

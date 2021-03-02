@@ -16,15 +16,16 @@ import static com.google.testing.compile.Compiler.javac;
 class EntityAnnotationProcessorTest {
 
     private Compiler compiler;
-    private JavaFileObject entity;
+    private JavaFileObject customer;
+    private JavaFileObject invoiceAddress;
     private Compilation compilation;
 
     @BeforeEach
     void init() {
         compiler = javac().withProcessors(new EntityAnnotationProcessor());
-        entity = JavaFileObjects.forResource("one/xis/sql/processor/Customer.java");
-
-        compilation = compiler.compile(entity);
+        customer = JavaFileObjects.forResource("one/xis/sql/processor/Customer.java");
+        invoiceAddress = JavaFileObjects.forResource("one/xis/sql/processor/InvoiceAddress.java");
+        compilation = compiler.compile(customer, invoiceAddress);
         //assertThat(compilation.status()).isEqualTo(Compilation.Status.SUCCESS);
     }
 

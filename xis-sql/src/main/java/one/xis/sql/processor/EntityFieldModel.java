@@ -14,18 +14,6 @@ class EntityFieldModel extends SimpleEntityFieldModel {
         super(entityModel, field, gettersAndSetters);
     }
 
-    boolean isNonComplex() {
-        return JavaModelUtils.isNonComplex(field.asType());
-    }
-
-    boolean isEntityField() {
-        // TODO arrays
-        if (!isCollection()) {
-            return JavaModelUtils.getGenericCollectionType(field).getAnnotation(Entity.class) != null;
-        }
-        return field.asType().getAnnotation(Entity.class) != null;
-    }
-
     TypeMirror getCollectionsGenericType() {
         return JavaModelUtils.getGenericCollectionType(field);
     }
@@ -35,16 +23,17 @@ class EntityFieldModel extends SimpleEntityFieldModel {
     }
 
     EntityModel getFieldEntityModel() {
-        if (!isEntityField()) {
-            throw new IllegalStateException("not an entity field");
-        }
         TypeMirror entityType;
         if (isCollection()) {
             entityType = JavaModelUtils.getGenericCollectionType(field);
         } else {
             entityType = field.asType();
         }
-        return EntityModel.getEntityModel(entityType);
+        EntityModel fieldEntityModel =EntityModel.getEntityModel(entityType);
+        if (fieldEntityModel == null) {
+            throw new IllegalStateException("not an entity field");
+        }
+        return fieldEntityModel;
     }
 
 }

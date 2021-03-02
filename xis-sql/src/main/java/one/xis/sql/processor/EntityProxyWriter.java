@@ -24,9 +24,10 @@ class EntityProxyWriter {
     void write() throws IOException {
         TypeSpec.Builder builder = TypeSpec.classBuilder(entityProxyModel.getEntityProxySimpleName())
                 .addModifiers(Modifier.PUBLIC)
-                .superclass(entityProxyModel.getEntityModel().getType().asType())
+
                 .addSuperinterface(ParameterizedTypeName.get(ClassName.get(EntityProxy.class),
                         entityTypeName(), entityIdTypeName()))
+                .superclass(entityProxyModel.getEntityModel().getType().asType())
                 .addMethod(constructor());
 
         writeTypeBody(builder);
@@ -80,7 +81,7 @@ class EntityProxyWriter {
         return MethodSpec.methodBuilder("pk")
                 .returns(entityIdTypeName())
                 .addModifiers(Modifier.PUBLIC)
-                .addStatement("return $T.getFieldValue(this, \"$L\"", FieldUtils.class, entityModel().getIdField().getFieldName())
+                .addStatement("return ($T) $T.getFieldValue(this, \"$L\")",entityModel().getIdField().getFieldType(), FieldUtils.class, entityModel().getIdField().getFieldName())
                 .build();
     }
 
@@ -122,7 +123,7 @@ class EntityProxyWriter {
     }
 
     private MethodSpec implementSetPkMethodWithFieldAccess() {
-        return MethodSpec.methodBuilder("setPkPrivileged")
+        return MethodSpec.methodBuilder("pk")
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ParameterSpec.builder(entityIdTypeName(), "id").build())
                 .addStatement("$T.setFieldValue(this, \"$L\", id)", FieldUtils.class, entityModel().getIdField().getFieldName())

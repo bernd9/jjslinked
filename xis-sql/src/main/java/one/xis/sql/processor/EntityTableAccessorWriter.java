@@ -51,9 +51,12 @@ public class EntityTableAccessorWriter {
                 .addAnnotation(Override.class)
                 .addParameter(entityProxyTypeName(), "entityProxy");
         switch (entityModel().getIdField().getAnnotation(Id.class).generationStrategy()) {
-            case API -> builder.addStatement("insertWithApiGeneratedKey(entityProxy)");
-            case DBMS -> builder.addStatement("insertWithDbmsGeneratedKey(entityProxy)");
-            case NONE -> builder.addStatement("insertWithManuallyPlacedKey(entityProxy) ");
+            case API :builder.addStatement("insertWithApiGeneratedKey(entityProxy)");
+            break;
+            case DBMS : builder.addStatement("insertWithDbmsGeneratedKey(entityProxy)");
+                break;
+            case NONE : builder.addStatement("insertWithManuallyPlacedKey(entityProxy) ");
+                break;
         }
         return builder.build();
     }
@@ -65,9 +68,12 @@ public class EntityTableAccessorWriter {
                 .addAnnotation(Override.class)
                 .addParameter(entityProxyCollectionTypeName(), "entityProxies");
         switch (entityModel().getIdField().getAnnotation(Id.class).generationStrategy()) {
-            case API -> builder.addStatement("insertWithApiGeneratedKeys(entityProxies)");
-            case DBMS -> builder.addStatement("insertWithDbmsGeneratedKeys(entityProxies)");
-            case NONE -> builder.addStatement("insertWithManuallyPlacedKeys(entityProxies) ");
+            case API : builder.addStatement("insertWithApiGeneratedKeys(entityProxies)");
+                break;
+            case DBMS : builder.addStatement("insertWithDbmsGeneratedKeys(entityProxies)");
+                break;
+            case NONE : builder.addStatement("insertWithManuallyPlacedKeys(entityProxies) ");
+                break;
         }
         return builder.build();
     }

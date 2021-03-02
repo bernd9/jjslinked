@@ -1,6 +1,7 @@
 package one.xis.sql.processor;
 
 import one.xis.sql.Entity;
+import one.xis.sql.ForeignKey;
 import one.xis.sql.Id;
 
 @Entity
@@ -13,6 +14,8 @@ class Customer {
     private String firstName;
     private String lastName;
 
+    @ForeignKey(columnName = "address_id")
+    private InvoiceAddress invoiceAddress;
 
     public String getFirstName() {
         return firstName;
@@ -38,5 +41,11 @@ class Customer {
         this.id = id;
     }
 
+    public InvoiceAddress getInvoiceAddress() {
+        return invoiceAddress;
+    }
 
+    public void setInvoiceAddress(InvoiceAddress invoiceAddress) {
+        this.invoiceAddress = invoiceAddress;
+    }
 }

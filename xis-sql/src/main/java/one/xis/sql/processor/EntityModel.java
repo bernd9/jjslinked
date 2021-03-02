@@ -12,6 +12,7 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
+import java.lang.annotation.Annotation;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -48,6 +49,10 @@ class EntityModel {
         collectionTableFields = collectionTableFields(fields, gettersAndSetters);
         jsonFields = jsonFields(fields, gettersAndSetters);
         ENTITY_MODELS.add(this);
+    }
+
+    <A extends Annotation> A getAnnotation(Class<A> annotationType) {
+        return type.getAnnotation(annotationType);
     }
 
     private Set<VariableElement> fields(TypeElement type) {
