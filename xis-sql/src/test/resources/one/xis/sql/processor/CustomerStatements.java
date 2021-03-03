@@ -37,9 +37,9 @@ public class CustomerStatements implements EntityStatements<Customer, Long> {
 
     @Override
     public void setInsertSqlParameters(PreparedEntityStatement st, Customer entity) {
-        st.set(1, pk(entity.getInvoiceAddress(), java.lang.Long.class));
-        st.set(2, entity.getFirstName());
-        st.set(3, entity.getId());
+        st.set(1, entity.getId());
+        st.set(2, pk(entity.getInvoiceAddress(), java.lang.Long.class));
+        st.set(3, entity.getFirstName());
         st.set(4, entity.getLastName());
     }
 
@@ -47,8 +47,8 @@ public class CustomerStatements implements EntityStatements<Customer, Long> {
     public void setUpdateSqlParameters(PreparedEntityStatement st, Customer entity) {
         st.set(1, pk(entity.getInvoiceAddress(), java.lang.Long.class));
         st.set(2, entity.getFirstName());
-        st.set(3, entity.getId());
-        st.set(4, entity.getLastName());
+        st.set(3, entity.getLastName());
+        st.set(4, entity.getId());
     }
 
 }

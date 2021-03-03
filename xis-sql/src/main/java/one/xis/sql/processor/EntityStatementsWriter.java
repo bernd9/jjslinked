@@ -108,7 +108,7 @@ class EntityStatementsWriter {
     private CodeBlock createParametersCodeBlock(List<FieldModel> fieldModels) {
         CodeBlock.Builder builder = CodeBlock.builder();
         int paramIndex = 1;
-        for (FieldModel fieldModel : sortedByColumnName(fieldModels)) {
+        for (FieldModel fieldModel : fieldModels) {
             ColumnValueExtractorCodeFactory<?> extractorCodeFactory = null;
             if (fieldModel instanceof ForeignKeyFieldModel) {
                 ForeignKeyFieldModel foreignKeyFieldModel = (ForeignKeyFieldModel) fieldModel;

@@ -15,7 +15,7 @@ class Customer {
     private String lastName;
 
     @ForeignKey(columnName = "address_id")
-    private InvoiceAddress invoiceAddress;
+    private Address invoiceAddress;
 
     public String getFirstName() {
         return firstName;
@@ -41,11 +41,11 @@ class Customer {
         this.id = id;
     }
 
-    public InvoiceAddress getInvoiceAddress() {
+    public Address getInvoiceAddress() {
         return invoiceAddress;
     }
 
-    public void setInvoiceAddress(InvoiceAddress invoiceAddress) {
+    public void setInvoiceAddress(Address invoiceAddress) {
         this.invoiceAddress = invoiceAddress;
     }
 }

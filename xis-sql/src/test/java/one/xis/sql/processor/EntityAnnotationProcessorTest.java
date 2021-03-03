@@ -24,9 +24,15 @@ class EntityAnnotationProcessorTest {
     void init() {
         compiler = javac().withProcessors(new EntityAnnotationProcessor());
         customer = JavaFileObjects.forResource("one/xis/sql/processor/Customer.java");
-        invoiceAddress = JavaFileObjects.forResource("one/xis/sql/processor/InvoiceAddress.java");
+        invoiceAddress = JavaFileObjects.forResource("one/xis/sql/processor/Address.java");
         compilation = compiler.compile(customer, invoiceAddress);
         //assertThat(compilation.status()).isEqualTo(Compilation.Status.SUCCESS);
+    }
+
+    @Test
+    void entityProxy() {
+        CompilationSubject.assertThat(compilation).generatedSourceFile("one.xis.sql.processor.CustomerProxy")
+                .hasSourceEquivalentTo(JavaFileObjects.forResource("one/xis/sql/processor/CustomerProxy.java"));
     }
 
     @Test
