@@ -1,5 +1,6 @@
 package one.xis.sql.processor;
 
+import one.xis.sql.Column;
 import one.xis.sql.ForeignKey;
 import one.xis.sql.NamingRules;
 
@@ -11,16 +12,18 @@ public class ForeignKeyFieldModel extends EntityFieldModel {
     public ForeignKeyFieldModel(EntityModel entityModel, VariableElement field, GettersAndSetters gettersAndSetters) {
         super(entityModel, field, gettersAndSetters);
     }
-    
-    Optional<String> getForeignKeyColumnName() {
+
+    @Override
+    String getColumnName() {
         ForeignKey foreignKey = field.getAnnotation(ForeignKey.class);
-        if (foreignKey == null) {
-            return Optional.empty();
+        if (!foreignKey.columnName().isEmpty()) {
+            return foreignKey.columnName();
+        }
+        Column column = field.getAnnotation(Column.class);
+        if (column != null && !column.name().isEmpty()) {
+            return column.name();
         }
         EntityModel fieldEntityModel = EntityModel.getEntityModel(getFieldType());
-        if (fieldEntityModel == null) {
-            return Optional.empty();
-        }
-        return Optional.of(fieldEntityModel.getTableName() + "_" + NamingRules.toSqlName(fieldEntityModel.getIdField().getFieldName().toString()));
+        return fieldEntityModel.getTableName() + "_" + NamingRules.toSqlName(fieldEntityModel.getIdField().getFieldName().toString());
     }
 }

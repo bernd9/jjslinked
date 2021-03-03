@@ -5,7 +5,9 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import javax.lang.model.element.*;
+import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.SimpleAnnotationValueVisitor9;
 import javax.lang.model.util.SimpleTypeVisitor9;
@@ -174,6 +176,33 @@ public class JavaModelUtils {
         } catch (ClassNotFoundException e) {
             return false;
         }
+    }
+
+
+    public static boolean isArray(VariableElement element) {
+        return isArray(element.asType());
+    }
+
+
+    public static boolean isArray(TypeElement element) {
+        return isArray(element.asType());
+    }
+
+
+    public static boolean isArray(TypeMirror typeMirror) {
+        return typeMirror.getKind() == TypeKind.ARRAY;
+    }
+
+
+    public static TypeMirror getArrayComponentType(TypeMirror arrayType) {
+        if (!isArray(arrayType)) throw new IllegalArgumentException("not an array " +arrayType);
+        return ((ArrayType) arrayType).getComponentType();
+    }
+
+    public static boolean isByteArray(TypeMirror typeMirror) {
+        if (!isArray(typeMirror)) return false;
+        TypeMirror componentType = getArrayComponentType(typeMirror);
+        return typeMirror.getKind() == TypeKind.BYTE;
     }
 
     public static boolean isMap(VariableElement var) {

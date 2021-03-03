@@ -25,6 +25,6 @@ public class ReferredFieldModel extends EntityFieldModel {
     }
 
     private boolean foreignKeyFieldMatches(ForeignKeyFieldModel foreignKeyField, String name) {
-        return foreignKeyField.getForeignKeyColumnName().equals(name) || foreignKeyField.getFieldName().toString().equals(name);
+        return foreignKeyField.getColumnName().equals(name) || foreignKeyField.getFieldName().toString().equals(name);
     }
 }

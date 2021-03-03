@@ -4,20 +4,19 @@ import one.xis.sql.api.EntityStatements;
 import one.xis.sql.api.PreparedEntityStatement;
 
 public class CustomerStatements implements EntityStatements<Customer, Long> {
-
     @Override
     public String getInsertSql() {
-        return "INSERT INTO `customer` (`id`,`first_name`,`last_name`) VALUES (?,?,?)";
+        return "INSERT INTO `customer` (`id`,`address_id`,`first_name`,`last_name`) VALUES (?,?,?,?)";
     }
 
     @Override
     public String getSelectByIdSql() {
-        return "SELECT `id`,`first_name`,`last_name` FROM `customer` WHERE `id`=?";
+        return "SELECT `id`,`address_id`,`first_name`,`last_name` FROM `customer` WHERE `id`=?";
     }
 
     @Override
     public String getUpdateSql() {
-        return "UPDATE `customer` SET `first_name`=?,`last_name`=? WHERE `id`=?";
+        return "UPDATE `customer` SET `address_id`=?,`first_name`=?,`last_name`=? WHERE `id`=?";
     }
 
     @Override
@@ -27,7 +26,7 @@ public class CustomerStatements implements EntityStatements<Customer, Long> {
 
     @Override
     public String getSelectAllSql() {
-        return "SELECT `id`,`first_name`,`last_name` FROM `customer`";
+        return "SELECT `id`,`address_id`,`first_name`,`last_name` FROM `customer`";
     }
 
     @Override
@@ -35,21 +34,21 @@ public class CustomerStatements implements EntityStatements<Customer, Long> {
         return "DELETE FROM `customer`";
     }
 
+
     @Override
     public void setInsertSqlParameters(PreparedEntityStatement st, Customer entity) {
-        st.set(1, entity.getFirstName());
-        st.set(2, entity.getId());
-        st.set(3, pk(entity.getInvoiceAddress(), java.lang.Long.class));
+        st.set(1, pk(entity.getInvoiceAddress(), java.lang.Long.class));
+        st.set(2, entity.getFirstName());
+        st.set(3, entity.getId());
         st.set(4, entity.getLastName());
     }
 
     @Override
     public void setUpdateSqlParameters(PreparedEntityStatement st, Customer entity) {
-        st.set(1, entity.getFirstName());
-        st.set(2, entity.getId());
-        st.set(3, pk(entity.getInvoiceAddress(), java.lang.Long.class));
+        st.set(1, pk(entity.getInvoiceAddress(), java.lang.Long.class));
+        st.set(2, entity.getFirstName());
+        st.set(3, entity.getId());
         st.set(4, entity.getLastName());
     }
-
 
 }
