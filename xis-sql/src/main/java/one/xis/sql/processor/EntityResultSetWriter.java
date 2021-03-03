@@ -59,21 +59,14 @@ public class EntityResultSetWriter {
                 .returns(entityTypeName())
                 .addException(SQLException.class)
                 .addStatement("$T entity = new $T()", entityTypeName(), entityTypeName());
-        addSettingNonComplexValuesGetEntity(builder);
-        addSettingForeignKeyEntities(builder);
-        return builder.addStatement("return entity").build();
+        addSetNonComplexValuesGetEntityCode(builder);
+        return builder.addStatement("return new $L(entity)", EntityProxyModel.getEntityProxySimpleName(entityModel())).build();
     }
 
-    private void addSettingNonComplexValuesGetEntity(MethodSpec.Builder builder) {
+    private void addSetNonComplexValuesGetEntityCode(MethodSpec.Builder builder) {
         for (SimpleEntityFieldModel fieldModel : sortedByColumnName(resultSetModel.getEntityModel().getNonComplexFields())) {
             fieldModel.getSetter().ifPresentOrElse(setter -> addNonComplexSetterExecutionGetEntity(setter, fieldModel, builder),
                     () -> addSettingNonComplexFieldValueGetEntity(fieldModel, builder)); // TODO test for field-setter
-        }
-    }
-
-    private void addSettingForeignKeyEntities(MethodSpec.Builder builder) {
-        for (EntityFieldModel entityFieldModel : sortedByColumnName(resultSetModel.getEntityModel().getForeignKeyFields())) {
-            
         }
     }
 

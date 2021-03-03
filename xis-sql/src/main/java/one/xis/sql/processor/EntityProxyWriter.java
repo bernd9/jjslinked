@@ -2,12 +2,14 @@ package one.xis.sql.processor;
 
 import com.ejc.util.FieldUtils;
 import com.squareup.javapoet.*;
+import lombok.RequiredArgsConstructor;
 import one.xis.sql.api.EntityProxy;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.Modifier;
+import javax.lang.model.element.*;
 import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 class EntityProxyWriter {
@@ -49,12 +51,20 @@ class EntityProxyWriter {
         addWrappedEntityField(builder);
         addDirtyFlag(builder);
         implementProxyInterfaceMethods(builder);
+        overrideNonComplexSetters(builder);
         /*
-        addWrappedEntityField(builder);
-        addEditedFlagField(builder);
+
         addGetters(builder);
         addSetters(builder);
          */
+    }
+
+    private void overrideNonComplexSetters(TypeSpec.Builder builder) {
+        Collection<SimpleEntityFieldModel> fields = new HashSet<>(entityProxyModel.getEntityModel().getNonComplexFields());
+        fields.remove(entityProxyModel.getEntityModel().getIdField());
+        NonComplexFields nonComplexFields = new NonComplexFields("entity", fields);
+        nonComplexFields.overrideGetters(builder);
+        nonComplexFields.overrideSetters(builder);
     }
 
     private void implementProxyInterfaceMethods(TypeSpec.Builder builder) {
@@ -73,6 +83,7 @@ class EntityProxyWriter {
 
     private MethodSpec implementGetPkMethodWithGetter(ExecutableElement getter) {
         return MethodSpec.methodBuilder("pk")
+                .addAnnotation(Override.class)
                 .returns(entityIdTypeName())
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement("return entity.$L()", getter.getSimpleName())
@@ -81,14 +92,16 @@ class EntityProxyWriter {
 
     private MethodSpec implementGetPkMethodWithFieldAccess() {
         return MethodSpec.methodBuilder("pk")
+                .addAnnotation(Override.class)
                 .returns(entityIdTypeName())
                 .addModifiers(Modifier.PUBLIC)
-                .addStatement("return ($T) $T.getFieldValue(this, \"$L\")",entityModel().getIdField().getFieldType(), FieldUtils.class, entityModel().getIdField().getFieldName())
+                .addStatement("return ($T) $T.getFieldValue(this, \"$L\")", entityModel().getIdField().getFieldType(), FieldUtils.class, entityModel().getIdField().getFieldName())
                 .build();
     }
 
     private MethodSpec implementGetEntityMethod() {
         return MethodSpec.methodBuilder("entity")
+                .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .returns(entityTypeName())
                 .addStatement("return entity")
@@ -97,6 +110,7 @@ class EntityProxyWriter {
 
     private MethodSpec implementIsDirtyMethod() {
         return MethodSpec.methodBuilder("dirty")
+                .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .returns(TypeName.BOOLEAN)
                 .addStatement("return dirty")
@@ -105,11 +119,11 @@ class EntityProxyWriter {
 
     private MethodSpec implementSetCleanMethod() {
         return MethodSpec.methodBuilder("clean")
+                .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement("dirty = false")
                 .build();
     }
-
 
     private MethodSpec implementSetPkMethod() {
         return entityModel().getIdField().getSetter().map(this::implementSetPkMethodWithSetter)
@@ -118,6 +132,7 @@ class EntityProxyWriter {
 
     private MethodSpec implementSetPkMethodWithSetter(ExecutableElement setter) {
         return MethodSpec.methodBuilder("pk")
+                .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ParameterSpec.builder(entityIdTypeName(), "pk").build())
                 .addStatement("entity.$L(pk)", setter.getSimpleName())
@@ -126,6 +141,7 @@ class EntityProxyWriter {
 
     private MethodSpec implementSetPkMethodWithFieldAccess() {
         return MethodSpec.methodBuilder("pk")
+                .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ParameterSpec.builder(entityIdTypeName(), "pk").build())
                 .addStatement("$T.setFieldValue(this, \"$L\", pk)", FieldUtils.class, entityModel().getIdField().getFieldName())
@@ -139,6 +155,19 @@ class EntityProxyWriter {
     private void addWrappedEntityField(TypeSpec.Builder builder) {
         builder.addField(FieldSpec.builder(entityTypeName(), "entity", Modifier.PRIVATE, Modifier.FINAL).build());
     }
+
+    static String getMethodParameterName(ExecutableElement method, int parameterIndex) {
+        List<String> names = method.getEnclosedElements()
+                .stream().filter(e -> e.getKind() == ElementKind.PARAMETER)
+                .map(VariableElement.class::cast)
+                .map(VariableElement::getSimpleName)
+                .map(Name::toString)
+                .collect(Collectors.toList());
+        return names.get(parameterIndex);
+    }
+
+
+
 
     /*
     private void addGetters(TypeSpec.Builder builder) {
@@ -216,6 +245,7 @@ class EntityProxyWriter {
     private void addSimpleSetter(SimpleEntityFieldModel fieldModel, TypeSpec.Builder builder) {
         ExecutableElement setter = fieldModel.getSetter().orElseThrow();
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(setter.getSimpleName().toString())
+                .addAnnotation(Override.class)
                 .addParameter(ParameterSpec.builder(parameterTypeName(setter, 0), "value").build())
                 .addStatement("entity.$L($T $l)", setter.getSimpleName(), parameterTypeName(setter, 0), "value")
                 .addStatement("edited = true");
@@ -225,6 +255,7 @@ class EntityProxyWriter {
     private void addSingleEntitySetter(EntityFieldModel fieldModel, TypeSpec.Builder builder) {
         ExecutableElement setter = fieldModel.getSetter().orElseThrow();
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(setter.getSimpleName().toString())
+                .addAnnotation(Override.class)
                 .addParameter(ParameterSpec.builder(parameterTypeName(setter, 0), "value").build())
                 .addStatement("value = new $T<>(value)", entityCollections.getCollectionWrapperType(fieldModel.getFieldType()))
                 .addStatement("entity.$L(value)", setter.getSimpleName())
@@ -236,6 +267,7 @@ class EntityProxyWriter {
     private void addEntityCollectionSetter(EntityFieldModel fieldModel, TypeSpec.Builder builder) {
         ExecutableElement setter = fieldModel.getSetter().orElseThrow();
         MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(setter.getSimpleName().toString())
+                .addAnnotation(Override.class)
                 .addParameter(ParameterSpec.builder(parameterTypeName(setter, 0), "value").build())
                 .addStatement("value = new $T<>(value)", entityCollections.getCollectionWrapperType(fieldModel.getFieldType()))
                 .addStatement("entity.$L(value)", setter.getSimpleName())
@@ -260,4 +292,49 @@ class EntityProxyWriter {
         return TypeName.get(method.getParameters().get(paramIndex).asType());
     }
 
+}
+
+@RequiredArgsConstructor
+class NonComplexFields {
+    private final String entityFieldName;
+    private final Collection<SimpleEntityFieldModel> fields;
+
+    void overrideSetters(TypeSpec.Builder proxyTypeBuilder) {
+        fields.stream()
+                .map(SimpleEntityFieldModel::getSetter)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(this::overrideSetter)
+                .forEach(proxyTypeBuilder::addMethod);
+    }
+
+    void overrideGetters(TypeSpec.Builder proxyTypeBuilder) {
+        fields.stream()
+                .map(SimpleEntityFieldModel::getGetter)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(this::overrideGetter)
+                .forEach(proxyTypeBuilder::addMethod);
+    }
+
+    private MethodSpec overrideSetter(ExecutableElement setter) {
+        return MethodSpec.methodBuilder(setter.getSimpleName().toString())
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(ParameterSpec.builder(TypeName.get(setter.getParameters().get(0).asType()), "value").build())
+                .addStatement("dirty = true")
+                .addStatement(new CodeBlockBuilder("$L.$L(value)")
+                        .withVar(entityFieldName)
+                        .withVar(setter.getSimpleName())
+                        .build()
+                )
+                .build();
+    }
+
+    private MethodSpec overrideGetter(ExecutableElement getter) {
+        return MethodSpec.overriding(getter)
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("return $L.$L()", entityFieldName, getter.getSimpleName())
+                .build();
+    }
 }

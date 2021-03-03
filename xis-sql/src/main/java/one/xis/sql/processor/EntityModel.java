@@ -59,7 +59,7 @@ class EntityModel {
         return type.getEnclosedElements().stream()
                 .filter(e -> e.getKind() == ElementKind.FIELD)
                 .map(VariableElement.class::cast)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     private SimpleEntityFieldModel idField(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
@@ -73,7 +73,7 @@ class EntityModel {
         return fields.stream()
                 .filter(field -> field.getAnnotation(Json.class) != null)
                 .map(field -> new JsonFieldModel(this, field, gettersAndSetters))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     private Set<SimpleEntityFieldModel> nonComplexFields(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
@@ -82,7 +82,7 @@ class EntityModel {
                 .filter(field -> !JavaModelUtils.isCollection(field))
                 .filter(field -> field.getAnnotation(Json.class) == null)
                 .map(field -> new SimpleEntityFieldModel(this, field, gettersAndSetters))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     private Set<ForeignKeyFieldModel> foreignKeyFields(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {

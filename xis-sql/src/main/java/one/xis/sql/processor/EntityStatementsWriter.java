@@ -219,21 +219,6 @@ class EntityStatementsWriter {
     }
 
 
-    @RequiredArgsConstructor
-   static  class CodeBlockBuilder {
-        private final String source;
-        private final List<Object> vars = new ArrayList<>();
-
-        CodeBlockBuilder withVar(Object var) {
-            vars.add(var);
-            return this;
-        }
-
-        CodeBlock build() {
-            return CodeBlock.builder().add(source, vars.toArray()).build();
-        }
-    }
-
     private <T extends FieldModel> List<T> sortedByColumnName(Collection<T> values) {
         List<T> rv = new ArrayList<>(values);
         Collections.sort(rv, Comparator.comparing(FieldModel::getColumnName));
