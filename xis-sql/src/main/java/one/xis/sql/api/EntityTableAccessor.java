@@ -79,7 +79,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     }
 
     private void save(Collection<E> entities, Collection<EntityProxy<E, EID>> saved) {
-        Set<EntityProxy<E, EID>> proxiesForUpdate = new HashSet<>();
+        List<EntityProxy<E, EID>> proxiesForUpdate = new ArrayList<>();
         List<EntityProxy<E, EID>> proxiesForInsert = new ArrayList<>();
         Iterator<E> entityIterator = entities.iterator();
         while (entityIterator.hasNext()) {
@@ -102,19 +102,18 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
         insert(proxiesForInsert);
     }
 
-    public void updateProxies(Collection<EntityProxy<E, EID>> entityProxies) {
-        update(entityProxies.stream()
-                .filter(EntityProxy::dirty)
-                .map(EntityProxy::entity)
-                .collect(Collectors.toSet()));
+    public void updateProxies(List<EntityProxy<E, EID>> entityProxies) {
+        // TODO : We reinsert deleted entries ?
+       insertWithManuallyPlacedKeys(update(entityProxies));
     }
 
 
-    private void update(Collection<E> entities) {
-        Iterator<E> entityIterator = entities.iterator();
+    private Collection<EntityProxy<E, EID>> update(List<EntityProxy<E, EID>> entityProxies) {
+        Set<EntityProxy<E, EID>> failedEntities = new HashSet<>();
+        Iterator<EntityProxy<E,EID>> entityIterator = entityProxies.iterator();
         try (PreparedStatement st = prepare(getUpdateSql())) {
             while (entityIterator.hasNext()) {
-                E entity = entityIterator.next();
+                E entity = entityIterator.next().entity();
                 st.clearParameters();
                 setUpdateStatementParameters(st, entity);
                 st.addBatch();
@@ -122,7 +121,13 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
                     throw new IllegalStateException();
                 }
             }
-            st.executeBatch();
+            int[] result = st.executeBatch();
+            for (int index = 0; index < result.length; index++) {
+                if (result[index] == 0) {
+                    failedEntities.add(entityProxies.get(index));
+                }
+            }
+            return failedEntities;
         } catch (SQLException e) {
             throw new JdbcException("failed to execute update", e);
         }
