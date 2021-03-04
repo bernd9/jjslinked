@@ -22,7 +22,7 @@ public class AddressProxy extends Address implements EntityProxy<Address, Long> 
     }
 
     @Override
-    public Customer entity() {
+    public Address entity() {
         return entity;
     }
 

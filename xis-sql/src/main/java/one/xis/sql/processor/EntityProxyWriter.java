@@ -3,13 +3,14 @@ package one.xis.sql.processor;
 import com.ejc.util.FieldUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
+import one.xis.sql.GenerationStrategy;
+import one.xis.sql.Id;
 import one.xis.sql.api.EntityProxy;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
 import java.io.IOException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 class EntityProxyWriter {
@@ -51,7 +52,8 @@ class EntityProxyWriter {
         addWrappedEntityField(builder);
         addDirtyFlag(builder);
         implementProxyInterfaceMethods(builder);
-        overrideNonComplexSetters(builder);
+        overrideIdGettersAndSetters(builder);
+        overrideNonComplexGettersAndSetters(builder);
         /*
 
         addGetters(builder);
@@ -59,12 +61,18 @@ class EntityProxyWriter {
          */
     }
 
-    private void overrideNonComplexSetters(TypeSpec.Builder builder) {
+    private void overrideIdGettersAndSetters(TypeSpec.Builder builder) {
+        IdFieldAccessorOverrider idFieldAccessorOverrider = new IdFieldAccessorOverrider("entity", entityModel().getIdField());
+        idFieldAccessorOverrider.overrideGetter(builder);
+        idFieldAccessorOverrider.overrideSetter(builder);
+    }
+
+    private void overrideNonComplexGettersAndSetters(TypeSpec.Builder builder) {
         Collection<SimpleEntityFieldModel> fields = new HashSet<>(entityProxyModel.getEntityModel().getNonComplexFields());
         fields.remove(entityProxyModel.getEntityModel().getIdField());
-        NonComplexFields nonComplexFields = new NonComplexFields("entity", fields);
-        nonComplexFields.overrideGetters(builder);
-        nonComplexFields.overrideSetters(builder);
+        NonComplexFieldsAccessorOverrider nonComplexFieldsAccessorOverrider = new NonComplexFieldsAccessorOverrider("entity", fields);
+        nonComplexFieldsAccessorOverrider.overrideGetters(builder);
+        nonComplexFieldsAccessorOverrider.overrideSetters(builder);
     }
 
     private void implementProxyInterfaceMethods(TypeSpec.Builder builder) {
@@ -156,125 +164,6 @@ class EntityProxyWriter {
         builder.addField(FieldSpec.builder(entityTypeName(), "entity", Modifier.PRIVATE, Modifier.FINAL).build());
     }
 
-    static String getMethodParameterName(ExecutableElement method, int parameterIndex) {
-        List<String> names = method.getEnclosedElements()
-                .stream().filter(e -> e.getKind() == ElementKind.PARAMETER)
-                .map(VariableElement.class::cast)
-                .map(VariableElement::getSimpleName)
-                .map(Name::toString)
-                .collect(Collectors.toList());
-        return names.get(parameterIndex);
-    }
-
-
-
-
-    /*
-    private void addGetters(TypeSpec.Builder builder) {
-        entityProxyModel.getAllFields().stream()
-                .filter(field -> field.getGetter().isPresent())
-                .forEach(field -> addGetter(field, builder));
-    }
-    */
-
-    private void addGetter(SimpleEntityFieldModel fieldModel, TypeSpec.Builder builder) {
-        if (fieldModel instanceof EntityFieldModel) {
-            addEntityGetter((EntityFieldModel) fieldModel, builder);
-        } else if (fieldModel instanceof SimpleEntityFieldModel) {
-            addSimpleGetter(fieldModel, builder);
-        }
-    }
-
-    private void addSimpleGetter(SimpleEntityFieldModel fieldModel, TypeSpec.Builder builder) {
-        ExecutableElement getter = fieldModel.getGetter().orElseThrow();
-        builder.addMethod(MethodSpec.methodBuilder(getter.getSimpleName().toString())
-                .addStatement("return entity.$L()", getter.getSimpleName())
-                .build());
-    }
-
-    private void addEntityGetter(EntityFieldModel fieldModel, TypeSpec.Builder builder) {
-        if (fieldModel.isCollection()) {
-            addEntityCollectionGetter(fieldModel, builder);
-        } else {
-            addSingleEntityGetter(fieldModel, builder);
-        }
-    }
-
-    private void addSingleEntityGetter(EntityFieldModel fieldModel, TypeSpec.Builder builder) {
-        ExecutableElement getter = fieldModel.getGetter().orElseThrow();
-        builder.addMethod(MethodSpec.methodBuilder(getter.getSimpleName().toString())
-                .addStatement("if (super.$L() == null)")
-                .addStatement("")
-                .addStatement("")
-                .addStatement("return entity.$L()", getter.getSimpleName())
-                .build());
-    }
-
-    private void addEntityCollectionGetter(EntityFieldModel fieldModel, TypeSpec.Builder builder) {
-        ExecutableElement getter = fieldModel.getGetter().orElseThrow();
-        builder.addMethod(MethodSpec.methodBuilder(getter.getSimpleName().toString())
-                .addStatement("return entity.$L()", getter.getSimpleName())
-                .build());
-    }
-
-    /*
-    private void addSetters(TypeSpec.Builder builder) {
-        entityProxyModel.getAllFields().stream()
-                .filter(field -> field.getSetter().isPresent())
-                .forEach(field -> addSetter(field, builder));
-    }
-
-     */
-
-    private void addSetter(SimpleEntityFieldModel fieldModel, TypeSpec.Builder builder) {
-        if (fieldModel instanceof EntityFieldModel) {
-            addEntitySetter((EntityFieldModel) fieldModel, builder);
-        } else {
-            addSimpleSetter(fieldModel, builder);
-        }
-    }
-
-    private void addEntitySetter(EntityFieldModel fieldModel, TypeSpec.Builder builder) {
-        if (fieldModel.isCollection()) {
-            addEntityCollectionSetter(fieldModel, builder);
-        } else {
-            addSingleEntitySetter(fieldModel, builder);
-        }
-    }
-
-    private void addSimpleSetter(SimpleEntityFieldModel fieldModel, TypeSpec.Builder builder) {
-        ExecutableElement setter = fieldModel.getSetter().orElseThrow();
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(setter.getSimpleName().toString())
-                .addAnnotation(Override.class)
-                .addParameter(ParameterSpec.builder(parameterTypeName(setter, 0), "value").build())
-                .addStatement("entity.$L($T $l)", setter.getSimpleName(), parameterTypeName(setter, 0), "value")
-                .addStatement("edited = true");
-        builder.addMethod(methodBuilder.build());
-    }
-
-    private void addSingleEntitySetter(EntityFieldModel fieldModel, TypeSpec.Builder builder) {
-        ExecutableElement setter = fieldModel.getSetter().orElseThrow();
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(setter.getSimpleName().toString())
-                .addAnnotation(Override.class)
-                .addParameter(ParameterSpec.builder(parameterTypeName(setter, 0), "value").build())
-                .addStatement("value = new $T<>(value)", entityCollections.getCollectionWrapperType(fieldModel.getFieldType()))
-                .addStatement("entity.$L(value)", setter.getSimpleName())
-                .addStatement("edited = true");
-        builder.addMethod(methodBuilder.build());
-    }
-
-    // TODO validate collection must have a generic type
-    private void addEntityCollectionSetter(EntityFieldModel fieldModel, TypeSpec.Builder builder) {
-        ExecutableElement setter = fieldModel.getSetter().orElseThrow();
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder(setter.getSimpleName().toString())
-                .addAnnotation(Override.class)
-                .addParameter(ParameterSpec.builder(parameterTypeName(setter, 0), "value").build())
-                .addStatement("value = new $T<>(value)", entityCollections.getCollectionWrapperType(fieldModel.getFieldType()))
-                .addStatement("entity.$L(value)", setter.getSimpleName())
-                .addStatement("edited = true");
-        builder.addMethod(methodBuilder.build());
-    }
-
     private EntityModel entityModel() {
         return entityProxyModel.getEntityModel();
     }
@@ -295,9 +184,40 @@ class EntityProxyWriter {
 }
 
 @RequiredArgsConstructor
-class NonComplexFields {
-    private final String entityFieldName;
+abstract class FieldAccessorOverrider {
+    protected final String entityFieldName;
+
+    protected MethodSpec overrideGetter(ExecutableElement getter) {
+        return MethodSpec.overriding(getter)
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("return $L.$L()", entityFieldName, getter.getSimpleName())
+                .build();
+    }
+
+    protected MethodSpec overrideSetter(ExecutableElement setter) {
+        return MethodSpec.methodBuilder(setter.getSimpleName().toString())
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(ParameterSpec.builder(TypeName.get(setter.getParameters().get(0).asType()), "value").build())
+                .addStatement("dirty = true")
+                .addStatement(new CodeBlockBuilder("$L.$L(value)")
+                        .withVar(entityFieldName)
+                        .withVar(setter.getSimpleName())
+                        .build()
+                )
+                .build();
+    }
+}
+
+
+class NonComplexFieldsAccessorOverrider extends FieldAccessorOverrider {
+
     private final Collection<SimpleEntityFieldModel> fields;
+
+    public NonComplexFieldsAccessorOverrider(String entityFieldName, Collection<SimpleEntityFieldModel> fields) {
+        super(entityFieldName);
+        this.fields = fields;
+    }
 
     void overrideSetters(TypeSpec.Builder proxyTypeBuilder) {
         fields.stream()
@@ -316,25 +236,47 @@ class NonComplexFields {
                 .map(this::overrideGetter)
                 .forEach(proxyTypeBuilder::addMethod);
     }
+}
 
-    private MethodSpec overrideSetter(ExecutableElement setter) {
+class IdFieldAccessorOverrider extends FieldAccessorOverrider {
+
+    private final SimpleEntityFieldModel idFieldModel;
+
+    IdFieldAccessorOverrider(String entityFieldName, SimpleEntityFieldModel idFieldModel) {
+        super(entityFieldName);
+        this.idFieldModel = idFieldModel;
+    }
+
+    void overrideGetter(TypeSpec.Builder proxyTypeBuilder) {
+        idFieldModel.getGetter().map(this::overrideGetter).ifPresent(proxyTypeBuilder::addMethod);
+    }
+
+    void overrideSetter(TypeSpec.Builder proxyTypeBuilder) {
+        idFieldModel.getSetter().map(this::overrideSetter).ifPresent(proxyTypeBuilder::addMethod);
+    }
+
+    protected MethodSpec overrideSetter(ExecutableElement setter) {
+          if (idFieldModel.getAnnotation(Id.class).generationStrategy() == GenerationStrategy.NONE){
+              return overrideSetterDisabledUpdate(setter);
+          }
+          return overrideSetterCompletelyBlocked(setter);
+    }
+
+    private MethodSpec overrideSetterCompletelyBlocked(ExecutableElement setter) {
         return MethodSpec.methodBuilder(setter.getSimpleName().toString())
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ParameterSpec.builder(TypeName.get(setter.getParameters().get(0).asType()), "value").build())
-                .addStatement("dirty = true")
-                .addStatement(new CodeBlockBuilder("$L.$L(value)")
-                        .withVar(entityFieldName)
-                        .withVar(setter.getSimpleName())
-                        .build()
-                )
+                .addStatement("throw new $T(\"primary key can not be updated\")", UnsupportedOperationException.class)
                 .build();
     }
 
-    private MethodSpec overrideGetter(ExecutableElement getter) {
-        return MethodSpec.overriding(getter)
+    private MethodSpec overrideSetterDisabledUpdate(ExecutableElement setter) {
+        return MethodSpec.methodBuilder(setter.getSimpleName().toString())
+                .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
-                .addStatement("return $L.$L()", entityFieldName, getter.getSimpleName())
+                .addParameter(ParameterSpec.builder(TypeName.get(setter.getParameters().get(0).asType()), "value").build())
+                .addStatement("throw new $T(\"changing a primary key is not allowed \")", UnsupportedOperationException.class)
                 .build();
     }
 }

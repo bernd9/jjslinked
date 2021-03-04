@@ -37,6 +37,16 @@ public class CustomerProxy extends Customer implements EntityProxy<Customer, Lon
     }
 
     @Override
+    public Long getId() {
+        return entity.getId();
+    }
+
+    @Override
+    public void setId(Long value) {
+        throw new UnsupportedOperationException("primary key can not be updated");
+    }
+
+    @Override
     public String getLastName() {
         return entity.getLastName();
     }

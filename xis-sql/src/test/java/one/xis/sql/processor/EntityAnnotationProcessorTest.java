@@ -30,19 +30,19 @@ class EntityAnnotationProcessorTest {
     }
 
     @Test
-    void entityProxy() {
+    void customerProxy() {
         CompilationSubject.assertThat(compilation).generatedSourceFile("one.xis.sql.processor.CustomerProxy")
                 .hasSourceEquivalentTo(JavaFileObjects.forResource("one/xis/sql/processor/CustomerProxy.java"));
     }
 
     @Test
-    void entityStatements() {
+    void customerStatements() {
         CompilationSubject.assertThat(compilation).generatedSourceFile("one.xis.sql.processor.CustomerStatements")
                 .hasSourceEquivalentTo(JavaFileObjects.forResource("one/xis/sql/processor/CustomerStatements.java"));
     }
 
     @Test
-    void entityResultSets() {
+    void customerResultSets() {
         CompilationSubject.assertThat(compilation).generatedSourceFile("one.xis.sql.processor.CustomerResultSet")
                 .hasSourceEquivalentTo(JavaFileObjects.forResource("one/xis/sql/processor/CustomerResultSet.java"));
     }
