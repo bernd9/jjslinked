@@ -15,4 +15,6 @@ public interface EntityProxy<E, EID> {
     void clean();
 
     void pk(EID id);
+
+    boolean stored();
 }

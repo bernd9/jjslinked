@@ -5,10 +5,12 @@ import one.xis.sql.api.EntityProxy;
 public class AddressProxy extends Address implements EntityProxy<Address, Long> {
 
     private final Address entity;
+    private boolean stored;
     private boolean dirty;
 
-    public AddressProxy(Address entity) {
+    public AddressProxy(Address entity, boolean stored) {
         this.entity = entity;
+        this.stored = stored;
     }
 
     @Override
@@ -24,6 +26,11 @@ public class AddressProxy extends Address implements EntityProxy<Address, Long> 
     @Override
     public Address entity() {
         return entity;
+    }
+
+    @Override
+    public boolean stored() {
+        return stored;
     }
 
     @Override

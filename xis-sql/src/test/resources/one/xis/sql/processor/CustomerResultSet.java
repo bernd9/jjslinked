@@ -16,7 +16,7 @@ public class CustomerResultSet extends EntityResultSet<Customer> {
         entity.setFirstName(get_String("first_name"));
         entity.setId(get_Long("id"));
         entity.setLastName(get_String("last_name"));
-        return new CustomerProxy(entity);
+        return new CustomerProxy(entity, true);
     }
 
 }

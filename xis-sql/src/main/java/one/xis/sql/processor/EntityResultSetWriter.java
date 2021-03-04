@@ -60,7 +60,7 @@ public class EntityResultSetWriter {
                 .addException(SQLException.class)
                 .addStatement("$T entity = new $T()", entityTypeName(), entityTypeName());
         addSetNonComplexValuesGetEntityCode(builder);
-        return builder.addStatement("return new $L(entity)", EntityProxyModel.getEntityProxySimpleName(entityModel())).build();
+        return builder.addStatement("return new $L(entity, true)", EntityProxyModel.getEntityProxySimpleName(entityModel())).build();
     }
 
     private void addSetNonComplexValuesGetEntityCode(MethodSpec.Builder builder) {

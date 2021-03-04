@@ -5,10 +5,12 @@ import one.xis.sql.api.EntityProxy;
 public class CustomerProxy extends Customer implements EntityProxy<Customer, Long> {
 
     private final Customer entity;
+    private boolean stored;
     private boolean dirty;
 
-    public CustomerProxy(Customer entity) {
+    public CustomerProxy(Customer entity, boolean stored) {
         this.entity = entity;
+        this.stored = stored;
     }
 
     @Override
@@ -24,6 +26,11 @@ public class CustomerProxy extends Customer implements EntityProxy<Customer, Lon
     @Override
     public Customer entity() {
         return entity;
+    }
+
+    @Override
+    public boolean stored() {
+        return stored;
     }
 
     @Override

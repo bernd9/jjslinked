@@ -85,7 +85,7 @@ public class EntityTableAccessorWriter {
                 .addAnnotation(Override.class)
                 .returns(entityProxyTypeName())
                 .addParameter(entityTypeName(), "entity")
-                .addStatement("return new $L(entity)", accessorModel.getEntityProxySimpleName())
+                .addStatement("return new $L(entity, true)", accessorModel.getEntityProxySimpleName())
                 .build();
 
     }

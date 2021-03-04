@@ -44,12 +44,15 @@ class EntityProxyWriter {
         return MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ParameterSpec.builder(entityTypeName(), "entity").build())
+                .addParameter(ParameterSpec.builder(TypeName.BOOLEAN, "stored").build())
                 .addStatement("this.entity = entity")
+                .addStatement("this.stored = stored")
                 .build();
     }
 
     private void writeTypeBody(TypeSpec.Builder builder) {
         addWrappedEntityField(builder);
+        addStoredFlag(builder);
         addDirtyFlag(builder);
         implementProxyInterfaceMethods(builder);
         overrideIdGettersAndSetters(builder);
@@ -79,6 +82,7 @@ class EntityProxyWriter {
         builder.addMethod(implementSetPkMethod());
         builder.addMethod(implementGetPkMethod());
         builder.addMethod(implementGetEntityMethod());
+        builder.addMethod(implementStoredMethod());
         builder.addMethod(implementIsDirtyMethod());
         builder.addMethod(implementSetCleanMethod());
 
@@ -113,6 +117,16 @@ class EntityProxyWriter {
                 .addModifiers(Modifier.PUBLIC)
                 .returns(entityTypeName())
                 .addStatement("return entity")
+                .build();
+    }
+
+
+    private MethodSpec implementStoredMethod() {
+        return MethodSpec.methodBuilder("stored")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(TypeName.BOOLEAN)
+                .addStatement("return stored")
                 .build();
     }
 
@@ -159,6 +173,11 @@ class EntityProxyWriter {
     private void addDirtyFlag(TypeSpec.Builder builder) {
         builder.addField(FieldSpec.builder(TypeName.BOOLEAN, "dirty", Modifier.PRIVATE).build());
     }
+
+    private void addStoredFlag(TypeSpec.Builder builder) {
+        builder.addField(FieldSpec.builder(TypeName.BOOLEAN, "stored", Modifier.PRIVATE).build());
+    }
+
 
     private void addWrappedEntityField(TypeSpec.Builder builder) {
         builder.addField(FieldSpec.builder(entityTypeName(), "entity", Modifier.PRIVATE, Modifier.FINAL).build());
