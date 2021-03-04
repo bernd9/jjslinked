@@ -39,8 +39,13 @@ public class CustomerProxy extends Customer implements EntityProxy<Customer, Lon
     }
 
     @Override
-    public void clean() {
+    public void doSetClean() {
         dirty = false;
+    }
+
+    @Override
+    public void doSetStored() {
+        stored = true;
     }
 
     @Override
@@ -50,7 +55,7 @@ public class CustomerProxy extends Customer implements EntityProxy<Customer, Lon
 
     @Override
     public void setId(Long value) {
-        throw new UnsupportedOperationException("primary key can not be updated");
+        throw new UnsupportedOperationException("primary key is immutable");
     }
 
     @Override

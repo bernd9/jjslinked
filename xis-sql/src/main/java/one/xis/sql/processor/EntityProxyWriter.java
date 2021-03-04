@@ -91,7 +91,8 @@ class EntityProxyWriter {
         builder.addMethod(implementGetEntityMethod());
         builder.addMethod(implementStoredMethod());
         builder.addMethod(implementIsDirtyMethod());
-        builder.addMethod(implementSetCleanMethod());
+        builder.addMethod(implementDoSetCleanMethod());
+        builder.addMethod(implementDoSetStoredMethod());
 
     }
 
@@ -146,11 +147,19 @@ class EntityProxyWriter {
                 .build();
     }
 
-    private MethodSpec implementSetCleanMethod() {
-        return MethodSpec.methodBuilder("clean")
+    private MethodSpec implementDoSetCleanMethod() {
+        return MethodSpec.methodBuilder("doSetClean")
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement("dirty = false")
+                .build();
+    }
+
+    private MethodSpec implementDoSetStoredMethod() {
+        return MethodSpec.methodBuilder("doSetStored")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("stored = true")
                 .build();
     }
 
@@ -279,7 +288,7 @@ class IdFieldAccessorOverrider extends FieldAccessorOverrider {
 
     protected MethodSpec overrideSetter(ExecutableElement setter) {
           if (idFieldModel.getAnnotation(Id.class).generationStrategy() == GenerationStrategy.NONE){
-              return overrideSetterDisabledUpdate(setter);
+              return overrideSetter(setter);
           }
           return overrideSetterCompletelyBlocked(setter);
     }
@@ -289,16 +298,7 @@ class IdFieldAccessorOverrider extends FieldAccessorOverrider {
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ParameterSpec.builder(TypeName.get(setter.getParameters().get(0).asType()), "value").build())
-                .addStatement("throw new $T(\"primary key can not be updated\")", UnsupportedOperationException.class)
-                .build();
-    }
-
-    private MethodSpec overrideSetterDisabledUpdate(ExecutableElement setter) {
-        return MethodSpec.methodBuilder(setter.getSimpleName().toString())
-                .addAnnotation(Override.class)
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(ParameterSpec.builder(TypeName.get(setter.getParameters().get(0).asType()), "value").build())
-                .addStatement("throw new $T(\"changing a primary key is not allowed \")", UnsupportedOperationException.class)
+                .addStatement("throw new $T(\"primary key is immutable\")", UnsupportedOperationException.class)
                 .build();
     }
 }

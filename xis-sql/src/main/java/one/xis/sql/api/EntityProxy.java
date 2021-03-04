@@ -12,9 +12,12 @@ public interface EntityProxy<E, EID> {
 
     boolean dirty();
 
-    void clean();
+    void doSetClean();
+
+    void doSetStored();
 
     void pk(EID id);
 
     boolean stored();
+
 }

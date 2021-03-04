@@ -19,18 +19,18 @@ public class EntityTableAccessorWriter {
 
     void write() throws IOException {
         TypeSpec.Builder builder = TypeSpec.classBuilder(accessorModel.getEntityTableAccessorSimpleName())
-                .addTypeVariable(entityTypeVariableName())
-                .addTypeVariable(entityIdTypeVariableName())
                 .addModifiers(Modifier.PUBLIC)
                 .addModifiers(Modifier.ABSTRACT) // TODO remove abstract
                 .superclass(ParameterizedTypeName.get(ClassName.get(EntityTableAccessor.class),
-                        entityTypeName(), entityIdTypeName()))
+                        entityTypeName(), entityIdTypeName(), entityProxyTypeName()))
                 .addOriginatingElement(accessorModel.getEntityModel().getType());
 
         writeTypeBody(builder);
         TypeSpec typeSpec = builder.build();
 
-        JavaFile javaFile = JavaFile.builder(accessorModel.getEntityTableAccessorPackageName(), typeSpec).build();
+        JavaFile javaFile = JavaFile.builder(accessorModel.getEntityTableAccessorPackageName(), typeSpec)
+                .skipJavaLangImports(true)
+                .build();
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
@@ -39,13 +39,13 @@ public class EntityTableAccessorWriter {
     }
 
     private void implementAbstractMethods(TypeSpec.Builder builder) {
-        builder.addMethod(implementInsertOneEntity());
-        builder.addMethod(implementInsertOneEntityCollection());
+        builder.addMethod(implementInsertSingleEntityProxy());
+        builder.addMethod(implementInsertEntityCollection());
         builder.addMethod(implementToEntityProxy());
         // TODO
     }
 
-    private MethodSpec implementInsertOneEntity() {
+    private MethodSpec implementInsertSingleEntityProxy() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("insert")
                 .addModifiers(Modifier.PROTECTED)
                 .addAnnotation(Override.class)
@@ -62,7 +62,7 @@ public class EntityTableAccessorWriter {
     }
 
 
-    private MethodSpec implementInsertOneEntityCollection() {
+    private MethodSpec implementInsertEntityCollection() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("insert")
                 .addModifiers(Modifier.PROTECTED)
                 .addAnnotation(Override.class)
@@ -85,7 +85,8 @@ public class EntityTableAccessorWriter {
                 .addAnnotation(Override.class)
                 .returns(entityProxyTypeName())
                 .addParameter(entityTypeName(), "entity")
-                .addStatement("return new $L(entity, true)", accessorModel.getEntityProxySimpleName())
+                .addParameter(TypeName.BOOLEAN, "stored")
+                .addStatement("return new $L(entity, stored)", accessorModel.getEntityProxySimpleName())
                 .build();
 
     }
@@ -99,9 +100,13 @@ public class EntityTableAccessorWriter {
         return ParameterizedTypeName.get(ClassName.get(Collection.class), entityProxyTypeName());
     }
 
-
-    private ParameterizedTypeName entityProxyTypeName() {
-        return ParameterizedTypeName.get(ClassName.get(EntityProxy.class), entityTypeName(), entityIdTypeName());
+    private TypeName entityProxyTypeName() {
+        String type = new StringBuilder()
+                .append(entityModel().getPackageName())
+                .append(".")
+                .append(EntityProxyModel.getEntityProxySimpleName(entityModel()))
+                .toString();
+        return TypeName.get(processingEnvironment.getElementUtils().getTypeElement(type).asType());
     }
 
     private TypeVariableName entityTypeVariableName() {
@@ -110,6 +115,10 @@ public class EntityTableAccessorWriter {
 
     private TypeVariableName entityIdTypeVariableName() {
         return TypeVariableName.get("EID", TypeName.get(entityModel().getIdField().getFieldType()));
+    }
+
+    private TypeVariableName entityProxyTypeVariableName() {
+        return TypeVariableName.get("P", entityProxyTypeName());
     }
 
     private TypeName entityTypeName() {

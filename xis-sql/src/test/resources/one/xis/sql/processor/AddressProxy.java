@@ -39,8 +39,13 @@ public class AddressProxy extends Address implements EntityProxy<Address, Long> 
     }
 
     @Override
-    public void clean() {
+    public void doSetClean() {
         dirty = false;
+    }
+
+    @Override
+    public void doSetStored() {
+        stored = true;
     }
 
 }
