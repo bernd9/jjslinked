@@ -57,6 +57,7 @@ class EntityProxyWriter {
         implementProxyInterfaceMethods(builder);
         overrideIdGettersAndSetters(builder);
         overrideNonComplexGettersAndSetters(builder);
+        overrideForeignKeyFieldGettersAndSetters(builder);
         /*
 
         addGetters(builder);
@@ -76,6 +77,12 @@ class EntityProxyWriter {
         NonComplexFieldsAccessorOverrider nonComplexFieldsAccessorOverrider = new NonComplexFieldsAccessorOverrider("entity", fields);
         nonComplexFieldsAccessorOverrider.overrideGetters(builder);
         nonComplexFieldsAccessorOverrider.overrideSetters(builder);
+    }
+
+    private void overrideForeignKeyFieldGettersAndSetters(TypeSpec.Builder builder) {
+        ForeignKeyFieldAccessorOverrider foreignKeyFieldAccessorOverrider = new ForeignKeyFieldAccessorOverrider("entity", entityModel().getForeignKeyFields());
+        foreignKeyFieldAccessorOverrider.overrideGetters(builder);
+        foreignKeyFieldAccessorOverrider.overrideSetters(builder);
     }
 
     private void implementProxyInterfaceMethods(TypeSpec.Builder builder) {
@@ -196,10 +203,6 @@ class EntityProxyWriter {
         return TypeName.get(entityModel().getIdField().getFieldType());
     }
 
-    private static TypeName parameterTypeName(ExecutableElement method, int paramIndex) {
-        return TypeName.get(method.getParameters().get(paramIndex).asType());
-    }
-
 }
 
 @RequiredArgsConstructor
@@ -298,4 +301,51 @@ class IdFieldAccessorOverrider extends FieldAccessorOverrider {
                 .addStatement("throw new $T(\"changing a primary key is not allowed \")", UnsupportedOperationException.class)
                 .build();
     }
+}
+
+
+class ForeignKeyFieldAccessorOverrider extends FieldAccessorOverrider {
+
+    private final Collection<ForeignKeyFieldModel> fields;
+
+    ForeignKeyFieldAccessorOverrider(String entityFieldName, Collection<ForeignKeyFieldModel> fields) {
+        super(entityFieldName);
+        this.fields = fields;
+    }
+
+    void overrideGetters(TypeSpec.Builder builder) {
+        fields.stream()
+                .map(ForeignKeyFieldModel::getGetter)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(this::overrideGetter)
+                .forEach(builder::addMethod);
+    }
+
+    void overrideSetters(TypeSpec.Builder builder) {
+        fields.stream()
+                .filter(field -> field.getSetter().isPresent())
+                .map(this::overrideSetter)
+                .forEach(builder::addMethod);
+    }
+
+
+    private MethodSpec overrideSetter(ForeignKeyFieldModel field) {
+        ExecutableElement setter = field.getSetter().orElseThrow();
+        String entityProxySimpleName = EntityProxyModel.getEntityProxySimpleName(field.getFieldEntityModel());
+        return MethodSpec.methodBuilder(setter.getSimpleName().toString())
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(ParameterSpec.builder(TypeName.get(setter.getParameters().get(0).asType()), "value").build())
+                .addCode(CodeBlock.builder()
+                        .addStatement("dirty = true")
+                        .beginControlFlow("if (value == null || value instanceof $T)", EntityProxy.class)
+                        .addStatement("entity.$L(value)", setter.getSimpleName())
+                        .nextControlFlow("else")
+                        .addStatement("entity.$L(new $L(value, false))", setter.getSimpleName(), entityProxySimpleName)
+                        .endControlFlow()
+                        .build())
+                .build();
+    }
+
 }

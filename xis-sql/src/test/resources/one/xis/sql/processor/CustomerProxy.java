@@ -74,4 +74,19 @@ public class CustomerProxy extends Customer implements EntityProxy<Customer, Lon
         dirty = true;
         entity.setFirstName(value);
     }
+
+    @Override
+    public Address getInvoiceAddress() {
+        return entity.getInvoiceAddress();
+    }
+
+    @Override
+    public void setInvoiceAddress(Address value) {
+        dirty = true;
+        if (value == null || value instanceof EntityProxy) {
+            entity.setInvoiceAddress(value);
+        } else {
+            entity.setInvoiceAddress(new AddressProxy(value, false));
+        }
+    }
 }
