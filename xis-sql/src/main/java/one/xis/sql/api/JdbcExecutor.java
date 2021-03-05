@@ -26,9 +26,9 @@ class JdbcExecutor {
         }
     }
 
-    protected PreparedStatement prepare(String sql, int flags) {
+    protected PreparedEntityStatement prepare(String sql, int flags) {
         try {
-            return getConnection().prepareStatement(sql, flags);
+            return new PreparedEntityStatement(getConnection().prepareStatement(sql, flags));
         } catch (SQLException e) {
             throw new JdbcException("preparing statement failed: " + sql, e);
         }

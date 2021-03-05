@@ -6,6 +6,9 @@ import one.xis.sql.api.EntityTableAccessor;
 
 public abstract class CustomerTableAccessor extends EntityTableAccessor<Customer, Long, CustomerProxy> {
 
+    public CustomerTableAccessor() {
+        super(new CustomerStatements());
+    }
     @Override
     protected void insert(CustomerProxy entityProxy) {
         insertWithDbmsGeneratedKey(entityProxy);

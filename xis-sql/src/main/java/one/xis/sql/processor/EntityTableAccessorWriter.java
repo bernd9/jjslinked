@@ -3,13 +3,13 @@ package one.xis.sql.processor;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.Id;
-import one.xis.sql.api.EntityProxy;
 import one.xis.sql.api.EntityTableAccessor;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.List;
 
 
 @RequiredArgsConstructor
@@ -31,11 +31,20 @@ public class EntityTableAccessorWriter {
         JavaFile javaFile = JavaFile.builder(accessorModel.getEntityTableAccessorPackageName(), typeSpec)
                 .skipJavaLangImports(true)
                 .build();
+
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
     private void writeTypeBody(TypeSpec.Builder builder) {
+        createContructor(builder);
         implementAbstractMethods(builder);
+    }
+
+    private void createContructor(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.constructorBuilder()
+                .addModifiers(Modifier.PUBLIC )
+                .addStatement("super(new $L())", EntityStatementsModel.getEntityStatementsSimpleName(entityModel()))
+                .build());
     }
 
     private void implementAbstractMethods(TypeSpec.Builder builder) {
@@ -44,6 +53,7 @@ public class EntityTableAccessorWriter {
         builder.addMethod(implementToEntityProxy());
         // TODO
     }
+
 
     private MethodSpec implementInsertSingleEntityProxy() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("insert")
@@ -61,7 +71,6 @@ public class EntityTableAccessorWriter {
         return builder.build();
     }
 
-
     private MethodSpec implementInsertEntityCollection() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("insert")
                 .addModifiers(Modifier.PROTECTED)
@@ -78,7 +87,6 @@ public class EntityTableAccessorWriter {
         return builder.build();
     }
 
-
     private MethodSpec implementToEntityProxy() {
         return MethodSpec.methodBuilder("toEntityProxy")
                 .addModifiers(Modifier.PROTECTED)
@@ -90,7 +98,6 @@ public class EntityTableAccessorWriter {
                 .build();
 
     }
-
 
     private EntityModel entityModel() {
         return accessorModel.getEntityModel();
@@ -107,18 +114,6 @@ public class EntityTableAccessorWriter {
                 .append(EntityProxyModel.getEntityProxySimpleName(entityModel()))
                 .toString();
         return TypeName.get(processingEnvironment.getElementUtils().getTypeElement(type).asType());
-    }
-
-    private TypeVariableName entityTypeVariableName() {
-        return TypeVariableName.get("E", TypeName.get(entityModel().getType().asType()));
-    }
-
-    private TypeVariableName entityIdTypeVariableName() {
-        return TypeVariableName.get("EID", TypeName.get(entityModel().getIdField().getFieldType()));
-    }
-
-    private TypeVariableName entityProxyTypeVariableName() {
-        return TypeVariableName.get("P", entityProxyTypeName());
     }
 
     private TypeName entityTypeName() {
