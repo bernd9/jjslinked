@@ -3,6 +3,7 @@ package one.xis.sql.processor;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.JavaModelUtils;
 import com.ejc.util.StringUtils;
+import com.squareup.javapoet.TypeName;
 import lombok.Getter;
 import one.xis.sql.*;
 import one.xis.util.Pair;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 class EntityModel {
 
     private final TypeElement type;
+    private final TypeName typeName;
     private final SimpleEntityFieldModel idField;
     private final Set<CrossTableFieldModel> crossTableFields;
     private final Set<ForeignKeyFieldModel> foreignKeyFields;
@@ -48,6 +50,7 @@ class EntityModel {
         crossTableFields = crossTableFields(fields, gettersAndSetters);
         collectionTableFields = collectionTableFields(fields, gettersAndSetters);
         jsonFields = jsonFields(fields, gettersAndSetters);
+        typeName = TypeName.get(type.asType());
         ENTITY_MODELS.add(this);
     }
 

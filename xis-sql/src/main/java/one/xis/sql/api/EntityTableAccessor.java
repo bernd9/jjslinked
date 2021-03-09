@@ -1,8 +1,6 @@
 package one.xis.sql.api;
 
 import com.ejc.api.context.UsedInGeneratedCode;
-import one.xis.sql.EntityStatement;
-import one.xis.sql.GenerationStrategy;
 import one.xis.sql.JdbcException;
 
 import java.sql.PreparedStatement;
@@ -11,12 +9,13 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.*;
 
-public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E,EID>> extends JdbcExecutor {
+public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E, EID>> extends JdbcExecutor {
 
     // TODO validate entity must have more then one parameter (1. is id), otherwise @CollectionTable !
     private static final String TEXT_NO_PK = "Entity has no primary key. Consider to set ";// TODO
 
     private final EntityStatements<E, EID> entityStatements;
+
     public EntityTableAccessor(EntityStatements<E, EID> entityStatements) {
         this.entityStatements = entityStatements;
     }
@@ -55,7 +54,7 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E,EID>> 
 
     protected abstract void insert(P entityProxy);
 
-    protected  abstract void insert(Collection<P> entityProxies);
+    protected abstract void insert(Collection<P> entityProxies);
 
     public Collection<P> save(Collection<E> entities) {
         if (entities instanceof EntityCollection) {
@@ -86,15 +85,11 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E,EID>> 
             if (entity instanceof EntityProxy) {
                 entityProxy = (P) entity;
                 if (entityProxy.dirty()) {
-                    if (entityProxy.stored()) {
-                        proxiesForUpdate.add(entityProxy);
-                    } else {
-                        proxiesForInsert.add(entityProxy);
-                    }
+                    proxiesForUpdate.add(entityProxy);
                 }
                 saved.add((P) entity);
             } else {
-                entityProxy = toEntityProxy(entity, true);
+                entityProxy = toEntityProxy(entity);
                 proxiesForInsert.add(entityProxy);
                 saved.add(entityProxy);
             }
@@ -104,7 +99,7 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E,EID>> 
     }
 
     protected void updateProxies(List<P> entityProxies) {
-       update(entityProxies);
+        update(entityProxies);
     }
 
 
@@ -113,8 +108,8 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E,EID>> 
         Iterator<P> entityProxyIterator = entityProxies.iterator();
         try (PreparedEntityStatement st = prepare(entityStatements.getUpdateSql())) {
             while (entityProxyIterator.hasNext()) {
-                P proxy  = entityProxyIterator.next();
-                if (!proxy.stored() || proxy.pk() == null) {
+                P proxy = entityProxyIterator.next();
+                if (proxy.pk() == null) {
                     throw new IllegalStateException();
                 }
                 E entity = proxy.entity();
@@ -166,9 +161,6 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E,EID>> 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void insertWithDbmsGeneratedKey(P entityProxy) {
-        if (entityProxy.stored()) {
-            throw new IllegalStateException();
-        }
         try (PreparedEntityStatement st = prepare(entityStatements.getInsertSql(), Statement.RETURN_GENERATED_KEYS)) {
             entityStatements.setInsertSqlParameters(st, entityProxy.entity());
             st.executeUpdate();
@@ -178,7 +170,6 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E,EID>> 
             }
             EID id = getId(keys, 1);
             entityProxy.pk(id);
-            entityProxy.doSetStored();
             entityProxy.doSetClean();
         } catch (SQLException e) {
             throw new JdbcException("failed to close statement", e);
@@ -188,16 +179,12 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E,EID>> 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void insertWithManuallyPlacedKey(P entityProxy) {
-        if (entityProxy.stored()) {
-            throw new IllegalStateException();
-        }
         try (PreparedEntityStatement st = prepare(entityStatements.getInsertSql())) {
             entityStatements.setInsertSqlParameters(st, entityProxy.entity());
             st.executeUpdate();
             if (entityProxy.pk() == null) {
                 throw new JdbcException(entityProxy.entity() + ": " + TEXT_NO_PK);
             }
-            entityProxy.doSetStored();
             entityProxy.doSetClean();
         } catch (SQLException e) {
             throw new JdbcException("failed to close statement", e);
@@ -207,14 +194,10 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E,EID>> 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void insertWithApiGeneratedKey(P entityProxy) {
-        if (entityProxy.stored()) {
-            throw new IllegalStateException();
-        }
         try (PreparedEntityStatement st = prepare(entityStatements.getInsertSql(), Statement.RETURN_GENERATED_KEYS)) {
             entityProxy.pk(generateKey());
             entityStatements.setInsertSqlParameters(st, entityProxy.entity());
             st.executeUpdate();
-            entityProxy.doSetStored();
             entityProxy.doSetClean();
             ResultSet keys = st.getGeneratedKeys();
             if (!keys.next()) {
@@ -233,13 +216,9 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E,EID>> 
         try (PreparedEntityStatement st = prepare(entityStatements.getInsertSql())) {
             while (entityIterator.hasNext()) {
                 P entityProxy = entityIterator.next();
-                if (entityProxy.stored()) {
-                    throw new IllegalStateException();
-                }
                 st.clearParameters();
                 entityStatements.setInsertSqlParameters(st, entityProxy.entity());
                 st.addBatch();
-                entityProxy.doSetStored();
                 entityProxy.doSetClean();
             }
             st.executeBatch();
@@ -271,13 +250,9 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E,EID>> 
                 if (entityProxy.pk() == null) {
                     throw new JdbcException(""); // TODO
                 }
-                if (entityProxy.stored()) {
-                    throw new IllegalStateException();
-                }
                 st.clearParameters();
                 entityStatements.setInsertSqlParameters(st, entityProxy.entity());
                 st.addBatch();
-                entityProxy.doSetStored();
                 entityProxy.doSetClean();
             }
             st.executeBatch();
@@ -293,14 +268,10 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E,EID>> 
         try (PreparedEntityStatement st = prepare(entityStatements.getInsertSql())) {
             while (entityIterator.hasNext()) {
                 P entityProxy = entityIterator.next();
-                if (entityProxy.stored()) {
-                    throw new IllegalStateException();
-                }
                 entityProxy.pk(generateKey());
                 st.clearParameters();
                 entityStatements.setInsertSqlParameters(st, entityProxy.entity());
                 st.addBatch();
-                entityProxy.doSetStored();
                 entityProxy.doSetClean();
             }
             st.executeBatch();
@@ -311,10 +282,10 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E,EID>> 
 
 
     private P toEntityProxy(ResultSet rs) throws SQLException {
-        return toEntityProxy(toEntity(rs), true);
+        return toEntityProxy(toEntity(rs));
     }
 
-    protected abstract P toEntityProxy(E entity, boolean stored);
+    protected abstract P toEntityProxy(E entity);
 
     protected abstract E toEntity(ResultSet rs) throws SQLException;
 

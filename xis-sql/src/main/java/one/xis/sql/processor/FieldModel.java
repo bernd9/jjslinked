@@ -35,6 +35,7 @@ class FieldModel {
         return Optional.ofNullable(getter);
     }
 
+    // TODO check: setter must be friendly
     Optional<ExecutableElement> getSetter() {
         return Optional.ofNullable(setter);
     }

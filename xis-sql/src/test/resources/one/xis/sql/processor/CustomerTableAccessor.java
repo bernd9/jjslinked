@@ -1,7 +1,8 @@
 package one.xis.sql.processor;
 
-import java.util.Collection;
 import one.xis.sql.api.EntityTableAccessor;
+
+import java.util.Collection;
 
 
 public abstract class CustomerTableAccessor extends EntityTableAccessor<Customer, Long, CustomerProxy> {
@@ -9,6 +10,7 @@ public abstract class CustomerTableAccessor extends EntityTableAccessor<Customer
     public CustomerTableAccessor() {
         super(new CustomerStatements());
     }
+
     @Override
     protected void insert(CustomerProxy entityProxy) {
         insertWithDbmsGeneratedKey(entityProxy);
@@ -20,8 +22,8 @@ public abstract class CustomerTableAccessor extends EntityTableAccessor<Customer
     }
 
     @Override
-    protected CustomerProxy toEntityProxy(Customer entity, boolean stored) {
-        return new CustomerProxy(entity, stored);
+    protected CustomerProxy toEntityProxy(Customer entity) {
+        return new CustomerProxy(entity);
     }
 
 }

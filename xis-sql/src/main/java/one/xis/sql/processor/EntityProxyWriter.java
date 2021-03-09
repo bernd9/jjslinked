@@ -3,14 +3,14 @@ package one.xis.sql.processor;
 import com.ejc.util.FieldUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
-import one.xis.sql.GenerationStrategy;
-import one.xis.sql.Id;
 import one.xis.sql.api.EntityProxy;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.element.*;
+import javax.lang.model.element.ExecutableElement;
+import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Supplier;
 
 
 class EntityProxyWriter {
@@ -29,8 +29,7 @@ class EntityProxyWriter {
                 .addModifiers(Modifier.PUBLIC)
                 .addSuperinterface(ParameterizedTypeName.get(ClassName.get(EntityProxy.class),
                         entityTypeName(), entityIdTypeName()))
-                .superclass(entityProxyModel.getEntityModel().getType().asType())
-                .addMethod(constructor());
+                .superclass(entityProxyModel.getEntityModel().getType().asType());
 
         writeTypeBody(builder);
         TypeSpec typeSpec = builder.build();
@@ -40,23 +39,15 @@ class EntityProxyWriter {
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
-    private MethodSpec constructor() {
-        return MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(ParameterSpec.builder(entityTypeName(), "entity").build())
-                .addParameter(ParameterSpec.builder(TypeName.BOOLEAN, "stored").build())
-                .addStatement("this.entity = entity")
-                .addStatement("this.stored = stored")
-                .build();
-    }
 
     private void writeTypeBody(TypeSpec.Builder builder) {
-        addWrappedEntityField(builder);
-        addStoredFlag(builder);
-        addDirtyFlag(builder);
+        addConstructor(builder);
+        addDirtyField(builder);
+        addSupplierField(builder);
+        implementGetSuppliers(builder);
         implementProxyInterfaceMethods(builder);
-        overrideIdGettersAndSetters(builder);
-        overrideNonComplexGettersAndSetters(builder);
+        overrideIdSetter(builder);
+        overrideSetters(builder);
         overrideForeignKeyFieldGettersAndSetters(builder);
         /*
 
@@ -65,18 +56,57 @@ class EntityProxyWriter {
          */
     }
 
-    private void overrideIdGettersAndSetters(TypeSpec.Builder builder) {
-        IdFieldAccessorOverrider idFieldAccessorOverrider = new IdFieldAccessorOverrider("entity", entityModel().getIdField());
-        idFieldAccessorOverrider.overrideGetter(builder);
-        idFieldAccessorOverrider.overrideSetter(builder);
+    private void implementGetSuppliers(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.methodBuilder("suppliers")
+                .addAnnotation(Override.class)
+                .returns(ParameterizedTypeName.get(ClassName.get(Map.class), TypeName.get(String.class), TypeName.get(Supplier.class)))
+                .addModifiers(Modifier.PUBLIC)
+                .addStatement("return entity.$L()")
+                .build());
     }
 
-    private void overrideNonComplexGettersAndSetters(TypeSpec.Builder builder) {
-        Collection<SimpleEntityFieldModel> fields = new HashSet<>(entityProxyModel.getEntityModel().getNonComplexFields());
+
+    private void addConstructor(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.constructorBuilder()
+                .addStatement("providers = new $T<>()", HashMap.class)
+                .build());
+    }
+
+    private void overrideIdSetter(TypeSpec.Builder builder) {
+        entityModel().getIdField().getSetter()
+                .map(this::overrideIdSetter)
+                .ifPresent(builder::addMethod);
+    }
+
+    private MethodSpec overrideIdSetter(ExecutableElement setter) {
+        return MethodSpec.methodBuilder(setter.getSimpleName().toString())
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(ParameterSpec.builder(TypeName.get(setter.getParameters().get(0).asType()), "value").build())
+                .addStatement("throw new $T(\"primary key is immutable\")", UnsupportedOperationException.class)
+                .build();
+    }
+
+    private void overrideSetters(TypeSpec.Builder builder) {
+        Collection<SimpleEntityFieldModel> fields = new HashSet<>(entityProxyModel.getEntityModel().getAllFields());
         fields.remove(entityProxyModel.getEntityModel().getIdField());
-        NonComplexFieldsAccessorOverrider nonComplexFieldsAccessorOverrider = new NonComplexFieldsAccessorOverrider("entity", fields);
-        nonComplexFieldsAccessorOverrider.overrideGetters(builder);
-        nonComplexFieldsAccessorOverrider.overrideSetters(builder);
+        fields.stream()
+                .map(FieldModel::getSetter)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .map(this::overrideSetter)
+                .forEach(builder::addMethod);
+
+    }
+
+    protected MethodSpec overrideSetter(ExecutableElement setter) {
+        return MethodSpec.methodBuilder(setter.getSimpleName().toString())
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(ParameterSpec.builder(TypeName.get(setter.getParameters().get(0).asType()), "value").build())
+                .addStatement("dirty = true")
+                .addStatement("super.$L(value)", setter.getSimpleName())
+                .build();
     }
 
     private void overrideForeignKeyFieldGettersAndSetters(TypeSpec.Builder builder) {
@@ -88,12 +118,8 @@ class EntityProxyWriter {
     private void implementProxyInterfaceMethods(TypeSpec.Builder builder) {
         builder.addMethod(implementSetPkMethod());
         builder.addMethod(implementGetPkMethod());
-        builder.addMethod(implementGetEntityMethod());
-        builder.addMethod(implementStoredMethod());
         builder.addMethod(implementIsDirtyMethod());
         builder.addMethod(implementDoSetCleanMethod());
-        builder.addMethod(implementDoSetStoredMethod());
-
     }
 
     private MethodSpec implementGetPkMethod() {
@@ -119,31 +145,13 @@ class EntityProxyWriter {
                 .build();
     }
 
-    private MethodSpec implementGetEntityMethod() {
-        return MethodSpec.methodBuilder("entity")
-                .addAnnotation(Override.class)
-                .addModifiers(Modifier.PUBLIC)
-                .returns(entityTypeName())
-                .addStatement("return entity")
-                .build();
-    }
-
-
-    private MethodSpec implementStoredMethod() {
-        return MethodSpec.methodBuilder("stored")
-                .addAnnotation(Override.class)
-                .addModifiers(Modifier.PUBLIC)
-                .returns(TypeName.BOOLEAN)
-                .addStatement("return stored")
-                .build();
-    }
 
     private MethodSpec implementIsDirtyMethod() {
-        return MethodSpec.methodBuilder("dirty")
+        return MethodSpec.methodBuilder("touched")
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .returns(TypeName.BOOLEAN)
-                .addStatement("return dirty")
+                .addStatement("return touched")
                 .build();
     }
 
@@ -151,15 +159,7 @@ class EntityProxyWriter {
         return MethodSpec.methodBuilder("doSetClean")
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
-                .addStatement("dirty = false")
-                .build();
-    }
-
-    private MethodSpec implementDoSetStoredMethod() {
-        return MethodSpec.methodBuilder("doSetStored")
-                .addAnnotation(Override.class)
-                .addModifiers(Modifier.PUBLIC)
-                .addStatement("stored = true")
+                .addStatement("touched = false")
                 .build();
     }
 
@@ -186,17 +186,13 @@ class EntityProxyWriter {
                 .build();
     }
 
-    private void addDirtyFlag(TypeSpec.Builder builder) {
+    private void addDirtyField(TypeSpec.Builder builder) {
         builder.addField(FieldSpec.builder(TypeName.BOOLEAN, "dirty", Modifier.PRIVATE).build());
     }
 
-    private void addStoredFlag(TypeSpec.Builder builder) {
-        builder.addField(FieldSpec.builder(TypeName.BOOLEAN, "stored", Modifier.PRIVATE).build());
-    }
-
-
-    private void addWrappedEntityField(TypeSpec.Builder builder) {
-        builder.addField(FieldSpec.builder(entityTypeName(), "entity", Modifier.PRIVATE, Modifier.FINAL).build());
+    private void addSupplierField(TypeSpec.Builder builder) {
+        builder.addField(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get(Map.class),
+                TypeName.get(String.class), TypeName.get(Supplier.class)), "suppliers", Modifier.PRIVATE).build());
     }
 
     private EntityModel entityModel() {
@@ -240,6 +236,78 @@ abstract class FieldAccessorOverrider {
     }
 }
 
+@RequiredArgsConstructor
+class Getter {
+    private final String parameterName;
+    private final ExecutableElement getter;
+
+    MethodSpec override(CodeBlock codeInSetter) {
+        return MethodSpec.overriding(getter)
+                .addStatement(codeInSetter)
+                .build();
+    }
+}
+
+@RequiredArgsConstructor
+class Setter {
+    private final String parameterName;
+    private final ExecutableElement setter;
+
+    MethodSpec override(CodeBlock codeInSetter) {
+        return MethodSpec.overriding(setter)
+                .addParameter(TypeName.get(setter.getParameters().get(0).asType()), parameterName)
+                .addStatement(codeInSetter)
+                .build();
+    }
+}
+
+
+@RequiredArgsConstructor
+class FieldValueWriter {
+    private final String entityVarName;
+    private final FieldModel fieldModel;
+
+    CodeBlock createSetFieldValueCode(CodeBlock valueSupplierCode) {
+        return fieldModel.getSetter().map(setter -> useSetter(setter, valueSupplierCode))
+                .orElseGet(() -> useFieldUtils(valueSupplierCode));
+    }
+
+    private CodeBlock useSetter(ExecutableElement setter, CodeBlock valueSupplierCode) {
+        return CodeBlock.builder()
+                .addStatement("$L.$L($L)", entityVarName, setter.getSimpleName(), valueSupplierCode)
+                .build();
+    }
+
+    private CodeBlock useFieldUtils(CodeBlock valueSupplierCode) {
+        return CodeBlock.builder()
+                .addStatement("$T.setFieldValue($L, \"$L\", $L)", entityVarName, fieldModel.getFieldName(), valueSupplierCode)
+                .build();
+    }
+}
+
+
+@RequiredArgsConstructor
+class FieldValueReader {
+    private final String entityVarName;
+    private final FieldModel fieldModel;
+
+    CodeBlock createGetFieldValueCode() {
+        return fieldModel.getGetter().map(this::useGetter).orElseGet(this::useFieldUtils);
+    }
+
+    private CodeBlock useGetter(ExecutableElement getter) {
+        return CodeBlock.builder()
+                .addStatement("$L.$L()", entityVarName, getter.getSimpleName())
+                .build();
+    }
+
+    private CodeBlock useFieldUtils() {
+        return CodeBlock.builder()
+                .addStatement("$T.getFieldValue($L, \"$L\")", entityVarName, fieldModel.getFieldName())
+                .build();
+    }
+}
+
 
 class NonComplexFieldsAccessorOverrider extends FieldAccessorOverrider {
 
@@ -266,40 +334,6 @@ class NonComplexFieldsAccessorOverrider extends FieldAccessorOverrider {
                 .map(Optional::get)
                 .map(this::overrideGetter)
                 .forEach(proxyTypeBuilder::addMethod);
-    }
-}
-
-class IdFieldAccessorOverrider extends FieldAccessorOverrider {
-
-    private final SimpleEntityFieldModel idFieldModel;
-
-    IdFieldAccessorOverrider(String entityFieldName, SimpleEntityFieldModel idFieldModel) {
-        super(entityFieldName);
-        this.idFieldModel = idFieldModel;
-    }
-
-    void overrideGetter(TypeSpec.Builder proxyTypeBuilder) {
-        idFieldModel.getGetter().map(this::overrideGetter).ifPresent(proxyTypeBuilder::addMethod);
-    }
-
-    void overrideSetter(TypeSpec.Builder proxyTypeBuilder) {
-        idFieldModel.getSetter().map(this::overrideSetter).ifPresent(proxyTypeBuilder::addMethod);
-    }
-
-    protected MethodSpec overrideSetter(ExecutableElement setter) {
-          if (idFieldModel.getAnnotation(Id.class).generationStrategy() == GenerationStrategy.NONE){
-              return overrideSetter(setter);
-          }
-          return overrideSetterCompletelyBlocked(setter);
-    }
-
-    private MethodSpec overrideSetterCompletelyBlocked(ExecutableElement setter) {
-        return MethodSpec.methodBuilder(setter.getSimpleName().toString())
-                .addAnnotation(Override.class)
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(ParameterSpec.builder(TypeName.get(setter.getParameters().get(0).asType()), "value").build())
-                .addStatement("throw new $T(\"primary key is immutable\")", UnsupportedOperationException.class)
-                .build();
     }
 }
 

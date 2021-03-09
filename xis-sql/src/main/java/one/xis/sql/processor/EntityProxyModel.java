@@ -2,10 +2,12 @@ package one.xis.sql.processor;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.Delegate;
 
 @RequiredArgsConstructor
 class EntityProxyModel {
     @Getter
+    @Delegate
     private final EntityModel entityModel;
     
     String getEntityProxySimpleName() {

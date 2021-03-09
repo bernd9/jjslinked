@@ -5,10 +5,7 @@ import com.ejc.util.StringUtils;
 import com.google.errorprone.annotations.Var;
 import lombok.Getter;
 
-import javax.lang.model.element.ElementKind;
-import javax.lang.model.element.ExecutableElement;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
+import javax.lang.model.element.*;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import java.util.HashMap;
@@ -51,12 +48,14 @@ class GettersAndSetters {
 
     Optional<ExecutableElement> getGetter(VariableElement field) {
         return methods.stream()
+                .filter(e -> !e.getModifiers().contains(Modifier.PRIVATE))
                 .filter(e -> isGetterForField(e, field))
                 .collect(CollectorUtils.toOnlyOptional());
     }
 
     Optional<ExecutableElement> getSetter(VariableElement field) {
         return methods.stream()
+                .filter(e -> !e.getModifiers().contains(Modifier.PRIVATE))
                 .filter(e -> isSetterForField(e, field))
                 .collect(CollectorUtils.toOnlyOptional());
     }

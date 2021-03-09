@@ -2,35 +2,23 @@ package one.xis.sql.processor;
 
 import one.xis.sql.api.EntityProxy;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
+
 public class CustomerProxy extends Customer implements EntityProxy<Customer, Long> {
 
-    private final Customer entity;
-    private boolean stored;
     private boolean dirty;
-
-    public CustomerProxy(Customer entity, boolean stored) {
-        this.entity = entity;
-        this.stored = stored;
-    }
+    private Map<String, Supplier<?>> suppliers = new HashMap<>();
 
     @Override
     public void pk(Long pk) {
-        entity.setId(pk);
+        super.setId(pk);
     }
 
     @Override
     public Long pk() {
-        return entity.getId();
-    }
-
-    @Override
-    public Customer entity() {
-        return entity;
-    }
-
-    @Override
-    public boolean stored() {
-        return stored;
+        return super.getId();
     }
 
     @Override
@@ -39,18 +27,8 @@ public class CustomerProxy extends Customer implements EntityProxy<Customer, Lon
     }
 
     @Override
-    public void doSetClean() {
-        dirty = false;
-    }
-
-    @Override
-    public void doSetStored() {
-        stored = true;
-    }
-
-    @Override
-    public Long getId() {
-        return entity.getId();
+    public Map<String, Supplier<?>> suppliers() {
+        return suppliers;
     }
 
     @Override
@@ -59,39 +37,31 @@ public class CustomerProxy extends Customer implements EntityProxy<Customer, Lon
     }
 
     @Override
-    public String getLastName() {
-        return entity.getLastName();
-    }
-
-    @Override
-    public String getFirstName() {
-        return entity.getFirstName();
-    }
-
-    @Override
     public void setLastName(String value) {
         dirty = true;
-        entity.setLastName(value);
+        super.setLastName(value);
     }
 
     @Override
     public void setFirstName(String value) {
         dirty = true;
-        entity.setFirstName(value);
-    }
-
-    @Override
-    public Address getInvoiceAddress() {
-        return entity.getInvoiceAddress();
+        super.setFirstName(value);
     }
 
     @Override
     public void setInvoiceAddress(Address value) {
         dirty = true;
-        if (value == null || value instanceof EntityProxy) {
-            entity.setInvoiceAddress(value);
-        } else {
-            entity.setInvoiceAddress(new AddressProxy(value, false));
-        }
+        super.setInvoiceAddress(value);
     }
+
+    @Override
+    public Address getInvoiceAddress() {
+        Address value = super.getInvoiceAddress();
+        if (value == null) {
+            value = load("invoiceAddress");
+            super.setInvoiceAddress(value);
+        }
+        return value;
+    }
+
 }

@@ -2,35 +2,26 @@ package one.xis.sql.processor;
 
 import one.xis.sql.api.EntityProxy;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
+
 public class AddressProxy extends Address implements EntityProxy<Address, Long> {
 
-    private final Address entity;
-    private boolean stored;
     private boolean dirty;
+    private Map<String, Supplier<?>> suppliers = new HashMap<>();
 
-    public AddressProxy(Address entity, boolean stored) {
-        this.entity = entity;
-        this.stored = stored;
-    }
+
+    public static final Address NULL = new Address();
 
     @Override
     public void pk(Long pk) {
-        entity.setId(pk);
+        super.setId(pk);
     }
 
     @Override
     public Long pk() {
-        return entity.getId();
-    }
-
-    @Override
-    public Address entity() {
-        return entity;
-    }
-
-    @Override
-    public boolean stored() {
-        return stored;
+        return super.getId();
     }
 
     @Override
@@ -39,13 +30,25 @@ public class AddressProxy extends Address implements EntityProxy<Address, Long> 
     }
 
     @Override
-    public void doSetClean() {
-        dirty = false;
+    public Map<String, Supplier<?>> suppliers() {
+        return suppliers;
+    }
+    
+    @Override
+    public void setCountry(String value) {
+        dirty = true;
+        super.setCountry(country);
     }
 
     @Override
-    public void doSetStored() {
-        stored = true;
+    public void setPostal(String value) {
+        dirty = true;
+        super.setPostal(value);
     }
 
+    @Override
+    public void setStreet(String street) {
+        dirty = true;
+        super.setStreet(street);
+    }
 }
