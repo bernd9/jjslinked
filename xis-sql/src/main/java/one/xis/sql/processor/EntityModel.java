@@ -14,10 +14,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import java.lang.annotation.Annotation;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -166,5 +163,12 @@ class EntityModel {
         set.addAll(crossTableFields);
         set.addAll(collectionTableFields);
         return set;
+    }
+
+    public List<? extends SimpleEntityFieldModel> getAllFieldsInAlphabeticalOrder() {
+        List<? extends SimpleEntityFieldModel> list = new ArrayList<>(getAllFields());
+        Collections.sort(list, Comparator.comparing(f -> f.getFieldName().toString()));
+        return list;
+
     }
 }

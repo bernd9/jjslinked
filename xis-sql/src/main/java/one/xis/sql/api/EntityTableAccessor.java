@@ -56,6 +56,15 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E, EID>>
 
     protected abstract void insert(Collection<E> entities);
 
+    public void save(E entity) {
+        if (entity instanceof EntityProxy) {
+            update(Collections.singletonList((P)entity));
+        } else if (getPk(entity) != null){
+            insert(entity);
+        }
+    }
+
+
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
     public Collection<E> save(Collection<E> entities) {
@@ -72,6 +81,7 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E, EID>>
             rv = new EntityArrayList<>();
             save(entities, rv);
         } else {
+            // TODO more collection types
             throw new IllegalArgumentException();
         }
         return rv;

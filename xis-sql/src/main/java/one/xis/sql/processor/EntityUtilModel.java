@@ -1,5 +1,7 @@
 package one.xis.sql.processor;
 
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.TypeName;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
@@ -21,6 +23,14 @@ class EntityUtilModel {
 
     static String getEntityUtilSimpleName(EntityModel entityModel) {
         return entityModel.getSimpleName() + "Util";
+    }
+
+    static TypeName getEntityUtilTypeName(EntityModel entityModel) {
+        return ClassName.get(entityModel.getPackageName(), getEntityUtilSimpleName(entityModel));
+    }
+
+    TypeName getEntityUtilTypeName() {
+        return getEntityUtilTypeName(entityModel);
     }
 
 }

@@ -1,5 +1,10 @@
 package one.xis.sql.processor;
 
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
+
 class CustomerUtil {
 
     private CustomerUtil() {
@@ -12,4 +17,29 @@ class CustomerUtil {
     static void setPk(Customer entity, Long pk) {
         entity.setId(pk);
     }
+
+    static Customer doClone(Customer o) {
+        Customer rv = new Customer();
+        rv.setFirstName(o.getFirstName());
+        rv.setId(o.getId());
+        rv.setInvoiceAddress(AddressUtil.doClone(o.getInvoiceAddress()));
+        rv.setLastName(o.getLastName());
+        return rv;
+    }
+
+    static Set<Customer> doClone(Set<Customer> coll) {
+        Set<Customer> rv = new HashSet<>();
+        coll.stream().map(CustomerUtil::doClone).forEach(rv::add);
+        return rv;
+    }
+
+    static List<Customer> doClone(List<Customer> coll) {
+        List<Customer> rv = new LinkedList<>();
+        coll.stream().map(CustomerUtil::doClone).forEach(rv::add);
+        return rv;
+    }
+
+
+
+
 }

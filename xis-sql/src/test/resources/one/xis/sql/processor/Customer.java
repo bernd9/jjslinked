@@ -48,4 +48,5 @@ class Customer {
     public void setInvoiceAddress(Address invoiceAddress) {
         this.invoiceAddress = invoiceAddress;
     }
+
 }
