@@ -1,9 +1,8 @@
 package one.xis.sql.processor;
 
-import one.xis.sql.api.EntityResultSet;
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import one.xis.sql.api.EntityResultSet;
 
 public class CustomerResultSet extends EntityResultSet<Customer, Long, CustomerProxy> {
 
@@ -12,7 +11,7 @@ public class CustomerResultSet extends EntityResultSet<Customer, Long, CustomerP
     }
 
     @Override
-    public CustomerProxy getEntity() throws SQLException {
+    public CustomerProxy getEntityProxy() throws SQLException {
         CustomerProxy entity = new CustomerProxy();
         entity.setFirstName(get_String("first_name"));
         entity.setId(get_Long("id"));

@@ -65,7 +65,7 @@ public class EntityResultSetWriter {
                 .addModifiers(Modifier.PUBLIC)
                 .returns(entityProxyTypeName())
                 .addException(SQLException.class)
-                .addStatement("$T entity = new $L()", entityProxyTypeName(), entityProxyTypeName());
+                .addStatement("$T entity = new $T()", entityProxyTypeName(), entityProxyTypeName());
         addSetNonComplexValuesGetEntityCode(builder);
         return builder.addStatement("return entity").build();
     }

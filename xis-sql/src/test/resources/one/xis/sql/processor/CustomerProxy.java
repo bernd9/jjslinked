@@ -1,24 +1,33 @@
 package one.xis.sql.processor;
 
-import one.xis.sql.api.EntityProxy;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+import one.xis.sql.api.EntityProxy;
 
 public class CustomerProxy extends Customer implements EntityProxy<Customer, Long> {
 
     private boolean dirty;
-    private Map<String, Supplier<?>> suppliers = new HashMap<>();
+
+    private Map<String, Supplier> suppliers;
+
+    CustomerProxy() {
+        suppliers = new HashMap<>();
+    }
+
+    @Override
+    public Map<String, Supplier<?>> suppliers() {
+        return suppliers();
+    }
 
     @Override
     public void pk(Long pk) {
-        super.setId(pk);
+        setId(pk);
     }
 
     @Override
     public Long pk() {
-        return super.getId();
+        return getId();
     }
 
     @Override
@@ -27,8 +36,8 @@ public class CustomerProxy extends Customer implements EntityProxy<Customer, Lon
     }
 
     @Override
-    public Map<String, Supplier<?>> suppliers() {
-        return suppliers;
+    public void doSetClean() {
+        dirty = false;
     }
 
     @Override
@@ -43,25 +52,15 @@ public class CustomerProxy extends Customer implements EntityProxy<Customer, Lon
     }
 
     @Override
-    public void setFirstName(String value) {
-        dirty = true;
-        super.setFirstName(value);
-    }
-
-    @Override
     public void setInvoiceAddress(Address value) {
         dirty = true;
         super.setInvoiceAddress(value);
     }
 
     @Override
-    public Address getInvoiceAddress() {
-        Address value = super.getInvoiceAddress();
-        if (value == null) {
-            value = load("invoiceAddress");
-            super.setInvoiceAddress(value);
-        }
-        return value;
+    public void setFirstName(String value) {
+        dirty = true;
+        super.setFirstName(value);
     }
 
 }

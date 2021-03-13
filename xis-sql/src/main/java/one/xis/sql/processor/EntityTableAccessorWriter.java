@@ -24,7 +24,6 @@ public class EntityTableAccessorWriter {
     void write() throws IOException {
         TypeSpec.Builder builder = TypeSpec.classBuilder(accessorModel.getEntityTableAccessorSimpleName())
                 .addModifiers(Modifier.PUBLIC)
-                .addModifiers(Modifier.ABSTRACT) // TODO remove abstract
                 .superclass(ParameterizedTypeName.get(ClassName.get(EntityTableAccessor.class),
                         entityTypeName(), entityPkTypeName(), entityProxyTypeName()))
                 .addOriginatingElement(accessorModel.getEntityModel().getType());
