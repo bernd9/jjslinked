@@ -24,7 +24,7 @@ public class EntityResultSetWriter {
     void write() throws IOException {
         TypeSpec.Builder builder = TypeSpec.classBuilder(resultSetModel.getSimpleName())
                 .addModifiers(Modifier.PUBLIC)
-                .superclass(ParameterizedTypeName.get(ClassName.get(EntityResultSet.class), entityTypeName()))
+                .superclass(superclass())
                 .addOriginatingElement(resultSetModel.getEntityModel().getType());
 
         writeTypeBody(builder);
@@ -34,6 +34,13 @@ public class EntityResultSetWriter {
                 .skipJavaLangImports(true)
                 .build();
         javaFile.writeTo(processingEnvironment.getFiler());
+    }
+
+    private TypeName superclass() {
+        return ParameterizedTypeName.get(ClassName.get(EntityResultSet.class),
+                entityTypeName(),
+                entityPkTypeName(),
+                entityProxyTypeName());
     }
 
     private void writeTypeBody(TypeSpec.Builder builder) {
@@ -53,15 +60,16 @@ public class EntityResultSetWriter {
     }
 
     private MethodSpec implementGetEntity() {
-        final MethodSpec.Builder builder = MethodSpec.methodBuilder("getEntity")
+        final MethodSpec.Builder builder = MethodSpec.methodBuilder("getEntityProxy")
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
-                .returns(entityTypeName())
+                .returns(entityProxyTypeName())
                 .addException(SQLException.class)
-                .addStatement("$T entity = new $T()", entityTypeName(), entityTypeName());
+                .addStatement("$T entity = new $L()", entityProxyTypeName(), entityProxyTypeName());
         addSetNonComplexValuesGetEntityCode(builder);
-        return builder.addStatement("return new $L(entity, true)", EntityProxyModel.getEntityProxySimpleName(entityModel())).build();
+        return builder.addStatement("return entity").build();
     }
+
 
     private void addSetNonComplexValuesGetEntityCode(MethodSpec.Builder builder) {
         for (SimpleEntityFieldModel fieldModel : sortedByColumnName(resultSetModel.getEntityModel().getNonComplexFields())) {
@@ -83,12 +91,12 @@ public class EntityResultSetWriter {
         String simpleName = JavaModelUtils.getSimpleName(fieldModel.getField().asType());
         String name = String.format("get_%s", StringUtils.firstToUpperCase(simpleName));
         if (EntityResultSetModel.getResultGetters().contains(name)) {
-          return name;
+            return name;
         }
         if (JavaModelUtils.isByteArray(fieldModel.getFieldType())) {
             return "get_bytes"; // TODO add this to validation, too
         }
-       throw new IllegalStateException("should be caught in validation"); // TODO
+        throw new IllegalStateException("should be caught in validation"); // TODO
     }
 
     private EntityModel entityModel() {
@@ -98,6 +106,20 @@ public class EntityResultSetWriter {
     private TypeName entityTypeName() {
         return TypeName.get(entityModel().getType().asType());
     }
+
+    private TypeName entityProxyTypeName() {
+        return EntityProxyModel.getEntityProxyTypeName(entityModel());
+    }
+
+
+    private String entityProxyClassName() {
+        return EntityProxyModel.getEntityProxySimpleName(entityModel());
+    }
+
+    private TypeName entityPkTypeName() {
+        return TypeName.get(entityModel().getIdField().getFieldType());
+    }
+
 
     private <T extends SimpleEntityFieldModel> List<T> sortedByColumnName(Collection<T> values) {
         List<T> rv = new ArrayList<>(values);

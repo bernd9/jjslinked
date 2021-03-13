@@ -3,7 +3,6 @@ package one.xis.sql.processor;
 import one.xis.sql.Entity;
 import one.xis.sql.ForeignKey;
 import one.xis.sql.Id;
-import one.xis.sql.Referred;
 
 @Entity
 class Customer {
@@ -17,18 +16,6 @@ class Customer {
 
     @ForeignKey(columnName = "address_id")
     private Address invoiceAddress;
-
-    @Referred("customer_id")
-    private List<Order> orders;
-
-    public List<Order> getOrders() {
-        return orders;
-    }
-
-    public void setOrders(List<Order> orders) {
-        this.orders = orders;
-    }
-
 
     public String getFirstName() {
         return firstName;

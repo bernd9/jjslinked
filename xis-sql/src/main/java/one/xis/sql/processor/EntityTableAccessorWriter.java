@@ -1,15 +1,19 @@
 package one.xis.sql.processor;
 
+import com.ejc.util.JavaModelUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.Id;
 import one.xis.sql.api.EntityTableAccessor;
+import one.xis.sql.api.PreparedEntityStatement;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
+import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Collection;
-import java.util.List;
 
 
 @RequiredArgsConstructor
@@ -22,7 +26,7 @@ public class EntityTableAccessorWriter {
                 .addModifiers(Modifier.PUBLIC)
                 .addModifiers(Modifier.ABSTRACT) // TODO remove abstract
                 .superclass(ParameterizedTypeName.get(ClassName.get(EntityTableAccessor.class),
-                        entityTypeName(), entityIdTypeName(), entityProxyTypeName()))
+                        entityTypeName(), entityPkTypeName(), entityProxyTypeName()))
                 .addOriginatingElement(accessorModel.getEntityModel().getType());
 
         writeTypeBody(builder);
@@ -42,7 +46,7 @@ public class EntityTableAccessorWriter {
 
     private void createContructor(TypeSpec.Builder builder) {
         builder.addMethod(MethodSpec.constructorBuilder()
-                .addModifiers(Modifier.PUBLIC )
+                .addModifiers(Modifier.PUBLIC)
                 .addStatement("super(new $L())", EntityStatementsModel.getEntityStatementsSimpleName(entityModel()))
                 .build());
     }
@@ -51,7 +55,11 @@ public class EntityTableAccessorWriter {
         builder.addMethod(implementInsertSingleEntityProxy());
         builder.addMethod(implementInsertEntityCollection());
         builder.addMethod(implementToEntityProxy());
-        // TODO
+        builder.addMethod(implementGetPkEntity());
+        builder.addMethod(implementGetPkResultSet());
+        builder.addMethod(implementSetPkEntity());
+        builder.addMethod(implementSetPkStatement());
+        builder.addMethod(implementGenerateKey());
     }
 
 
@@ -59,13 +67,16 @@ public class EntityTableAccessorWriter {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("insert")
                 .addModifiers(Modifier.PROTECTED)
                 .addAnnotation(Override.class)
-                .addParameter(entityProxyTypeName(), "entityProxy");
+                .addParameter(entityTypeName(), "entity");
         switch (entityModel().getIdField().getAnnotation(Id.class).generationStrategy()) {
-            case API :builder.addStatement("insertWithApiGeneratedKey(entityProxy)");
-            break;
-            case DBMS : builder.addStatement("insertWithDbmsGeneratedKey(entityProxy)");
+            case API:
+                builder.addStatement("insertWithApiGeneratedKey(entity)");
                 break;
-            case NONE : builder.addStatement("insertWithManuallyPlacedKey(entityProxy) ");
+            case DBMS:
+                builder.addStatement("insertWithDbmsGeneratedKey(entity)");
+                break;
+            case NONE:
+                builder.addStatement("insertWithManuallyPlacedKey(entity)");
                 break;
         }
         return builder.build();
@@ -75,13 +86,16 @@ public class EntityTableAccessorWriter {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("insert")
                 .addModifiers(Modifier.PROTECTED)
                 .addAnnotation(Override.class)
-                .addParameter(entityProxyCollectionTypeName(), "entityProxies");
+                .addParameter(entityCollectionTypeName(), "entities");
         switch (entityModel().getIdField().getAnnotation(Id.class).generationStrategy()) {
-            case API : builder.addStatement("insertWithApiGeneratedKeys(entityProxies)");
+            case API:
+                builder.addStatement("insertWithApiGeneratedKeys(entities)");
                 break;
-            case DBMS : builder.addStatement("insertWithDbmsGeneratedKeys(entityProxies)");
+            case DBMS:
+                builder.addStatement("insertWithDbmsGeneratedKeys(entities)");
                 break;
-            case NONE : builder.addStatement("insertWithManuallyPlacedKeys(entityProxies) ");
+            case NONE:
+                builder.addStatement("insertWithManuallyPlacedKeys(entities)");
                 break;
         }
         return builder.build();
@@ -92,19 +106,72 @@ public class EntityTableAccessorWriter {
                 .addModifiers(Modifier.PROTECTED)
                 .addAnnotation(Override.class)
                 .returns(entityProxyTypeName())
-                .addParameter(entityTypeName(), "entity")
-                .addParameter(TypeName.BOOLEAN, "stored")
-                .addStatement("return new $L(entity, stored)", accessorModel.getEntityProxySimpleName())
+                .addException(SQLException.class)
+                .addParameter(TypeName.get(ResultSet.class), "rs")
+                .addStatement("return new $L(rs).getEntityProxy()", EntityResultSetModel.getSimpleName(entityModel()))
                 .build();
-
     }
+
+    private MethodSpec implementSetPkEntity() {
+        return MethodSpec.methodBuilder("setPk")
+                .addModifiers(Modifier.PROTECTED)
+                .addAnnotation(Override.class)
+                .addParameter(entityTypeName(), "entity")
+                .addParameter(entityPkTypeName(), "pk")
+                .addStatement("$L.setPk(entity, pk)", EntityUtilModel.getEntityUtilSimpleClassName(entityModel()))
+                .build();
+    }
+
+    private MethodSpec implementSetPkStatement() {
+        return MethodSpec.methodBuilder("setPk")
+                .addModifiers(Modifier.PROTECTED)
+                .addAnnotation(Override.class)
+                .addParameter(TypeName.get(PreparedEntityStatement.class), "st")
+                .addParameter(TypeName.INT, "index")
+                .addParameter(entityPkTypeName(), "pk")
+                .addStatement("st.set(index, pk)")
+                .build();
+    }
+
+    private MethodSpec implementGetPkEntity() {
+        return MethodSpec.methodBuilder("getPk")
+                .addModifiers(Modifier.PROTECTED)
+                .addAnnotation(Override.class)
+                .returns(entityPkTypeName())
+                .addParameter(entityTypeName(), "entity")
+                .addStatement("return $L.getPk(entity)", EntityUtilModel.getEntityUtilSimpleClassName(entityModel()))
+                .build();
+    }
+
+    private MethodSpec implementGetPkResultSet() {
+        return MethodSpec.methodBuilder("getPk")
+                .addModifiers(Modifier.PROTECTED)
+                .addAnnotation(Override.class)
+                .addException(SQLException.class)
+                .returns(entityPkTypeName())
+                .addParameter(TypeName.get(ResultSet.class), "rs")
+                .addParameter(TypeName.INT, "index")
+                .addStatement("return new $L(rs).get_$L(index)", EntityResultSetModel.getSimpleName(entityModel()), JavaModelUtils.getSimpleName(entityPkType()))
+                .build();
+    }
+
+    // TODO : has to overridden for api-generated key only, otherwise throw an AbstractMethodError
+    private MethodSpec implementGenerateKey() {
+        return MethodSpec.methodBuilder("generateKey")
+                .addModifiers(Modifier.PROTECTED)
+                .addAnnotation(Override.class)
+                .returns(entityPkTypeName())
+                .addStatement("throw new $T()", TypeName.get(AbstractMethodError.class))
+                .build();
+    }
+
 
     private EntityModel entityModel() {
         return accessorModel.getEntityModel();
     }
 
-    private ParameterizedTypeName entityProxyCollectionTypeName() {
-        return ParameterizedTypeName.get(ClassName.get(Collection.class), entityProxyTypeName());
+    private ParameterizedTypeName entityCollectionTypeName() {
+        return ParameterizedTypeName.get(ClassName.get(Collection.class), entityTypeName());
     }
 
     private TypeName entityProxyTypeName() {
@@ -120,7 +187,11 @@ public class EntityTableAccessorWriter {
         return TypeName.get(entityModel().getType().asType());
     }
 
-    private TypeName entityIdTypeName() {
-        return TypeName.get(entityModel().getIdField().getFieldType());
+    private TypeName entityPkTypeName() {
+        return TypeName.get(entityPkType());
+    }
+
+    private TypeMirror entityPkType() {
+        return entityModel().getIdField().getFieldType();
     }
 }

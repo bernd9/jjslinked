@@ -19,7 +19,7 @@ class EntityUtilModel {
         return entityModel.getPackageName();
     }
 
-    String getEntityUtilSimpleClassName(EntityModel entityModel) {
+    static String getEntityUtilSimpleClassName(EntityModel entityModel) {
         return entityModel.getSimpleName() + "Util";
     }
 

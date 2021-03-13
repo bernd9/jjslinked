@@ -1,5 +1,6 @@
 package one.xis.sql.processor;
 
+import com.ejc.util.FieldUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 
@@ -16,7 +17,6 @@ class EntityUtilWriter {
     void write() throws IOException {
         TypeSpec.Builder builder = TypeSpec.classBuilder(ClassName.OBJECT)
                 .addModifiers(Modifier.PUBLIC)
-                .addModifiers(Modifier.ABSTRACT) // TODO remove abstract
                 .addOriginatingElement(entityUtilModel.getEntityModel().getType());
 
         writeTypeBody(builder);
@@ -30,70 +30,79 @@ class EntityUtilWriter {
     }
 
     private void writeTypeBody(TypeSpec.Builder builder) {
-        createContructor(builder);
-        builder.addMethod(implementCopyAttributes());
+        createConstructor(builder);
+        builder.addMethod(implementGetPk());
+        builder.addMethod(implementSetPk());
     }
 
-    private MethodSpec implementCopyAttributes() {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("copyAttributes")
-                .addParameter(entityUtilModel.getEntityModel().getTypeName(), "source")
-                .addParameter(entityUtilModel.getEntityModel().getTypeName(), "target");
-        for (FieldModel fieldModel : entityUtilModel.getAllFields()) {
-
-        }
-        return builder.build();
-    }
-
-    private void createContructor(TypeSpec.Builder builder) {
+    private void createConstructor(TypeSpec.Builder builder) {
         builder.addMethod(MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PRIVATE)
                 .build());
     }
 
-}
-
-@RequiredArgsConstructor
-class SetFieldValueCodeSimple {
-    private final String entityVarName;
-    private final FieldModel fieldModel;
-
-    CodeBlock createCode(CodeBlock valueSupplierCode) {
-        return fieldModel.getSetter().map(setter -> useSetter(setter, valueSupplierCode))
-                .orElseGet(() -> useFieldUtils(valueSupplierCode));
+    private MethodSpec implementGetPk() {
+        return entityUtilModel.getEntityModel().getIdField().getGetter()
+                .map(this::implementGetPkWithGetter)
+                .orElseGet(this::implementGetPkWithFieldAccess);
     }
 
-    private CodeBlock useSetter(ExecutableElement setter, CodeBlock valueSupplierCode) {
-        return CodeBlock.builder()
-                .addStatement("$L.$L($L)", entityVarName, setter.getSimpleName(), valueSupplierCode)
+
+    private MethodSpec implementGetPkWithGetter(ExecutableElement getter) {
+        return MethodSpec.methodBuilder("getPk")
+                .addModifiers(Modifier.STATIC)
+                .addParameter(entityUtilModel.getEntityModel().getTypeName(), "entity")
+                .addStatement("return entity.$L()", getter.getSimpleName())
+                .returns(TypeName.get(entityUtilModel.getEntityModel().getIdField().getFieldType()))
                 .build();
     }
 
-    private CodeBlock useFieldUtils(CodeBlock valueSupplierCode) {
-        return CodeBlock.builder()
-                .addStatement("$T.setFieldValue($L, \"$L\", $L)", entityVarName, fieldModel.getFieldName(), valueSupplierCode)
-                .build();
-    }
-}
-
-
-@RequiredArgsConstructor
-class GetFieldValueCodeSimple {
-    private final String entityVarName;
-    private final FieldModel fieldModel;
-
-    CodeBlock createCode() {
-        return fieldModel.getGetter().map(this::useGetter).orElseGet(this::useFieldUtils);
-    }
-
-    private CodeBlock useGetter(ExecutableElement getter) {
-        return CodeBlock.builder()
-                .addStatement("$L.$L()", entityVarName, getter.getSimpleName())
+    private MethodSpec implementGetPkWithFieldAccess() {
+        return MethodSpec.methodBuilder("getPk")
+                .addModifiers(Modifier.STATIC)
+                .addParameter(entityType(), "entity")
+                .addStatement("return $T.getFieldValue(entity, \"$L\")", FieldUtils.class, pkField().getFieldName())
+                .returns(pkType())
                 .build();
     }
 
-    private CodeBlock useFieldUtils() {
-        return CodeBlock.builder()
-                .addStatement("$T.getFieldValue($L, \"$L\")", entityVarName, fieldModel.getFieldName())
+    private MethodSpec implementSetPk() {
+        return entityUtilModel.getEntityModel().getIdField().getSetter()
+                .map(this::implementSetPkWithSetter)
+                .orElseGet(this::implementSetPkWithFieldAccess);
+    }
+
+
+    private MethodSpec implementSetPkWithSetter(ExecutableElement setter) {
+        return MethodSpec.methodBuilder("setPk")
+                .addModifiers(Modifier.STATIC)
+                .addParameter(entityType(), "entity")
+                .addParameter(pkType(), "pk")
+                .addStatement("entity.$L(pk)", setter.getSimpleName())
                 .build();
     }
+
+    private MethodSpec implementSetPkWithFieldAccess() {
+        return MethodSpec.methodBuilder("setPk")
+                .addModifiers(Modifier.STATIC)
+                .addParameter(entityType(), "entity")
+                .addParameter(pkType(), "pk")
+                .addStatement("return $T.setFieldValue(entity, \"$L\", pk)", FieldUtils.class, pkField().getFieldName())
+                .returns(TypeName.get(entityUtilModel.getEntityModel().getIdField().getFieldType()))
+                .build();
+    }
+
+    private TypeName entityType() {
+        return entityUtilModel.getEntityModel().getTypeName();
+    }
+
+    private TypeName pkType() {
+        return TypeName.get(pkField().getFieldType());
+    }
+
+    private SimpleEntityFieldModel pkField() {
+        return entityUtilModel.getEntityModel().getIdField();
+    }
+
+
 }

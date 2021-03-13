@@ -2,7 +2,7 @@ package one.xis.sql.processor;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import one.xis.sql.api.EntityResultSet;
+import one.xis.sql.api.ExtendedResultSet;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import java.lang.reflect.Method;
@@ -23,14 +23,14 @@ class EntityResultSetModel {
         resultGetters = findResultGetters();
     }
 
-    private static  Set<String> findResultGetters() {
+    private static Set<String> findResultGetters() {
         Set<String> names = new HashSet<>();
         names.addAll(findResultGetters(ResultSet.class));
-        names.addAll(findResultGetters(EntityResultSet.class));
+        names.addAll(findResultGetters(ExtendedResultSet.class));
         return names;
     }
 
-    private static Set<String> findResultGetters(Class<? extends ResultSet>  resultSetClass) {
+    private static Set<String> findResultGetters(Class<? extends ResultSet> resultSetClass) {
         return Arrays.stream(resultSetClass.getDeclaredMethods())
                 .filter(m -> m.getParameters().length == 1)
                 .filter(m -> m.getParameters()[0].getType() == String.class)
@@ -43,7 +43,7 @@ class EntityResultSetModel {
     private final ProcessingEnvironment processingEnvironment;
 
     String getSimpleName() {
-        return entityModel.getSimpleName() + "ResultSet";
+        return getSimpleName(entityModel);
     }
 
     String getPackageName() {
@@ -51,7 +51,7 @@ class EntityResultSetModel {
     }
 
     static String getSimpleName(EntityModel entityModel) {
-        return EntityProxyModel.getEntityProxySimpleName(entityModel);
+        return entityModel.getSimpleName() + "ResultSet";
     }
 
 }
