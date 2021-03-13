@@ -22,6 +22,7 @@ public class CustomerProxy extends Customer implements EntityProxy<Customer, Lon
 
     @Override
     public void pk(Long pk) {
+        if (pk() != null) throw new UnsupportedOperationException("primary key is immutable");
         setId(pk);
     }
 

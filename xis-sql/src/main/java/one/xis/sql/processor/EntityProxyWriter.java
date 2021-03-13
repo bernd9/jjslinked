@@ -173,6 +173,7 @@ class EntityProxyWriter {
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ParameterSpec.builder(entityIdTypeName(), "pk").build())
+                .addStatement(" if (pk() != null) throw new $T(\"primary key is immutable\")", UnsupportedOperationException.class)
                 .addStatement("$L(pk)", setter.getSimpleName())
                 .build();
     }

@@ -117,7 +117,7 @@ public class EntityTableAccessorWriter {
                 .addAnnotation(Override.class)
                 .addParameter(entityTypeName(), "entity")
                 .addParameter(entityPkTypeName(), "pk")
-                .addStatement("$L.setPk(entity, pk)", EntityUtilModel.getEntityUtilSimpleClassName(entityModel()))
+                .addStatement("$L.setPk(entity, pk)", EntityUtilModel.getEntityUtilSimpleName(entityModel()))
                 .build();
     }
 
@@ -138,7 +138,7 @@ public class EntityTableAccessorWriter {
                 .addAnnotation(Override.class)
                 .returns(entityPkTypeName())
                 .addParameter(entityTypeName(), "entity")
-                .addStatement("return $L.getPk(entity)", EntityUtilModel.getEntityUtilSimpleClassName(entityModel()))
+                .addStatement("return $L.getPk(entity)", EntityUtilModel.getEntityUtilSimpleName(entityModel()))
                 .build();
     }
 

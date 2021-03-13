@@ -30,6 +30,12 @@ class EntityAnnotationProcessorTest {
     }
 
     @Test
+    void customerUtil() {
+        CompilationSubject.assertThat(compilation).generatedSourceFile("one.xis.sql.processor.CustomerUtil")
+                .hasSourceEquivalentTo(JavaFileObjects.forResource("one/xis/sql/processor/CustomerUtil.java"));
+    }
+
+    @Test
     void customerProxy() {
         CompilationSubject.assertThat(compilation).generatedSourceFile("one.xis.sql.processor.CustomerProxy")
                 .hasSourceEquivalentTo(JavaFileObjects.forResource("one/xis/sql/processor/CustomerProxy.java"));

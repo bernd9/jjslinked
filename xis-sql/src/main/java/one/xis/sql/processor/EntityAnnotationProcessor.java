@@ -66,6 +66,7 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
 
     private void processEntityModel(EntityModel entityModel, Set<EntityModel> allModels) {
         try {
+            writeEntityUtil(entityModel);
             writeEntityProxy(entityModel, allModels);
             writeEntityStatements(entityModel);
             writeEntityResultSet(entityModel);
@@ -75,6 +76,17 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
             ProcessorLogger.reportError(this, processingEnv, e);
         }
 
+    }
+
+
+    private void writeEntityUtil(EntityModel entityModel) {
+        EntityUtilModel model = new EntityUtilModel(entityModel); // TODO Validation
+        EntityUtilWriter writer = new EntityUtilWriter(model, processingEnv);
+        try {
+            writer.write();
+        } catch (IOException e) {
+            ProcessorLogger.reportError(this, processingEnv, e);
+        }
     }
 
     private void writeEntityProxy(EntityModel entityModel, Set<EntityModel> allModels) {

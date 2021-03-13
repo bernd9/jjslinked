@@ -1,15 +1,15 @@
 package one.xis.sql.processor;
 
-public class CustomerUtil {
+class CustomerUtil {
 
     private CustomerUtil() {
     }
 
-    public static Long getPk(Customer entity) {
+    static Long getPk(Customer entity) {
         return entity.getId();
     }
 
-    public static void setPk(Customer entity, Long pk) {
+    static void setPk(Customer entity, Long pk) {
         entity.setId(pk);
     }
 }

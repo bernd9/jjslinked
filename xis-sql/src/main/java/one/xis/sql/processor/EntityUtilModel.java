@@ -11,19 +11,16 @@ class EntityUtilModel {
     @Delegate
     private final EntityModel entityModel;
 
-    String getEntityUtilSimpleClassName() {
-        return getEntityUtilSimpleClassName(entityModel);
+    String getEntityUtilSimpleName() {
+        return getEntityUtilSimpleName(entityModel);
     }
 
     String getEntityUtilPackageName() {
         return entityModel.getPackageName();
     }
 
-    static String getEntityUtilSimpleClassName(EntityModel entityModel) {
+    static String getEntityUtilSimpleName(EntityModel entityModel) {
         return entityModel.getSimpleName() + "Util";
     }
 
-    String getCopyAttributesMethodName() {
-        return "copyAttributes";
-    }
 }

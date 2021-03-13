@@ -15,14 +15,13 @@ class EntityUtilWriter {
     private final ProcessingEnvironment processingEnvironment;
 
     void write() throws IOException {
-        TypeSpec.Builder builder = TypeSpec.classBuilder(ClassName.OBJECT)
-                .addModifiers(Modifier.PUBLIC)
+        TypeSpec.Builder builder = TypeSpec.classBuilder(entityUtilModel.getEntityUtilSimpleName())
                 .addOriginatingElement(entityUtilModel.getEntityModel().getType());
 
         writeTypeBody(builder);
         TypeSpec typeSpec = builder.build();
 
-        JavaFile javaFile = JavaFile.builder(entityUtilModel.getEntityModel().getPackageName(), typeSpec)
+        JavaFile javaFile = JavaFile.builder(entityUtilModel.getEntityUtilPackageName(), typeSpec)
                 .skipJavaLangImports(true)
                 .build();
 
