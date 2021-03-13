@@ -55,7 +55,7 @@ class EntityUtilWriter {
 
     @RequiredArgsConstructor
     class GetFieldValue {
-        private final SimpleEntityFieldModel fieldModel;
+        private final FieldModel fieldModel;
 
         CodeBlock create() {
             return fieldModel.getGetter().map(this::getFieldValueByGetter).orElseGet(() -> getFieldValueByFieldAccess(fieldModel));
@@ -68,9 +68,9 @@ class EntityUtilWriter {
                     .build();
         }
 
-        private CodeBlock getFieldValueByFieldAccess(SimpleEntityFieldModel fieldModel) {
+        private CodeBlock getFieldValueByFieldAccess(FieldModel fieldModel) {
             return CodeBlock.builder()
-                    .add("($T) $T.getFieldValue(o, \"$L\")", FieldUtils.class, fieldModel.getFieldName())
+                    .add("($T) $T.getFieldValue(o, \"$L\")", fieldModel.getFieldType(), FieldUtils.class, fieldModel.getFieldName())
                     .build();
         }
     }
@@ -78,7 +78,7 @@ class EntityUtilWriter {
 
     @RequiredArgsConstructor
     class SetFieldValue {
-        private final SimpleEntityFieldModel fieldModel;
+        private final FieldModel fieldModel;
 
         CodeBlock create(CodeBlock getFieldValue) {
             return fieldModel.getSetter().map(setter -> setValueBySetter(setter, getFieldValue))
@@ -91,7 +91,7 @@ class EntityUtilWriter {
                     .build();
         }
 
-        private CodeBlock setFieldValueByFieldAccess(SimpleEntityFieldModel fieldModel, CodeBlock getFieldValue) {
+        private CodeBlock setFieldValueByFieldAccess(FieldModel fieldModel, CodeBlock getFieldValue) {
             return CodeBlock.builder()
                     .add("$T.setFieldValue(rv, \"$L\", $L)", FieldUtils.class, fieldModel.getFieldName(), getFieldValue)
                     .build();
@@ -113,10 +113,6 @@ class EntityUtilWriter {
                     .addStatement("coll.stream().map($T::doClone).forEach(rv::add)", entityUtilModel.getEntityUtilTypeName())
                     .addStatement("return rv")
                     .build();
-        }
-
-        private TypeName parameterizedConcreateCollectionType() {
-            return ParameterizedTypeName.get(concreteCollectionType, entityType());
         }
 
         private TypeName parameterizedCollectionInterfaceType() {
@@ -143,16 +139,18 @@ class EntityUtilWriter {
             return builder.build();
         }
 
-        private void copyFieldValue(SimpleEntityFieldModel fieldModel, CodeBlock.Builder builder) {
+        private void copyFieldValue(FieldModel fieldModel, CodeBlock.Builder builder) {
             CodeBlock getFieldValue = getFieldValue(fieldModel);
-            if (fieldModel instanceof EntityFieldModel) {
+            if(fieldModel instanceof ReferredFieldModel) {
+                copyFieldValueReferredField((ReferredFieldModel) fieldModel, builder, getFieldValue);
+            } else if (fieldModel instanceof EntityFieldModel) {
                 copyFieldValueForeignKeyField((EntityFieldModel) fieldModel, builder, getFieldValue);
             } else {
                 copyFieldValueNonComplex(fieldModel, builder, getFieldValue);
             }
         }
 
-        private void copyFieldValueNonComplex(SimpleEntityFieldModel fieldModel, CodeBlock.Builder builder, CodeBlock getFieldValue) {
+        private void copyFieldValueNonComplex(FieldModel fieldModel, CodeBlock.Builder builder, CodeBlock getFieldValue) {
             builder.addStatement(setFieldValue(fieldModel, getFieldValue));
         }
 
@@ -161,11 +159,16 @@ class EntityUtilWriter {
             builder.addStatement(setFieldValue(fieldModel, createClone));
         }
 
-        private CodeBlock getFieldValue(SimpleEntityFieldModel fieldModel) {
+        private void copyFieldValueReferredField(ReferredFieldModel fieldModel, CodeBlock.Builder builder, CodeBlock getFieldValue) {
+            CodeBlock createClone = new CloneEntity(fieldModel).create(getFieldValue);
+            builder.addStatement(setFieldValue(fieldModel, createClone));
+        }
+
+        private CodeBlock getFieldValue(FieldModel fieldModel) {
             return new GetFieldValue(fieldModel).create();
         }
 
-        private CodeBlock setFieldValue(SimpleEntityFieldModel fieldModel, CodeBlock getFieldValue) {
+        private CodeBlock setFieldValue(FieldModel fieldModel, CodeBlock getFieldValue) {
             return new SetFieldValue(fieldModel).create(getFieldValue);
         }
     }

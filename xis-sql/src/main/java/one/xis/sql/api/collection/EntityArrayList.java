@@ -1,4 +1,4 @@
-package one.xis.sql.api;
+package one.xis.sql.api.collection;
 
 import lombok.Getter;
 
@@ -21,7 +21,7 @@ public class EntityArrayList<E> extends ArrayList<E> implements EntityCollection
         super(initialCapacity);
     }
 
-    EntityArrayList() {
+    public EntityArrayList() {
     }
 
     EntityArrayList(Collection<? extends E> c) {
@@ -152,10 +152,5 @@ public class EntityArrayList<E> extends ArrayList<E> implements EntityCollection
     public void clear() {
         deletedValues.addAll(this);
         super.clear();
-    }
-
-    @Override
-    public void addSilently(E entity) {
-        super.add(entity);
     }
 }

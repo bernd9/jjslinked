@@ -1,7 +1,7 @@
 package one.xis.sql.processor;
 
-import one.xis.sql.api.EntityArrayList;
-import one.xis.sql.api.EntityHashSet;
+import one.xis.sql.api.collection.EntityArrayList;
+import one.xis.sql.api.collection.EntityHashSet;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.type.TypeMirror;

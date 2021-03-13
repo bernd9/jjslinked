@@ -24,6 +24,7 @@ class CustomerUtil {
         rv.setId(o.getId());
         rv.setInvoiceAddress(AddressUtil.doClone(o.getInvoiceAddress()));
         rv.setLastName(o.getLastName());
+        rv.setOrders(OrderUtil.doClone(o.getOrders()));
         return rv;
     }
 
@@ -38,8 +39,4 @@ class CustomerUtil {
         coll.stream().map(CustomerUtil::doClone).forEach(rv::add);
         return rv;
     }
-
-
-
-
 }

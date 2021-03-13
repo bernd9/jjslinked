@@ -2,6 +2,8 @@ package one.xis.sql.api;
 
 import com.ejc.api.context.UsedInGeneratedCode;
 import one.xis.sql.JdbcException;
+import one.xis.sql.api.collection.EntityArrayList;
+import one.xis.sql.api.collection.EntityCollection;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;

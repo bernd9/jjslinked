@@ -155,8 +155,8 @@ class EntityModel {
         return StringUtils.firstToLowerCase(getType().getSimpleName().toString()) + "Impl";
     }
 
-    public Collection<? extends SimpleEntityFieldModel> getAllFields() {
-        Set<SimpleEntityFieldModel> set = new HashSet<>();
+    public Collection<? extends FieldModel> getAllFields() {
+        Set<FieldModel> set = new HashSet<>();
         set.addAll(nonComplexFields); // contains @Id field
         set.addAll(foreignKeyFields);
         set.addAll(referredFields);
@@ -165,10 +165,15 @@ class EntityModel {
         return set;
     }
 
-    public List<? extends SimpleEntityFieldModel> getAllFieldsInAlphabeticalOrder() {
-        List<? extends SimpleEntityFieldModel> list = new ArrayList<>(getAllFields());
+    public List<? extends FieldModel> getAllFieldsInAlphabeticalOrder() {
+        List<? extends FieldModel> list = new ArrayList<>(getAllFields());
         Collections.sort(list, Comparator.comparing(f -> f.getFieldName().toString()));
         return list;
 
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s(%s)", getClass().getSimpleName(), getType());
     }
 }

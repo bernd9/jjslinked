@@ -201,6 +201,7 @@ class EntityStatementsWriter {
             return new CodeBlockBuilder("pk($T.getFieldValue($L, \"$L\"), $T.class)")
                     .withVar(FieldUtils.class)
                     .withVar(getEntityVariableName())
+                    .withVar(getEntityVariableName())
                     .withVar(getFieldEntityIdType())
                     .build();
         }

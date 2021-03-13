@@ -18,6 +18,7 @@ class EntityAnnotationProcessorTest {
     private Compiler compiler;
     private JavaFileObject customer;
     private JavaFileObject invoiceAddress;
+    private JavaFileObject order;
     private Compilation compilation;
 
     @BeforeEach
@@ -25,7 +26,8 @@ class EntityAnnotationProcessorTest {
         compiler = javac().withProcessors(new EntityAnnotationProcessor());
         customer = JavaFileObjects.forResource("one/xis/sql/processor/Customer.java");
         invoiceAddress = JavaFileObjects.forResource("one/xis/sql/processor/Address.java");
-        compilation = compiler.compile(customer, invoiceAddress);
+        order = JavaFileObjects.forResource("one/xis/sql/processor/Order.java");
+        compilation = compiler.compile(customer, invoiceAddress, order);
         //assertThat(compilation.status()).isEqualTo(Compilation.Status.SUCCESS);
     }
 

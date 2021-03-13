@@ -1,4 +1,4 @@
-package one.xis.sql.api;
+package one.xis.sql.api.collection;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
