@@ -198,25 +198,42 @@ class EntityStatementsWriter {
         }
 
         private CodeBlock getExtractorCodeFieldAccess() {
-            return new CodeBlockBuilder("pk($T.getFieldValue($L, \"$L\"), $T.class)")
+            return new CodeBlockBuilder("$T.getPk(($T)$T.getFieldValue($L, \"$L\"))")
+                    .withVar(getFieldEntityUtilType())
+                    .withVar(getFieldEntityType())
                     .withVar(FieldUtils.class)
                     .withVar(getEntityVariableName())
-                    .withVar(getEntityVariableName())
-                    .withVar(getFieldEntityIdType())
+                    .withVar(getFieldName())
                     .build();
         }
 
         private CodeBlock getExtractorCodeGetter(ExecutableElement executableElement) {
-            return new CodeBlockBuilder("pk($L.$L(), $T.class)")
+
+            return new CodeBlockBuilder("$T.getPk($L.$L())")
+                    .withVar(getFieldEntityUtilType())
                     .withVar(getEntityVariableName())
                     .withVar(executableElement.getSimpleName())
                     .withVar(getFieldEntityIdType())
                     .build();
         }
 
+        private String getFieldName() {
+            return getModel().getFieldName().toString();
+        }
+
+        private TypeMirror getFieldEntityType() {
+            return getModel().getFieldEntityModel().getType().asType();
+        }
+
+
         private TypeMirror getFieldEntityIdType() {
             return getModel().getFieldEntityModel().getIdField().getFieldType();
         }
+
+        private TypeName getFieldEntityUtilType() {
+            return EntityUtilModel.getEntityUtilTypeName(getModel().getFieldEntityModel());
+        }
+
     }
 
 

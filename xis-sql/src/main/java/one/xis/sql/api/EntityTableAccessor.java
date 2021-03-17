@@ -174,48 +174,19 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E, EID>>
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void insertWithDbmsGeneratedKey(E entity) {
-        try (PreparedEntityStatement st = prepare(entityStatements.getInsertSql(), Statement.RETURN_GENERATED_KEYS)) {
-            entityStatements.setInsertSqlParameters(st, entity);
-            st.executeUpdate();
-            ResultSet keys = st.getGeneratedKeys();
-            if (!keys.next()) {
-                throw new JdbcException("no pk was generated for " + entity);
-            }
-            EID id = getPk(keys, 1);
-            setPk(entity, id);
-        } catch (SQLException e) {
-            throw new JdbcException("failed to close statement", e);
-        }
+        insertWithDbmsGeneratedKeys(Collections.singletonList(entity));
     }
 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void insertWithManuallyPlacedKey(E entity) {
-        try (PreparedEntityStatement st = prepare(entityStatements.getInsertSql())) {
-            entityStatements.setInsertSqlParameters(st, entity);
-            st.executeUpdate();
-            if (getPk(entity) == null) {
-                throw new JdbcException(entity + ": " + TEXT_NO_PK);
-            }
-        } catch (SQLException e) {
-            throw new JdbcException("failed to close statement", e);
-        }
+        insertWithManuallyPlacedKeys(Collections.singletonList(entity));
     }
 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
     protected void insertWithApiGeneratedKey(E entity) {
-        try (PreparedEntityStatement st = prepare(entityStatements.getInsertSql(), Statement.RETURN_GENERATED_KEYS)) {
-            setPk(entity, generateKey());
-            entityStatements.setInsertSqlParameters(st, entity);
-            st.executeUpdate();
-            ResultSet keys = st.getGeneratedKeys();
-            if (!keys.next()) {
-                throw new JdbcException("no pk was generated for " + entity);
-            }
-        } catch (SQLException e) {
-            throw new JdbcException("failed to close statement", e);
-        }
+        insertWithApiGeneratedKeys(Collections.singletonList(entity));
     }
 
     @UsedInGeneratedCode

@@ -36,12 +36,4 @@ public interface EntityStatements<E, EID> {
     @SuppressWarnings("unused")
     void setUpdateSqlParameters(PreparedEntityStatement st, E entity);
 
-    @UsedInGeneratedCode
-    @SuppressWarnings({"unchecked", "unused"})
-    default <FID> FID pk(Object entity, Class<FID> pkType) {
-        if (entity == null) return null;
-        return ((EntityProxy<?,FID>) entity).pk();
-    }
-
-
 }
