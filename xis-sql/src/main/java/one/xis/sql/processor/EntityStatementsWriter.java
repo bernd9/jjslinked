@@ -33,6 +33,7 @@ class EntityStatementsWriter {
         JavaFile javaFile = JavaFile.builder(statementsModel.getEntityStatementsPackageName(), typeSpec)
                 .skipJavaLangImports(true)
                 .build();
+        System.out.println(javaFile.toString());
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
@@ -91,7 +92,7 @@ class EntityStatementsWriter {
                 .addAnnotation(Override.class)
                 .addParameter(ParameterSpec.builder(TypeName.get(PreparedEntityStatement.class), "st").build())
                 .addParameter(ParameterSpec.builder(TypeName.get(statementsModel.getEntityModel().getType().asType()), "entity").build())
-                .addCode(createParametersCodeBlock(statementsModel.getInsertSqlFields()).toString())
+                .addCode(createParametersCodeBlock(statementsModel.getInsertSqlFields()))
                 .build();
     }
 
@@ -101,7 +102,7 @@ class EntityStatementsWriter {
                 .addAnnotation(Override.class)
                 .addParameter(ParameterSpec.builder(TypeName.get(PreparedEntityStatement.class), "st").build())
                 .addParameter(ParameterSpec.builder(TypeName.get(statementsModel.getEntityModel().getType().asType()), "entity").build())
-                .addCode(createParametersCodeBlock(statementsModel.getUpdateSqlFields()).toString())
+                .addCode(createParametersCodeBlock(statementsModel.getUpdateSqlFields()))
                 .build();
     }
 
@@ -208,12 +209,10 @@ class EntityStatementsWriter {
         }
 
         private CodeBlock getExtractorCodeGetter(ExecutableElement executableElement) {
-
             return new CodeBlockBuilder("$T.getPk($L.$L())")
                     .withVar(getFieldEntityUtilType())
                     .withVar(getEntityVariableName())
                     .withVar(executableElement.getSimpleName())
-                    .withVar(getFieldEntityIdType())
                     .build();
         }
 

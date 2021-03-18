@@ -44,7 +44,7 @@ public abstract class EntityInspector<E, EID> {
             if (old == null) {
                 old = getOldStateFromSession(e.getKey());
             }
-            createActionFor(old, actual);
+            //createActionFor(old, actual);
         }
         return removed;
     }

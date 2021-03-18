@@ -8,10 +8,9 @@ import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @RequiredArgsConstructor
 class EntityUtilWriter {
@@ -36,6 +35,7 @@ class EntityUtilWriter {
         createConstructor(builder);
         builder.addMethod(implementGetPk());
         builder.addMethod(implementSetPk());
+        builder.addMethod(implementGetPks());
         builder.addMethod(new DoCloneMethodSingle().create());
         builder.addMethod(new DoCloneCollection(ClassName.get(HashSet.class), ClassName.get(Set.class)).create());
         builder.addMethod(new DoCloneCollection(ClassName.get(LinkedList.class), ClassName.get(List.class)).create());
@@ -184,6 +184,14 @@ class EntityUtilWriter {
                 .orElseGet(this::implementGetPkWithFieldAccess);
     }
 
+    private MethodSpec implementGetPks() {
+        return MethodSpec.methodBuilder("getPks")
+                .addModifiers(Modifier.STATIC)
+                .addParameter(entityCollection(), "collection")
+                .addStatement("return collection.stream().map($T::getPk)", entityUtilModel.getEntityUtilTypeName())
+                .returns(entityPkStream())
+                .build();
+    }
 
     private MethodSpec implementGetPkWithGetter(ExecutableElement getter) {
         return MethodSpec.methodBuilder("getPk")
@@ -227,6 +235,14 @@ class EntityUtilWriter {
                 .addStatement("return $T.setFieldValue(entity, \"$L\", pk)", FieldUtils.class, pkField().getFieldName())
                 .returns(TypeName.get(entityUtilModel.getEntityModel().getIdField().getFieldType()))
                 .build();
+    }
+
+    private TypeName entityCollection() {
+        return ParameterizedTypeName.get(ClassName.get(Collection.class), entityType());
+    }
+
+    private TypeName entityPkStream() {
+        return ParameterizedTypeName.get(ClassName.get(Stream.class), pkType());
     }
 
     private EntityModel entityModel() {

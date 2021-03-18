@@ -45,7 +45,7 @@ public class CustomerStatements implements EntityStatements<Customer, Long> {
 
     @Override
     public void setUpdateSqlParameters(PreparedEntityStatement st, Customer entity) {
-        st.set(1, AddressUtil.getPk(entity.getInvoiceAddress());
+        st.set(1, AddressUtil.getPk(entity.getInvoiceAddress()));
         st.set(2, entity.getFirstName());
         st.set(3, entity.getLastName());
         st.set(4, entity.getId());

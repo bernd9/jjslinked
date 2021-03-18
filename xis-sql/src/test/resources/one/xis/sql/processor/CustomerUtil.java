@@ -1,9 +1,11 @@
 package one.xis.sql.processor;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 class CustomerUtil {
 
@@ -16,6 +18,10 @@ class CustomerUtil {
 
     static void setPk(Customer entity, Long pk) {
         entity.setId(pk);
+    }
+
+    static Stream<Long> getPks(Collection<Customer> collection) {
+        return collection.stream().map(CustomerUtil::getPk);
     }
 
     static Customer doClone(Customer o) {
