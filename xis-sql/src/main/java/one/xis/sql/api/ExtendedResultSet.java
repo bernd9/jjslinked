@@ -4,6 +4,7 @@ import com.ejc.api.context.UsedInGeneratedCode;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -12,10 +13,126 @@ import java.time.*;
 import java.util.Date;
 
 @RequiredArgsConstructor
+@SuppressWarnings("unchecked")
 public class ExtendedResultSet implements ResultSet {
 
     @Delegate(types = {ResultSet.class, Wrapper.class})
     private final ResultSet resultSet;
+
+    public <T> T get(String columnName, Class<T> returnType) throws SQLException {
+        if (returnType.equals(BigInteger.class)) {
+            return (T) get_BigInteger(columnName);
+        }
+        if (returnType.equals(BigDecimal.class)) {
+            return (T) get_BigDecimal(columnName);
+        }
+        if (returnType.equals(Boolean.class) || returnType.equals(Boolean.TYPE)) {
+            return (T) get_Boolean(columnName);
+        }
+        if (returnType.equals(Byte.class) || returnType.equals(Byte.TYPE)) {
+            return (T) get_Byte(columnName);
+        }
+        if (returnType.isArray() &&  (returnType.getComponentType().equals(Byte.class) || returnType.getComponentType().equals(Byte.TYPE))) {
+            return (T) get_bytes(columnName);
+        }
+        if (returnType.equals(Character.class)  || returnType.equals(Character.TYPE)) {
+            return (T) get_Character(columnName);
+        }
+        if (returnType.equals(Double.class)  || returnType.equals(Double.TYPE)) {
+            return (T) get_Double(columnName);
+        }
+        if (returnType.equals(Float.class)  || returnType.equals(Float.TYPE)) {
+            return (T) get_Float(columnName);
+        }
+        if (returnType.equals(Integer.class)  || returnType.equals(Integer.TYPE)) {
+            return (T) get_Integer(columnName);
+        }
+        if (returnType.equals(LocalDate.class)) {
+            return (T) get_LocalDate(columnName);
+        }
+        if (returnType.equals(LocalDateTime.class)) {
+            return (T) get_LocalDateTime(columnName);
+        }
+        if (returnType.equals(LocalTime.class)) {
+            return (T) get_LocalTime(columnName);
+        }
+        if (returnType.equals(Long.class)  || returnType.equals(Long.TYPE)) {
+            return (T) get_Integer(columnName);
+        }
+        if (returnType.equals(OffsetDateTime.class)) {
+            return (T) get_OffsetDateTime(columnName);
+        }
+        if (returnType.equals(OffsetTime.class)) {
+            return (T) get_OffsetTime(columnName);
+        }
+        if (returnType.equals(Short.class)  || returnType.equals(Short.TYPE)) {
+            return (T) get_Short(columnName);
+        }
+        if (returnType.equals(BigDecimal.class)) {
+            return (T) getBigDecimal(columnName);
+        }
+        if (returnType.equals(ZonedDateTime.class)) {
+            return (T) get_ZonedDateTime(columnName);
+        }
+        throw new IllegalArgumentException("returnType = " + returnType);
+    }
+
+
+    public <T> T get(int columnIndex, Class<T> returnType) throws SQLException {
+        if (returnType.equals(BigInteger.class)) {
+            return (T) get_BigInteger(columnIndex);
+        }
+        if (returnType.equals(BigDecimal.class)) {
+            return (T) get_BigDecimal(columnIndex);
+        }
+        if (returnType.equals(Boolean.class) || returnType.equals(Boolean.TYPE)) {
+            return (T) get_Boolean(columnIndex);
+        }
+        if (returnType.equals(Byte.class) || returnType.equals(Byte.TYPE)) {
+            return (T) get_Byte(columnIndex);
+        }
+        if (returnType.isArray() &&  (returnType.getComponentType().equals(Byte.class) || returnType.getComponentType().equals(Byte.TYPE))) {
+            return (T) get_bytes(columnIndex);
+        }
+        if (returnType.equals(Character.class)  || returnType.equals(Character.TYPE)) {
+            return (T) get_Character(columnIndex);
+        }
+        if (returnType.equals(Double.class)  || returnType.equals(Double.TYPE)) {
+            return (T) get_Double(columnIndex);
+        }
+        if (returnType.equals(Float.class)  || returnType.equals(Float.TYPE)) {
+            return (T) get_Float(columnIndex);
+        }
+        if (returnType.equals(Integer.class)  || returnType.equals(Integer.TYPE)) {
+            return (T) get_Integer(columnIndex);
+        }
+        if (returnType.equals(LocalDate.class)) {
+            return (T) get_LocalDate(columnIndex);
+        }
+        if (returnType.equals(LocalDateTime.class)) {
+            return (T) get_LocalDateTime(columnIndex);
+        }
+        if (returnType.equals(LocalTime.class)) {
+            return (T) get_LocalTime(columnIndex);
+        }
+        if (returnType.equals(Long.class)  || returnType.equals(Long.TYPE)) {
+            return (T) get_Integer(columnIndex);
+        }
+        if (returnType.equals(OffsetDateTime.class)) {
+            return (T) get_OffsetDateTime(columnIndex);
+        }
+        if (returnType.equals(OffsetTime.class)) {
+            return (T) get_OffsetTime(columnIndex);
+        }
+        if (returnType.equals(Short.class)  || returnType.equals(Short.TYPE)) {
+            return (T) get_Short(columnIndex);
+        }
+        if (returnType.equals(ZonedDateTime.class)) {
+            return (T) get_ZonedDateTime(columnIndex);
+        }
+        throw new IllegalArgumentException("returnType = " + returnType);
+    }
+
 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
@@ -121,6 +238,12 @@ public class ExtendedResultSet implements ResultSet {
     @SuppressWarnings("unused")
     public BigInteger get_BigInteger(String columnName) throws SQLException {
         return new BigInteger(getString(columnName)); // TODO does it work ?
+    }
+
+    @UsedInGeneratedCode
+    @SuppressWarnings("unused")
+    public BigDecimal get_BigDecimal(String columnName) throws SQLException {
+        return getBigDecimal(columnName);
     }
 
     @UsedInGeneratedCode
@@ -295,6 +418,12 @@ public class ExtendedResultSet implements ResultSet {
     @SuppressWarnings("unused")
     public BigInteger get_BigInteger(int columnIndex) throws SQLException {
         return new BigInteger(getString(columnIndex)); // TODO does it work ?
+    }
+
+    @UsedInGeneratedCode
+    @SuppressWarnings("unused")
+    public BigDecimal get_BigDecimal(int columnIndex) throws SQLException {
+        return getBigDecimal(columnIndex);
     }
 
     @UsedInGeneratedCode

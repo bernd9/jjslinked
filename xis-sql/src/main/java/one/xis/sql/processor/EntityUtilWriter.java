@@ -9,6 +9,7 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,6 +37,7 @@ class EntityUtilWriter {
         builder.addMethod(implementGetPk());
         builder.addMethod(implementSetPk());
         builder.addMethod(implementGetPks());
+        builder.addMethod(implementMapByPk());
         builder.addMethod(new DoCloneMethodSingle().create());
         builder.addMethod(new DoCloneCollection(ClassName.get(HashSet.class), ClassName.get(Set.class)).create());
         builder.addMethod(new DoCloneCollection(ClassName.get(LinkedList.class), ClassName.get(List.class)).create());
@@ -187,7 +189,7 @@ class EntityUtilWriter {
     private MethodSpec implementGetPks() {
         return MethodSpec.methodBuilder("getPks")
                 .addModifiers(Modifier.STATIC)
-                .addParameter(entityCollection(), "collection")
+                .addParameter(entityCollectionTypeName(), "collection")
                 .addStatement("return collection.stream().map($T::getPk)", entityUtilModel.getEntityUtilTypeName())
                 .returns(entityPkStream())
                 .build();
@@ -237,7 +239,16 @@ class EntityUtilWriter {
                 .build();
     }
 
-    private TypeName entityCollection() {
+    private MethodSpec implementMapByPk() {
+        return MethodSpec.methodBuilder("mapByPk")
+                .addModifiers(Modifier.STATIC)
+                .addParameter(entityCollectionTypeName(), "entities")
+                .addStatement("return entities.stream().collect($T.toMap($T::getPk, $T.identity()))", Collectors.class, entityUtilModel.getEntityUtilTypeName(), Function.class)
+                .returns(ParameterizedTypeName.get(ClassName.get(Map.class), pkType(), entityType()))
+                .build();
+    }
+
+    private TypeName entityCollectionTypeName() {
         return ParameterizedTypeName.get(ClassName.get(Collection.class), entityType());
     }
 

@@ -29,19 +29,19 @@ public class PreparedEntityStatement implements PreparedStatement {
                 set(index, (BigDecimal) o);
             } else if (o.getClass().equals(BigInteger.class)) {
                 set(index, (BigInteger) o);
-            } else if (o.getClass().equals(Boolean.class)) {
+            } else if (o.getClass().equals(Boolean.class) || o.getClass().equals(Boolean.TYPE)) {
                 set(index, (Boolean) o);
-            } else if (o.getClass().equals(Byte.class)) {
+            } else if (o.getClass().equals(Byte.class) || o.getClass().equals(Byte.TYPE)) {
                 set(index, (Byte) o);
-            } else if (o.getClass().equals(Character.class)) {
+            } else if (o.getClass().equals(Character.class) || o.getClass().equals(Character.TYPE)) {
                 set(index, (Character) o);
             } else if (o.getClass().equals(Date.class)) {
                 set(index, (Date) o);
-            } else if (o.getClass().equals(Double.class)) {
+            } else if (o.getClass().equals(Double.class) || o.getClass().equals(Double.TYPE)) {
                 set(index, (Double) o);
-            } else if (o.getClass().equals(Float.class)) {
+            } else if (o.getClass().equals(Float.class) || o.getClass().equals(Float.TYPE)) {
                 set(index, (Float) o);
-            } else if (o.getClass().equals(Integer.class)) {
+            } else if (o.getClass().equals(Integer.class) || o.getClass().equals(Integer.TYPE)) {
                 set(index, (Integer) o);
             } else if (o.getClass().equals(java.sql.Date.class)) {
                 set(index, (java.sql.Date) o);
@@ -49,18 +49,18 @@ public class PreparedEntityStatement implements PreparedStatement {
                 set(index, (LocalDate) o);
             } else if (o.getClass().equals(LocalDateTime.class)) {
                 set(index, (LocalDateTime) o);
-            } else if (o.getClass().equals(Long.class)) {
+            } else if (o.getClass().equals(Long.class) || o.getClass().equals(Long.TYPE)) {
                 set(index, (Long) o);
             } else if (o.getClass().equals(OffsetDateTime.class)) {
                 set(index, (OffsetDateTime) o);
             } else if (o.getClass().equals(OffsetTime.class)) {
                 set(index, (OffsetTime) o);
-            } else if (o.getClass().equals(Short.class)) {
+            } else if (o.getClass().equals(Short.class) || o.getClass().equals(Short.TYPE)) {
                 set(index, (Short) o);
             } else if (o.getClass().equals(ZonedDateTime.class)) {
                 set(index, (ZonedDateTime) o);
-            } else if (o.getClass().equals(BigDecimal.class)) {
-                set(index, (BigDecimal) o);
+            }  else {
+                throw new IllegalArgumentException();
             }
         }
 

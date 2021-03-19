@@ -5,9 +5,19 @@ import one.xis.sql.JdbcException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.stream.Stream;
 
 abstract class ForeignKeyAccessor<EID, FID> extends JdbcExecutor {
+
+
+    Collection<FID> fieldValuePks(EID entityPk) {
+        return null; // TODO
+    }
+
+    void updateFkToNull(Collection<FID> fieldPks) {
+        // TODO
+    }
 
     /**
      * Intended for delete cascade by api

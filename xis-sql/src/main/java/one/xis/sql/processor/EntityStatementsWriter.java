@@ -48,9 +48,12 @@ class EntityStatementsWriter {
         builder.addMethod(implementGetDeleteSql());
         builder.addMethod(implementGetSelectAllSql());
         builder.addMethod(implementGetDeleteAllSql());
+        builder.addMethod(implementGetUpdateColumnValuesToNullSql());
+        builder.addMethod(implementGetPksByColumnValueSql());
         builder.addMethod(implementSetInsertSqlParameters());
         builder.addMethod(implementSetUpdateSqlParameters());
     }
+
 
     private MethodSpec implementGetInsertSql() {
         return implementSimpleStringGetter("getInsertSql", statementsModel.getInsertSql());
@@ -75,6 +78,38 @@ class EntityStatementsWriter {
     private MethodSpec implementGetDeleteAllSql() {
         return implementSimpleStringGetter("getDeleteAllSql", statementsModel.getDeleteAllSql());
     }
+
+    private MethodSpec implementGetUpdateColumnValuesToNullSql() {
+        return MethodSpec.methodBuilder("getUpdateColumnValuesToNullByPkSql")
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(ClassName.get(String.class), "columnName")
+                .addAnnotation(Override.class)
+                .returns(TypeName.get(String.class))
+                .addStatement("return String.format(\"$L\", columnName)", statementsModel.getUpdateColumnValuesToNullByPkSqlPattern() )
+                .build();
+    }
+
+    private MethodSpec implementGetPksByColumnValueSql() {
+        return MethodSpec.methodBuilder("getPksByColumnValueSql")
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(ClassName.get(String.class), "columnName")
+                .addAnnotation(Override.class)
+                .returns(TypeName.get(String.class))
+                .addStatement("return String.format(\"$L\", columnName)", statementsModel.getGetPksByColumnValueSqlPattern())
+                .build();
+    }
+
+    /*
+       @Override
+    public String getUpdateColumnValuesToNullSql(String columnName) {
+        return String.format("UPDATE `customer` SET `%s`=NULL  WHERE `id`=?", columnName);
+    }
+
+    @Override
+    public String getPksByColumnValueSql(String columnName) {
+        return String.format("SELECT `id` FROM `customer` WHERE `%s`=?", columnName);
+    }
+     */
 
 
     private MethodSpec implementSimpleStringGetter(String methodName, String returnValue) {

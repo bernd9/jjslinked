@@ -153,4 +153,14 @@ public class EntityArrayList<E> extends ArrayList<E> implements EntityCollection
         deletedValues.addAll(this);
         super.clear();
     }
+
+    @Override
+    public Collection<E> getUnlinkedValues() {
+        return null;
+    }
+
+    @Override
+    public Collection<E> getDirtyValues() {
+        return null;
+    }
 }

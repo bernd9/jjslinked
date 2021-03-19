@@ -1,6 +1,7 @@
 package one.xis.sql.api;
 
 import com.ejc.api.context.UsedInGeneratedCode;
+import lombok.RequiredArgsConstructor;
 import one.xis.sql.JdbcException;
 import one.xis.sql.api.collection.EntityArrayList;
 import one.xis.sql.api.collection.EntityCollection;
@@ -8,19 +9,15 @@ import one.xis.sql.api.collection.EntityCollection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.*;
-
+@RequiredArgsConstructor
 public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E, EID>> extends JdbcExecutor {
 
     // TODO validate entity must have more then one parameter (1. is id), otherwise @CollectionTable !
     private static final String TEXT_NO_PK = "Entity has no primary key. Consider to set ";// TODO
 
     private final EntityStatements<E, EID> entityStatements;
-
-    public EntityTableAccessor(EntityStatements<E, EID> entityStatements) {
-        this.entityStatements = entityStatements;
-    }
+    private final Class<EID> pkType;
 
     Optional<E> getById(EID id) {
         try (PreparedEntityStatement st = prepare(entityStatements.getSelectByIdSql())) {
@@ -170,6 +167,47 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E, EID>>
             throw new JdbcException("failed to execute delete", e);
         }
     }
+
+
+
+    public void deleteAllById(Collection<EID> ids) {
+        // TODO
+        throw new AbstractMethodError();
+    }
+
+    public void updateColumnValuesToNull(Collection<EID> pks, String fkColumnName) {
+        Iterator<EID> entityIterator = pks.iterator();
+        try (PreparedEntityStatement st = prepare(entityStatements.getUpdateColumnValuesToNullByPkSql(fkColumnName))) {
+            while (entityIterator.hasNext()) {
+                st.clearParameters();
+                EID pk = entityIterator.next();
+                setPk(st, 1, pk);
+                st.addBatch();
+            }
+            st.executeBatch();
+        } catch (SQLException e) {
+            throw new JdbcException("failed to execute delete", e);
+        }
+    }
+
+
+    public Collection<EID> getPksByColumnValue(Object columnValue, String columnName) {
+        List<EID> list = new ArrayList<>();
+        try (PreparedEntityStatement st = prepare(entityStatements.getPksByColumnValueSql(columnName))) {
+            st.set(1, columnValue);
+            st.addBatch();
+            ExtendedResultSet rs = new ExtendedResultSet(st.executeQuery());
+            while (rs.next()) {
+                list.add(rs.get(1, pkType));
+            }
+            return list;
+
+        } catch (SQLException e) {
+            throw new JdbcException("failed to execute delete", e);
+        }
+    }
+
+
 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")

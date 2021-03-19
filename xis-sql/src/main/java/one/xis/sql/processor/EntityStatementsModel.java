@@ -170,6 +170,35 @@ class EntityStatementsModel implements Comparator<FieldModel> {
                 .toString();
     }
 
+    String getGetPksByColumnValueSqlPattern() {
+        return new StringBuilder()
+                .append("SELECT ")
+                .append("`")
+                .append(entityModel.getIdField().getColumnName())
+                .append("`")
+                .append(" FROM ")
+                .append("`")
+                .append(entityModel.getTableName())
+                .append("`")
+                .append(" WHERE `%s`=?")
+                .toString();
+    }
+
+    String getUpdateColumnValuesToNullByPkSqlPattern() {
+        return new StringBuilder()
+                .append("UPDATE ")
+                .append("`")
+                .append(entityModel.getTableName())
+                .append("`")
+                .append(" SET `%s`=NULL")
+                .append(" WHERE ")
+                .append("`")
+                .append(entityModel.getIdField().getColumnName())
+                .append("`")
+                .append("=?")
+                .toString();
+    }
+
     String getSelectByIdSql() {
         List<FieldModel> fieldModels = getSelectByIdSqlFields();
         return new StringBuilder()

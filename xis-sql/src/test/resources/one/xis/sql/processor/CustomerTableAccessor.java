@@ -9,7 +9,7 @@ import one.xis.sql.api.PreparedEntityStatement;
 public class CustomerTableAccessor extends EntityTableAccessor<Customer, Long, CustomerProxy> {
 
     public CustomerTableAccessor() {
-        super(new CustomerStatements());
+        super(new CustomerStatements(), Long.class);
     }
 
     @Override

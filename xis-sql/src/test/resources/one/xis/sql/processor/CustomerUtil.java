@@ -4,7 +4,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class CustomerUtil {
@@ -22,6 +25,10 @@ class CustomerUtil {
 
     static Stream<Long> getPks(Collection<Customer> collection) {
         return collection.stream().map(CustomerUtil::getPk);
+    }
+
+    static Map<Long,Customer> mapByPk(Collection<Customer> entities) {
+        return entities.stream().collect(Collectors.toMap(CustomerUtil::getPk, Function.identity()));
     }
 
     static Customer doClone(Customer o) {

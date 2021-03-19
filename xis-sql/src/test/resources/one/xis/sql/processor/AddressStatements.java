@@ -35,6 +35,16 @@ public class AddressStatements implements EntityStatements<Address, Long> {
     }
 
     @Override
+    public String getUpdateColumnValuesToNullByPkSql(String columnName) {
+        return String.format("UPDATE `address` SET `%s`=NULL  WHERE `id`=?", columnName);
+    }
+
+    @Override
+    public String getPksByColumnValueSql(String columnName) {
+        return String.format("SELECT `id` FROM `address` WHERE `%s`=?", columnName);
+    }
+
+    @Override
     public void setInsertSqlParameters(PreparedEntityStatement st, Address entity) {
         st.set(1, entity.getId());
         st.set(2, entity.getCountry());

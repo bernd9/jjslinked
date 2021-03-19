@@ -34,6 +34,15 @@ public class CustomerStatements implements EntityStatements<Customer, Long> {
         return "DELETE FROM `customer`";
     }
 
+    @Override
+    public String getUpdateColumnValuesToNullByPkSql(String columnName) {
+        return String.format("UPDATE `customer` SET `%s`=NULL WHERE `id`=?", columnName);
+    }
+
+    @Override
+    public String getPksByColumnValueSql(String columnName) {
+        return String.format("SELECT `id` FROM `customer` WHERE `%s`=?", columnName);
+    }
 
     @Override
     public void setInsertSqlParameters(PreparedEntityStatement st, Customer entity) {

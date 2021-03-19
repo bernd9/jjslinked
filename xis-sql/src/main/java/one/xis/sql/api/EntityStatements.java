@@ -30,6 +30,14 @@ public interface EntityStatements<E, EID> {
 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
+    String getUpdateColumnValuesToNullByPkSql(String columnName);
+
+    @UsedInGeneratedCode
+    @SuppressWarnings("unused")
+    String getPksByColumnValueSql(String columnName);
+
+    @UsedInGeneratedCode
+    @SuppressWarnings("unused")
     void setInsertSqlParameters(PreparedEntityStatement st, E entity);
 
     @UsedInGeneratedCode

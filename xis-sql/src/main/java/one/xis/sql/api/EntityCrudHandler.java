@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-public abstract class EntitySaveHandler<E, EID, P extends EntityProxy<E, EID>> {
+public abstract class EntityCrudHandler<E, EID, P extends EntityProxy<E, EID>> {
 
     private final EntityTableAccessor<E, EID, P> entityTableAccessor;
 

@@ -1,5 +1,6 @@
 package one.xis.sql.processor;
 
+import java.util.function.Function;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -18,5 +19,9 @@ public class AddressUtil {
 
     public static Stream<Long> getPks(Collection<Address> collection) {
         return collection.stream().map(AddressUtil::getPk);
+    }
+
+    static Map<Long,Address> mapByPk(Collection<Address> entities) {
+        return entities.stream().collect(Collectors.toMap(AddressUtil::getPk, Function.identity()));
     }
 }
