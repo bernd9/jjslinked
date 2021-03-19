@@ -118,6 +118,12 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
         new EntityTableAccessorWriter(model, processingEnv).write();
     }
 
+    private void writeEntityCrudHandler(EntityModel entityModel, Set<EntityModel> allModels) throws ModelValidationException, IOException {
+        EntityCrudHandlerModel model = new EntityCrudHandlerModel(entityModel);
+        new EntityCrudHandlerValidator(model).validate();
+        new EntityCrudHandlerWriter(model, processingEnv).write();
+    }
+
 
     private void writeRepositoryImpl(EntityModel entityModel, Set<EntityModel> allModels) {
 

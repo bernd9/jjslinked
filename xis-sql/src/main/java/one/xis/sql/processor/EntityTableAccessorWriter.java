@@ -39,11 +39,11 @@ public class EntityTableAccessorWriter {
     }
 
     private void writeTypeBody(TypeSpec.Builder builder) {
-        createContructor(builder);
+        createConstructor(builder);
         implementAbstractMethods(builder);
     }
 
-    private void createContructor(TypeSpec.Builder builder) {
+    private void createConstructor(TypeSpec.Builder builder) {
         builder.addMethod(MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
                 .addStatement("super(new $L(), $T.class)", EntityStatementsModel.getEntityStatementsSimpleName(entityModel()), entityPkType())

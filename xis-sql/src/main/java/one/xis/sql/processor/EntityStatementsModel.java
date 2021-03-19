@@ -1,6 +1,8 @@
 package one.xis.sql.processor;
 
 
+import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.TypeName;
 import lombok.Getter;
 
 import javax.annotation.processing.ProcessingEnvironment;
@@ -23,6 +25,10 @@ class EntityStatementsModel implements Comparator<FieldModel> {
         nonPkColumnFields.addAll(entityModel.getJsonFields());
         nonPkColumnFields.remove(entityModel.getIdField());
         // Cross-table-fields, collection-table-fields and referenced field to not have a column in this table
+    }
+
+    static TypeName getEntityStatementsTypeName(EntityModel entityModel) {
+        return ClassName.get(entityModel.getPackageName(), getEntityStatementsSimpleName(entityModel));
     }
 
     String getEntityStatementsSimpleName() {

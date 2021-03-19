@@ -16,6 +16,10 @@ public class NamingRules {
                 .collect(Collectors.joining("_"));
     }
 
+    public static String toJavaClassName(String sqlName) {
+        return StringUtils.firstToUpperCase(underscoresToCamelCase(sqlName));
+    }
+
     public static String underscoresToCamelCase(String sqlName) {
         return Arrays.stream(sqlName.split("_"))
                 .map(StringUtils::firstToUpperCase)
