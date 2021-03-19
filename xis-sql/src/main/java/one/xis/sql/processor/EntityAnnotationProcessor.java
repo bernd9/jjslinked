@@ -72,6 +72,7 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
             writeEntityResultSet(entityModel);
             writeEntityTableAccessor(entityModel, allModels);
             writeRepositoryImpl(entityModel, allModels);
+            writeEntityCrudHandler(entityModel, allModels);
         } catch (ModelValidationException | IOException e) {
             ProcessorLogger.reportError(this, processingEnv, e);
         }

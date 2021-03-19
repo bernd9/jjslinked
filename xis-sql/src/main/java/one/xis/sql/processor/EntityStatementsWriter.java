@@ -33,7 +33,7 @@ class EntityStatementsWriter {
         JavaFile javaFile = JavaFile.builder(statementsModel.getEntityStatementsPackageName(), typeSpec)
                 .skipJavaLangImports(true)
                 .build();
-        System.out.println(javaFile.toString());
+        //System.out.println(javaFile.toString());
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 

@@ -7,9 +7,4 @@ public abstract class EntityCrudHandler<E, EID, P extends EntityProxy<E, EID>> {
 
     private final EntityTableAccessor<E, EID, P> entityTableAccessor;
 
-    public void save(E entity) {
-        entityTableAccessor.save(entity);
-
-    }
-
 }

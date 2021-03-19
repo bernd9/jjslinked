@@ -17,7 +17,7 @@ class EntityCrudHandlerWriter {
             TypeSpec.Builder builder = TypeSpec.classBuilder(entityCrudHandlerModel.getCrudHandlerSimpleName())
                     .addModifiers(Modifier.PUBLIC)
                     .superclass(ParameterizedTypeName.get(ClassName.get(EntityCrudHandler.class),
-                        entityTypeName(), entityIdTypeName()));
+                        entityTypeName(), entityIdTypeName(), entityProxyTypeName()));
 
             writeTypeBody(builder);
             TypeSpec typeSpec = builder.build();
@@ -29,6 +29,11 @@ class EntityCrudHandlerWriter {
 
     private void writeTypeBody(TypeSpec.Builder builder) {
         addConstructor(builder);
+        addFieldHandlers(builder);
+    }
+
+    private void addFieldHandlers(TypeSpec.Builder builder) {
+
     }
 
     private void addConstructor(TypeSpec.Builder builder) {
@@ -36,7 +41,7 @@ class EntityCrudHandlerWriter {
         TypeName entityStatements = EntityStatementsModel.getEntityStatementsTypeName(entityModel());
         TypeMirror pkType = entityModel().getIdField().getFieldType();
         builder.addMethod(MethodSpec.constructorBuilder()
-                .addStatement("super(new $T(new $T(), $T.class))", entityTableAccessor, entityStatements, pkType)
+                .addStatement("super(new $T())", entityTableAccessor)
                 .build());
     }
 
@@ -51,6 +56,10 @@ class EntityCrudHandlerWriter {
 
     private EntityModel entityModel() {
         return entityCrudHandlerModel.getEntityModel();
+    }
+
+    private TypeName entityProxyTypeName() {
+        return entityCrudHandlerModel.getEntityProxyTypeName();
     }
 
 }

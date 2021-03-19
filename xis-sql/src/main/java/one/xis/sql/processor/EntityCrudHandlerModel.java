@@ -1,5 +1,6 @@
 package one.xis.sql.processor;
 
+import com.squareup.javapoet.TypeName;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.NamingRules;
@@ -19,5 +20,9 @@ class EntityCrudHandlerModel {
 
     public String getCrudHandlerPackageName() {
         return entityModel.getPackageName();
+    }
+
+    public TypeName getEntityProxyTypeName() {
+        return EntityProxyModel.getEntityProxyTypeName(entityModel);
     }
 }
