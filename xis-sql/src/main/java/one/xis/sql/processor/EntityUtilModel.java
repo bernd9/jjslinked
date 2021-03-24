@@ -1,5 +1,7 @@
 package one.xis.sql.processor;
 
+import com.ejc.util.CollectorUtils;
+import com.ejc.util.StringUtils;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import lombok.Getter;
@@ -31,6 +33,15 @@ class EntityUtilModel {
 
     TypeName getEntityUtilTypeName() {
         return getEntityUtilTypeName(entityModel);
+    }
+
+
+    static String getGetterName(String fieldName) {
+        return String.format("get%s", StringUtils.firstToUpperCase(fieldName));
+    }
+
+    static String getSetterName(String fieldName) {
+        return String.format("set%s", StringUtils.firstToUpperCase(fieldName));
     }
 
 }

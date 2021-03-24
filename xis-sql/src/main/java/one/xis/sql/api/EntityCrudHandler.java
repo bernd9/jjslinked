@@ -12,13 +12,10 @@ public abstract class EntityCrudHandler<E, EID, P extends EntityProxy<E, EID>> {
     private final EntityTableAccessor<E, EID, P> entityTableAccessor;
 
 
-    public void save(E entity) {
+    public abstract void save(E entity);
 
-    }
-
-    // TODO return collection not needed -> remove return value ?
-    public Collection<E> save(Collection<E> entities) {
-        return null;
+    public void save(Collection<E> entities) {
+        entities.forEach(this::save); // TODO this might be slow. Better implement similar logic again
     }
 
 }

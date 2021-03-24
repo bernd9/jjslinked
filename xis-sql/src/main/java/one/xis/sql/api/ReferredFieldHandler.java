@@ -1,5 +1,6 @@
 package one.xis.sql.api;
 
+import com.ejc.api.context.UsedInGeneratedCode;
 import com.google.common.base.Functions;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.api.collection.EntityCollection;
@@ -15,10 +16,13 @@ public abstract class ReferredFieldHandler<EID, F, FID, P extends EntityProxy<F,
     private final EntityCrudHandler<F, FID, P> entityCrudHandler;
     private final String foreignKeyColumnName;
 
-    public void updateFieldValue(EID entityId, F fieldValue) {
+    @UsedInGeneratedCode
+    @SuppressWarnings("unused")
+    public void updateFieldValues(EID entityId, F fieldValue) {
         updateFieldValues(entityId, Collections.singleton(fieldValue));
     }
 
+    @UsedInGeneratedCode
     public void updateFieldValues(EID entityId, Collection<F> fieldValues) {
         if (fieldValues instanceof EntityCollection) {
             updateCollectionProxyFieldValues(entityId, (EntityCollection) fieldValues);

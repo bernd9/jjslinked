@@ -20,7 +20,8 @@ class EntityUtilWriter {
 
     void write() throws IOException {
         TypeSpec.Builder builder = TypeSpec.classBuilder(entityUtilModel.getEntityUtilSimpleName())
-                .addOriginatingElement(entityUtilModel.getEntityModel().getType());
+                .addOriginatingElement(entityUtilModel.getEntityModel().getType())
+                .addModifiers(Modifier.PUBLIC);
 
         writeTypeBody(builder);
         TypeSpec typeSpec = builder.build();
@@ -41,6 +42,7 @@ class EntityUtilWriter {
         builder.addMethod(new DoCloneMethodSingle().create());
         builder.addMethod(new DoCloneCollection(ClassName.get(HashSet.class), ClassName.get(Set.class)).create());
         builder.addMethod(new DoCloneCollection(ClassName.get(LinkedList.class), ClassName.get(List.class)).create());
+        addFieldValueGettersAndSetter(builder);
     }
 
 
@@ -108,7 +110,7 @@ class EntityUtilWriter {
 
         MethodSpec create() {
             return MethodSpec.methodBuilder("doClone")
-                    .addModifiers(Modifier.STATIC)
+                    .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
                     .addParameter(parameterizedCollectionInterfaceType(), "coll")
                     .returns(parameterizedCollectionInterfaceType())
                     .addStatement("$T rv = new $T<>()", parameterizedCollectionInterfaceType(), concreteCollectionType)
@@ -126,7 +128,7 @@ class EntityUtilWriter {
     class DoCloneMethodSingle {
         MethodSpec create() {
             return MethodSpec.methodBuilder("doClone")
-                    .addModifiers(Modifier.STATIC)
+                    .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
                     .addParameter(entityType(), "o")
                     .returns(entityType())
                     .addStatement("$T rv = new $T()", entityType(), entityType())
@@ -195,7 +197,7 @@ class EntityUtilWriter {
 
     private MethodSpec implementGetPks() {
         return MethodSpec.methodBuilder("getPks")
-                .addModifiers(Modifier.STATIC)
+                .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
                 .addParameter(entityCollectionTypeName(), "collection")
                 .addStatement("return collection.stream().map($T::getPk)", entityUtilModel.getEntityUtilTypeName())
                 .returns(entityPkStream())
@@ -204,7 +206,7 @@ class EntityUtilWriter {
 
     private MethodSpec implementGetPkWithGetter(ExecutableElement getter) {
         return MethodSpec.methodBuilder("getPk")
-                .addModifiers(Modifier.STATIC)
+                .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
                 .addParameter(entityUtilModel.getEntityModel().getTypeName(), "entity")
                 .addStatement("return entity.$L()", getter.getSimpleName())
                 .returns(TypeName.get(entityUtilModel.getEntityModel().getIdField().getFieldType()))
@@ -213,7 +215,7 @@ class EntityUtilWriter {
 
     private MethodSpec implementGetPkWithFieldAccess() {
         return MethodSpec.methodBuilder("getPk")
-                .addModifiers(Modifier.STATIC)
+                .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
                 .addParameter(entityType(), "entity")
                 .addStatement("return $T.getFieldValue(entity, \"$L\")", FieldUtils.class, pkField().getFieldName())
                 .returns(pkType())
@@ -229,7 +231,7 @@ class EntityUtilWriter {
 
     private MethodSpec implementSetPkWithSetter(ExecutableElement setter) {
         return MethodSpec.methodBuilder("setPk")
-                .addModifiers(Modifier.STATIC)
+                .addModifiers( Modifier.PUBLIC, Modifier.STATIC)
                 .addParameter(entityType(), "entity")
                 .addParameter(pkType(), "pk")
                 .addStatement("entity.$L(pk)", setter.getSimpleName())
@@ -238,7 +240,7 @@ class EntityUtilWriter {
 
     private MethodSpec implementSetPkWithFieldAccess() {
         return MethodSpec.methodBuilder("setPk")
-                .addModifiers(Modifier.STATIC)
+                .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
                 .addParameter(entityType(), "entity")
                 .addParameter(pkType(), "pk")
                 .addStatement("return $T.setFieldValue(entity, \"$L\", pk)", FieldUtils.class, pkField().getFieldName())
@@ -248,12 +250,63 @@ class EntityUtilWriter {
 
     private MethodSpec implementMapByPk() {
         return MethodSpec.methodBuilder("mapByPk")
-                .addModifiers(Modifier.STATIC)
+                .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
                 .addParameter(entityCollectionTypeName(), "entities")
                 .addStatement("return entities.stream().collect($T.toMap($T::getPk, $T.identity()))", Collectors.class, entityUtilModel.getEntityUtilTypeName(), Function.class)
                 .returns(ParameterizedTypeName.get(ClassName.get(Map.class), pkType(), entityType()))
                 .build();
     }
+
+    private void addFieldValueGettersAndSetter(TypeSpec.Builder builder) {
+        entityUtilModel.getAllFields().stream().sorted(Comparator.comparing(fieldModel -> fieldModel.getFieldName().toString()))
+                .filter(field -> !field.getFieldName().toString().equals("pk"))
+                .forEach(field -> addGetterAndSetter(field, builder));
+
+    }
+
+    private void addGetterAndSetter(FieldModel field, TypeSpec.Builder builder) {
+        builder.addMethod(implementGetFieldValue(field));
+        builder.addMethod(implementSetFieldValue(field));
+    }
+
+
+    private MethodSpec implementGetFieldValue(FieldModel fieldModel) {
+        return MethodSpec.methodBuilder(EntityUtilModel.getGetterName(fieldModel.getFieldName().toString()))
+                .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
+                .addParameter(entityType(), "entity")
+                .returns(TypeName.get(fieldModel.getFieldType()))
+                .addStatement(getFieldValueAccessorStatement(fieldModel))
+                .build();
+    }
+
+    private CodeBlock getFieldValueAccessorStatement(FieldModel fieldModel) {
+        return fieldModel.getGetter().map(getter -> CodeBlock.builder()
+                .add("return entity.$L()", getter.getSimpleName())
+                .build())
+                .orElse(CodeBlock.builder()
+                        .add("return ($T) $T.getFieldValue(entity, \"$L\")", fieldModel.getFieldType(), FieldUtils.class, fieldModel.getFieldName())
+                        .build());
+    }
+
+    private MethodSpec implementSetFieldValue(FieldModel fieldModel) {
+        return MethodSpec.methodBuilder(EntityUtilModel.getSetterName(fieldModel.getFieldName().toString()))
+                .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
+                .addParameter(entityType(), "entity")
+                .addParameter(TypeName.get(fieldModel.getFieldType()), "value")
+                .addStatement(getFieldValueSetterStatement(fieldModel))
+                .build();
+    }
+
+
+    private CodeBlock getFieldValueSetterStatement(FieldModel fieldModel) {
+        return fieldModel.getSetter().map(setter -> CodeBlock.builder()
+                .add("entity.$L(value)", setter.getSimpleName())
+                .build())
+                .orElse(CodeBlock.builder()
+                        .add("$T.setFieldValue(entity, \"$L\", value)", FieldUtils.class, fieldModel.getFieldName())
+                        .build());
+    }
+
 
     private TypeName entityCollectionTypeName() {
         return ParameterizedTypeName.get(ClassName.get(Collection.class), entityType());

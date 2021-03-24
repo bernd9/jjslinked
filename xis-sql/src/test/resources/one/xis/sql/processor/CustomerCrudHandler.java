@@ -10,7 +10,7 @@ public class CustomerCrudHandler extends EntityCrudHandler<Customer, Long, Custo
 
         @Override
         protected Long getFieldValuePk(Order fieldValue) {
-            return order.getId();
+            return OrderUtil.getPk(fieldValue);
         }
 
         @Override
@@ -20,12 +20,18 @@ public class CustomerCrudHandler extends EntityCrudHandler<Customer, Long, Custo
 
         @Override
         protected void setFk(Order fieldValue, Long fk) {
-            fieldValue.setId(fk);
+            OrderUtil.setFk(fk);
         }
     }
 
+    private static OrdersFieldHandler ordersFieldHandler = new OrdersFieldHandler();
 
     public CustomerCrudHandler() {
         super(new CustomerTableAccessor());
+    }
+
+    @Override
+    public void save(Customer entity) {
+        ordersFieldHandler.updateFieldValues(CustomerUtil.getPk(entity), CustomerUtil.getOrders(entity));
     }
 }

@@ -1,11 +1,8 @@
 package one.xis.sql.processor;
 
-import com.ejc.util.FieldUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.api.ReferredFieldHandler;
-
-import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import java.util.Collection;
 
@@ -44,27 +41,7 @@ class ReferencedFieldHandlerTypeBuilder {
                 .addModifiers(Modifier.PROTECTED)
                 .addParameter(TypeName.get(model.getFieldEntityModel().getType().asType()), "fieldValue")
                 .returns(TypeName.get(model.getFieldEntityModel().getIdField().getFieldType()))
-                .addStatement(getGetFieldValuePkStatement())
-                .build();
-    }
-
-    private CodeBlock getGetFieldValuePkStatement() {
-        return model.getFieldEntityModel().getIdField().getGetter()
-                .map(this::getGetFieldValuePkStatementByGetter)
-                .orElseGet(this::getGetFieldValuePkFieldAccess);
-    }
-
-    private CodeBlock getGetFieldValuePkStatementByGetter(ExecutableElement getter) {
-        return CodeBlock.builder()
-                .add("return fieldValue.$L()", getter.getSimpleName())
-                .build();
-    }
-
-    private CodeBlock getGetFieldValuePkFieldAccess() {
-        EntityModel fieldEntityModel = model.getFieldEntityModel();
-        TypeName pkType = TypeName.get(fieldEntityModel.getIdField().getFieldType());
-        return CodeBlock.builder()
-                .add("return ($T) $T.getFieldValue(fieldValue, \"$L\")", pkType, FieldUtils.class, model.getFieldName())
+                .addStatement("return $T.getPk(fieldValue)", EntityUtilModel.getEntityUtilTypeName(model.getFieldEntityModel()))
                 .build();
     }
 
@@ -88,25 +65,8 @@ class ReferencedFieldHandlerTypeBuilder {
                 .addModifiers(Modifier.PROTECTED)
                 .addParameter(TypeName.get(fieldEntityModel.getType().asType()), "fieldValue")
                 .addParameter(pkType, "pk")
-                .addStatement(getSetFkStatement())
+                .addStatement("$T.setPk(fieldValue, pk)", EntityUtilModel.getEntityUtilTypeName(model.getFieldEntityModel()))
                 .build();
     }
 
-    private CodeBlock getSetFkStatement() {
-        return model.getFieldEntityModel().getIdField().getSetter()
-                .map(this::getSetFkBySetterStatement)
-                .orElseGet(this::getSetFkByFieldAccessStatement);
-    }
-
-    private CodeBlock getSetFkBySetterStatement(ExecutableElement element) {
-        return CodeBlock.builder()
-                .add("$T.setFieldValue(fieldValue, \"$L\", pk)", FieldUtils.class, model.getFieldName())
-                .build();
-    }
-
-    private CodeBlock getSetFkByFieldAccessStatement() {
-        return CodeBlock.builder()
-                .add("$T.setFieldValue(fieldValue, \"$L\", pk)", FieldUtils.class, model.getFieldName())
-                .build();
-    }
 }

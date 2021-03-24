@@ -20,7 +20,7 @@ class EntityCrudHandlerModel {
         return NamingRules.toJavaClassName(model.getColumnName()) + "ReferencedFieldHandler";
     }
 
-    static TypeName getCrudHandlerTypeName(EntityModel entityModel) {
+    static ClassName getCrudHandlerTypeName(EntityModel entityModel) {
         return ClassName.get(getCrudHandlerPackageName(entityModel), getCrudHandlerSimpleName(entityModel));
     }
 

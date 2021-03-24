@@ -10,28 +10,28 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-class CustomerUtil {
+public class CustomerUtil {
 
     private CustomerUtil() {
     }
 
-    static Long getPk(Customer entity) {
+    public static Long getPk(Customer entity) {
         return entity.getId();
     }
 
-    static void setPk(Customer entity, Long pk) {
+    public static void setPk(Customer entity, Long pk) {
         entity.setId(pk);
     }
 
-    static Stream<Long> getPks(Collection<Customer> collection) {
+    public static Stream<Long> getPks(Collection<Customer> collection) {
         return collection.stream().map(CustomerUtil::getPk);
     }
 
-    static Map<Long,Customer> mapByPk(Collection<Customer> entities) {
+    public static Map<Long,Customer> mapByPk(Collection<Customer> entities) {
         return entities.stream().collect(Collectors.toMap(CustomerUtil::getPk, Function.identity()));
     }
 
-    static Customer doClone(Customer o) {
+    public static Customer doClone(Customer o) {
         Customer rv = new Customer();
         rv.setFirstName(o.getFirstName());
         rv.setId(o.getId());
@@ -41,15 +41,55 @@ class CustomerUtil {
         return rv;
     }
 
-    static Set<Customer> doClone(Set<Customer> coll) {
+    public static Set<Customer> doClone(Set<Customer> coll) {
         Set<Customer> rv = new HashSet<>();
         coll.stream().map(CustomerUtil::doClone).forEach(rv::add);
         return rv;
     }
 
-    static List<Customer> doClone(List<Customer> coll) {
+    public static List<Customer> doClone(List<Customer> coll) {
         List<Customer> rv = new LinkedList<>();
         coll.stream().map(CustomerUtil::doClone).forEach(rv::add);
         return rv;
+    }
+
+    public static String getFirstName(Customer entity) {
+        return entity.getFirstName();
+    }
+
+    public static void setFirstName(Customer entity, String value) {
+        entity.setFirstName(value);
+    }
+
+    public static Long getId(Customer entity) {
+        return entity.getId();
+    }
+
+    public static void setId(Customer entity, Long value) {
+        entity.setId(value);
+    }
+
+    public static Address getInvoiceAddress(Customer entity) {
+        return entity.getInvoiceAddress();
+    }
+
+    public static void setInvoiceAddress(Customer entity, Address value) {
+        entity.setInvoiceAddress(value);
+    }
+
+    public static String getLastName(Customer entity) {
+        return entity.getLastName();
+    }
+
+    public static void setLastName(Customer entity, String value) {
+        entity.setLastName(value);
+    }
+
+    public static List<Order> getOrders(Customer entity) {
+        return entity.getOrders();
+    }
+
+    public static void setOrders(Customer entity, List<Order> value) {
+        entity.setOrders(value);
     }
 }
