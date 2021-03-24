@@ -91,7 +91,7 @@ class EntityProxyWriter {
         Collection<FieldModel> fields = new HashSet<>(entityProxyModel.getEntityModel().getAllFields());
         fields.remove(entityProxyModel.getEntityModel().getIdField());
         fields.stream()
-                .filter(f -> !(f instanceof ReferredFieldModel))
+                .filter(f -> !(f instanceof ReferencedFieldModel))
                 .map(FieldModel::getSetter)
                 .filter(Optional::isPresent)
                 .map(Optional::get)

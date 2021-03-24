@@ -150,8 +150,8 @@ class EntityUtilWriter {
 
         private void copyFieldValue(FieldModel fieldModel, CodeBlock.Builder builder) {
             CodeBlock getFieldValue = getFieldValue(fieldModel);
-            if(fieldModel instanceof ReferredFieldModel) {
-                copyFieldValueReferredField((ReferredFieldModel) fieldModel, builder, getFieldValue);
+            if(fieldModel instanceof ReferencedFieldModel) {
+                copyFieldValueReferredField((ReferencedFieldModel) fieldModel, builder, getFieldValue);
             } else if (fieldModel instanceof EntityFieldModel) {
                 copyFieldValueForeignKeyField((EntityFieldModel) fieldModel, builder, getFieldValue);
             } else {
@@ -168,7 +168,7 @@ class EntityUtilWriter {
             builder.addStatement(setFieldValue(fieldModel, createClone));
         }
 
-        private void copyFieldValueReferredField(ReferredFieldModel fieldModel, CodeBlock.Builder builder, CodeBlock getFieldValue) {
+        private void copyFieldValueReferredField(ReferencedFieldModel fieldModel, CodeBlock.Builder builder, CodeBlock getFieldValue) {
             CodeBlock createClone = new CloneEntity(fieldModel).create(getFieldValue);
             builder.addStatement(setFieldValue(fieldModel, createClone));
         }

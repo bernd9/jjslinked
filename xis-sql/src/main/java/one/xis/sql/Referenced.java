@@ -7,6 +7,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.SOURCE)
-public @interface ReferringColumn {
-    String value();
+public @interface Referenced {
+    String externalColumnName();
+    boolean deleteUnlinked() default false;
 }

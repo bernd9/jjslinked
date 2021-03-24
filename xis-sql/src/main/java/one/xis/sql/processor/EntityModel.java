@@ -1,6 +1,5 @@
 package one.xis.sql.processor;
 
-import com.ejc.util.CollectorUtils;
 import com.ejc.util.JavaModelUtils;
 import com.ejc.util.StringUtils;
 import com.squareup.javapoet.TypeName;
@@ -8,14 +7,10 @@ import lombok.*;
 import one.xis.sql.*;
 import one.xis.util.Pair;
 
-import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Types;
 import java.lang.annotation.Annotation;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Data
 
@@ -25,7 +20,7 @@ class EntityModel {
     private SimpleEntityFieldModel idField;
     private Set<CrossTableFieldModel> crossTableFields;
     private Set<ForeignKeyFieldModel> foreignKeyFields;
-    private Set<ReferredFieldModel> referredFields;
+    private Set<ReferencedFieldModel> referredFields;
     private Set<CollectionTableFieldModel> collectionTableFields;
     private Set<SimpleEntityFieldModel> nonComplexFields;
     private Set<JsonFieldModel> jsonFields;

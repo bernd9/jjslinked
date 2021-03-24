@@ -55,28 +55,28 @@ class EntityModelFactory {
         private final EntityModel entityModel;
         private final Set<ForeignKeyFieldModel> allForeignKeyFields;
 
-        Set<ReferredFieldModel> findReferredFields() {
+        Set<ReferencedFieldModel> findReferredFields() {
             return referredFields(fields(entityModel.getType()), new GettersAndSetters(entityModel.getType(), getTypeUtils()));
         }
 
-        private Set<ReferredFieldModel> referredFields(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
+        private Set<ReferencedFieldModel> referredFields(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
             return Stream.concat(referredFieldsByAnnotation(fields, gettersAndSetters),
                     referredFieldsByUniqueness(fields, gettersAndSetters)
             ).collect(Collectors.toUnmodifiableSet());
         }
 
-        private Stream<ReferredFieldModel> referredFieldsByAnnotation(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
+        private Stream<ReferencedFieldModel> referredFieldsByAnnotation(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
             return fields.stream()
-                    .filter(field -> field.getAnnotation(ReferringColumn.class) != null)
-                    .map(field -> new ReferredFieldModel(entityModel, field, gettersAndSetters, getMatchingForeignKeyByColumnNameInAnnotation(field)));
+                    .filter(field -> field.getAnnotation(Referenced.class) != null && !field.getAnnotation(Referenced.class).externalColumnName().isEmpty())
+                    .map(field -> new ReferencedFieldModel(entityModel, field, gettersAndSetters, getMatchingForeignKeyByColumnNameInAnnotation(field)));
         }
 
 
-        private Stream<ReferredFieldModel> referredFieldsByUniqueness(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
+        private Stream<ReferencedFieldModel> referredFieldsByUniqueness(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
             return fields.stream()
                     .filter(this::isEntityField)
                     .filter(this::hasNoEntityFieldAnnotations)
-                    .map(field -> new ReferredFieldModel(entityModel, field, gettersAndSetters, getMatchingForeignKeyByType(field)));
+                    .map(field -> new ReferencedFieldModel(entityModel, field, gettersAndSetters, getMatchingForeignKeyByType(field)));
         }
 
         private ForeignKeyFieldModel getMatchingForeignKeyByType(VariableElement referredField) {
@@ -85,7 +85,7 @@ class EntityModelFactory {
         }
 
         private ForeignKeyFieldModel getMatchingForeignKeyByColumnNameInAnnotation(VariableElement referredField) {
-            String foreignKeyColumnName = referredField.getAnnotation(ReferringColumn.class).value();
+            String foreignKeyColumnName = referredField.getAnnotation(Referenced.class).externalColumnName();
             return allForeignKeyFields.stream().filter(field -> field.getColumnName().equals(foreignKeyColumnName)).collect(uniqueForeignKeyByForeignKeyColumnName(referredField, foreignKeyColumnName));
         }
 
@@ -126,7 +126,7 @@ class EntityModelFactory {
 
         private boolean hasNoEntityFieldAnnotations(VariableElement e) {
             return e.getAnnotation(ForeignKey.class) == null
-                    && e.getAnnotation(ReferringColumn.class) == null
+                    && e.getAnnotation(Referenced.class) == null
                     && e.getAnnotation(Json.class) == null
                     && e.getAnnotation(CollectionTable.class) == null
                     && e.getAnnotation(CrossTable.class) == null;

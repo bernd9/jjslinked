@@ -11,9 +11,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-public abstract class ReferencedFieldHandler<EID, F, FID, P extends EntityProxy<F, FID>> {
-    private final EntityTableAccessor<F,FID, P> fieldEntityTableAccessor;
-    private final String columnName;
+public abstract class ReferredFieldHandler<EID, F, FID, P extends EntityProxy<F, FID>> {
+    private final EntityCrudHandler<F, FID, P> entityCrudHandler;
+    private final String foreignKeyColumnName;
 
     public void updateFieldValue(EID entityId, F fieldValue) {
         updateFieldValues(entityId, Collections.singleton(fieldValue));
@@ -35,7 +35,7 @@ public abstract class ReferencedFieldHandler<EID, F, FID, P extends EntityProxy<
     }
 
     private void updateCollectionFieldValues(EID entityId, Collection<F> fieldValues) {
-        Collection<FID> fieldPksInDb = fieldEntityTableAccessor.getPksByColumnValue(entityId, columnName);
+        Collection<FID> fieldPksInDb = entityCrudHandler.getEntityTableAccessor().getPksByColumnValue(entityId, foreignKeyColumnName);
         Map<FID,F> fieldValueMap = asMap(fieldValues);
         unlinkObsoleteFieldValues(fieldPksInDb, fieldValueMap);
         saveFieldValues(entityId, fieldValues);
@@ -48,7 +48,7 @@ public abstract class ReferencedFieldHandler<EID, F, FID, P extends EntityProxy<
 
     private void saveFieldValues(EID entityId, Collection<F> fieldValues) {
         fieldValues.forEach(value -> setFk(value, entityId));
-        fieldEntityTableAccessor.save(fieldValues);
+        entityCrudHandler.save(fieldValues);
     }
 
     private Collection<FID> getUnlinkFieldValuePks(Collection<FID> fieldPksInDb, Map<FID,F> fieldValueMap) {
@@ -61,17 +61,22 @@ public abstract class ReferencedFieldHandler<EID, F, FID, P extends EntityProxy<
         return entities.stream().collect(Collectors.toMap(this::getFieldValuePk, Functions.identity()));
     }
 
+    protected void unlinkByFkFkToNull(Collection<FID> fieldPks) {
+        entityCrudHandler.getEntityTableAccessor().updateColumnValuesToNull(fieldPks, foreignKeyColumnName);
+    }
+
     protected abstract FID getFieldValuePk(F fieldValue);
 
     // depends on delete cascade behaviour
     protected abstract void unlinkFieldValues(Collection<FID> fieldPks);
 
-    protected void unlinkByFkFkToNull(Collection<FID> fieldPks) {
-        fieldEntityTableAccessor.updateColumnValuesToNull(fieldPks, columnName);
+    protected void unlinkByDelete(Collection<FID> fieldPks) {
+        entityCrudHandler.getEntityTableAccessor().deleteAllById(fieldPks);
     }
 
-    protected void unlinkByDelete(Collection<FID> fieldPks) {
-        fieldEntityTableAccessor.deleteAllById(fieldPks);
+    protected void unlinkBySetFkToNull(Collection<FID> fieldPks) {
+        entityCrudHandler.getEntityTableAccessor().updateColumnValuesToNull(fieldPks, foreignKeyColumnName);
+
     }
 
     protected abstract void setFk(F fieldValue, EID fk);

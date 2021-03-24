@@ -3,8 +3,6 @@ package one.xis.sql.processor;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.api.EntityCrudHandler;
-import one.xis.sql.api.EntityTableAccessor;
-import one.xis.sql.api.ReferencedFieldHandler;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
@@ -35,37 +33,28 @@ class EntityCrudHandlerWriter {
     }
 
     private void addFieldHandlerTypes(TypeSpec.Builder builder) {
-       // addReferencedFieldHandlerTypes(builder);
+       addReferredFieldHandlerTypes(builder);
     }
 
-    private void addReferencedFieldHandlerTypes(TypeSpec.Builder builder) {
+    private void addReferredFieldHandlerTypes(TypeSpec.Builder builder) {
         entityCrudHandlerModel.getEntityModel().getReferredFields().stream()
                 .map(this::getReferencedFieldHandler)
                 .forEach(builder::addType);
     }
 
-    private TypeSpec getReferencedFieldHandler(ReferredFieldModel fieldModel) {
-        return TypeSpec.classBuilder(entityCrudHandlerModel.getReferencedFieldHandlerInnerClassName(fieldModel))
-                .superclass(ParameterizedTypeName.get(ClassName.get(ReferencedFieldHandler.class),
-                       entityPkTypeName(),
-                        fieldEntityTypeName(fieldModel),
-                        fieldEntityPkTypeName(fieldModel),
-                        fieldEntityProxyTypeName(fieldModel)))
-                .addMethod(MethodSpec.constructorBuilder()
-                        .addStatement("super(new $T(), \"$L\")", fieldEntityTableAccessor(), fieldModel.getColumnName())
-                        .build())
-                .build();
+    private TypeSpec getReferencedFieldHandler(ReferencedFieldModel fieldModel) {
+       return new ReferencedFieldHandlerTypeBuilder(fieldModel).fieldHandlerDeclaration();
     }
 
-    private TypeName fieldEntityTypeName(ReferredFieldModel fieldModel) {
+    private TypeName fieldEntityTypeName(ReferencedFieldModel fieldModel) {
         return TypeName.get(fieldModel.getFieldEntityModel().getType().asType());
     }
 
-    private TypeName fieldEntityProxyTypeName(ReferredFieldModel fieldModel) {
+    private TypeName fieldEntityProxyTypeName(ReferencedFieldModel fieldModel) {
         return EntityProxyModel.getEntityProxyTypeName(fieldModel.getFieldEntityModel());
     }
 
-    private TypeName fieldEntityPkTypeName(ReferredFieldModel fieldModel) {
+    private TypeName fieldEntityPkTypeName(ReferencedFieldModel fieldModel) {
         return TypeName.get(fieldModel.getFieldEntityModel().getIdField().getFieldType());
     }
 

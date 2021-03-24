@@ -1,5 +1,6 @@
 package one.xis.sql.processor;
 
+import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -15,17 +16,29 @@ class EntityCrudHandlerModel {
     }
 
 
-    String getReferencedFieldHandlerInnerClassName(ReferredFieldModel model) {
+    String getReferencedFieldHandlerInnerClassName(ReferencedFieldModel model) {
         return NamingRules.toJavaClassName(model.getColumnName()) + "ReferencedFieldHandler";
     }
 
+    static TypeName getCrudHandlerTypeName(EntityModel entityModel) {
+        return ClassName.get(getCrudHandlerPackageName(entityModel), getCrudHandlerSimpleName(entityModel));
+    }
 
-    public String getCrudHandlerSimpleName() {
+    static String getCrudHandlerSimpleName(EntityModel entityModel) {
         return entityModel.getSimpleName() + "CrudHandler";
     }
 
-    public String getCrudHandlerPackageName() {
+    static String getCrudHandlerPackageName(EntityModel entityModel) {
         return entityModel.getPackageName();
+    }
+
+
+    String getCrudHandlerSimpleName() {
+        return getCrudHandlerSimpleName(entityModel);
+    }
+
+    String getCrudHandlerPackageName() {
+       return getCrudHandlerPackageName(entityModel);
     }
 
     public TypeName getEntityProxyTypeName() {
