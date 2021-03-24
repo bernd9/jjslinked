@@ -117,10 +117,6 @@ class EntityCrudHandlerWriter {
         return entityCrudHandlerModel.getEntityProxyTypeName();
     }
 
-    private TypeName fieldEntityTableAccessor() {
-        return EntityTableAccessorModel.getEntityTableAccessorTypeName(entityModel());
-    }
-
     private class SaveMethodBuilder {
         private final MethodSpec.Builder builder;
 
@@ -132,8 +128,13 @@ class EntityCrudHandlerWriter {
         }
 
         MethodSpec implementSaveMethod() {
+            addSaveEntityStatement();
             addReferencedFieldHandlerCalls();
             return builder.build();
+        }
+
+        private void addSaveEntityStatement() {
+            builder.addStatement("getEntityTableAccessor().save(entity)");
         }
 
         private void addReferencedFieldHandlerCalls() {

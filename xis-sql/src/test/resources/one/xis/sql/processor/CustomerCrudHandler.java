@@ -32,6 +32,7 @@ public class CustomerCrudHandler extends EntityCrudHandler<Customer, Long, Custo
 
     @Override
     public void save(Customer entity) {
+        getEntityTableAccessor().save(entity);
         ordersFieldHandler.updateFieldValues(CustomerUtil.getPk(entity), CustomerUtil.getOrders(entity));
     }
 }
