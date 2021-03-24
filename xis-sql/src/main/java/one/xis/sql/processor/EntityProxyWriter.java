@@ -124,25 +124,11 @@ class EntityProxyWriter {
     }
 
     private MethodSpec implementGetPkMethod() {
-        return entityModel().getIdField().getGetter().map(this::implementGetPkMethodWithGetter)
-                .orElseGet(() -> implementGetPkMethodWithFieldAccess());
-    }
-
-    private MethodSpec implementGetPkMethodWithGetter(ExecutableElement getter) {
         return MethodSpec.methodBuilder("pk")
                 .addAnnotation(Override.class)
                 .returns(entityIdTypeName())
                 .addModifiers(Modifier.PUBLIC)
-                .addStatement("return $L()", getter.getSimpleName())
-                .build();
-    }
-
-    private MethodSpec implementGetPkMethodWithFieldAccess() {
-        return MethodSpec.methodBuilder("pk")
-                .addAnnotation(Override.class)
-                .returns(entityIdTypeName())
-                .addModifiers(Modifier.PUBLIC)
-                .addStatement("return ($T) $T.getFieldValue(this, \"$L\")", entityModel().getIdField().getFieldType(), FieldUtils.class, entityModel().getIdField().getFieldName())
+                .addStatement("return $T.getPk(this)", EntityUtilModel.getEntityUtilTypeName(entityModel()))
                 .build();
     }
 
@@ -165,26 +151,12 @@ class EntityProxyWriter {
     }
 
     private MethodSpec implementSetPkMethod() {
-        return entityModel().getIdField().getSetter().map(this::implementSetPkMethodWithSetter)
-                .orElse(implementSetPkMethodWithFieldAccess());
-    }
-
-    private MethodSpec implementSetPkMethodWithSetter(ExecutableElement setter) {
         return MethodSpec.methodBuilder("pk")
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ParameterSpec.builder(entityIdTypeName(), "pk").build())
                 .addStatement(" if (pk() != null) throw new $T(\"primary key is immutable\")", UnsupportedOperationException.class)
-                .addStatement("$L(pk)", setter.getSimpleName())
-                .build();
-    }
-
-    private MethodSpec implementSetPkMethodWithFieldAccess() {
-        return MethodSpec.methodBuilder("pk")
-                .addAnnotation(Override.class)
-                .addModifiers(Modifier.PUBLIC)
-                .addParameter(ParameterSpec.builder(entityIdTypeName(), "pk").build())
-                .addStatement("$T.setFieldValue(this, \"$L\", pk)", FieldUtils.class, entityModel().getIdField().getFieldName())
+                .addStatement("$T.setPk(this, pk)", EntityUtilModel.getEntityUtilTypeName(entityModel()))
                 .build();
     }
 
