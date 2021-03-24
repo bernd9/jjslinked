@@ -10,9 +10,15 @@ import one.xis.sql.NamingRules;
 class EntityCrudHandlerModel {
     private final EntityModel entityModel;
 
-    String getForeignKeyHandlerInnerClassName(ForeignKeyFieldModel model) {
+    String getForeignKeyFieldHandlerInnerClassName(ForeignKeyFieldModel model) {
         return NamingRules.toJavaClassName(model.getColumnName()) + "ForeignKeyFieldHandler";
     }
+
+
+    String getReferencedFieldHandlerInnerClassName(ReferredFieldModel model) {
+        return NamingRules.toJavaClassName(model.getColumnName()) + "ReferencedFieldHandler";
+    }
+
 
     public String getCrudHandlerSimpleName() {
         return entityModel.getSimpleName() + "CrudHandler";
@@ -25,4 +31,5 @@ class EntityCrudHandlerModel {
     public TypeName getEntityProxyTypeName() {
         return EntityProxyModel.getEntityProxyTypeName(entityModel);
     }
+
 }

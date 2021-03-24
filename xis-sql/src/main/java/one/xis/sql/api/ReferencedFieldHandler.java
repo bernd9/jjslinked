@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-public abstract class ForeignKeyFieldHandler<EID, F, FID, P extends EntityProxy<F, FID>> {
+public abstract class ReferencedFieldHandler<EID, F, FID, P extends EntityProxy<F, FID>> {
     private final EntityTableAccessor<F,FID, P> fieldEntityTableAccessor;
     private final String columnName;
 
@@ -48,7 +48,7 @@ public abstract class ForeignKeyFieldHandler<EID, F, FID, P extends EntityProxy<
 
     private void saveFieldValues(EID entityId, Collection<F> fieldValues) {
         fieldValues.forEach(value -> setFk(value, entityId));
-        fieldTableAccessor().save(fieldValues);
+        fieldEntityTableAccessor.save(fieldValues);
     }
 
     private Collection<FID> getUnlinkFieldValuePks(Collection<FID> fieldPksInDb, Map<FID,F> fieldValueMap) {
@@ -73,8 +73,6 @@ public abstract class ForeignKeyFieldHandler<EID, F, FID, P extends EntityProxy<
     protected void unlinkByDelete(Collection<FID> fieldPks) {
         fieldEntityTableAccessor.deleteAllById(fieldPks);
     }
-
-    protected abstract EntityTableAccessor<F,FID, ?> fieldTableAccessor();
 
     protected abstract void setFk(F fieldValue, EID fk);
 

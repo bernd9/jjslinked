@@ -4,7 +4,7 @@ import com.ejc.util.CollectorUtils;
 import com.ejc.util.JavaModelUtils;
 import com.ejc.util.StringUtils;
 import com.squareup.javapoet.TypeName;
-import lombok.Getter;
+import lombok.*;
 import one.xis.sql.*;
 import one.xis.util.Pair;
 
@@ -15,104 +15,32 @@ import javax.lang.model.type.TypeMirror;
 import javax.lang.model.util.Types;
 import java.lang.annotation.Annotation;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@Getter
+@Data
+
 class EntityModel {
-
-    private final TypeElement type;
-    private final TypeName typeName;
-    private final SimpleEntityFieldModel idField;
-    private final Set<CrossTableFieldModel> crossTableFields;
-    private final Set<ForeignKeyFieldModel> foreignKeyFields;
-    private final Set<ReferredFieldModel> referredFields;
-    private final Set<CollectionTableFieldModel> collectionTableFields;
-    private final Set<SimpleEntityFieldModel> nonComplexFields;
-    private final Set<JsonFieldModel> jsonFields;
-
-    private final String tableName;
+    private TypeElement type;
+    private TypeName typeName;
+    private SimpleEntityFieldModel idField;
+    private Set<CrossTableFieldModel> crossTableFields;
+    private Set<ForeignKeyFieldModel> foreignKeyFields;
+    private Set<ReferredFieldModel> referredFields;
+    private Set<CollectionTableFieldModel> collectionTableFields;
+    private Set<SimpleEntityFieldModel> nonComplexFields;
+    private Set<JsonFieldModel> jsonFields;
+    private String tableName;
 
     private static final Set<EntityModel> ENTITY_MODELS = new HashSet<>();
 
-    EntityModel(TypeElement typeElement, Types types) {
-        type = typeElement;
-        tableName = tableName(type);
-        Set<VariableElement> fields = fields(type);
-        GettersAndSetters gettersAndSetters = new GettersAndSetters(type, types);
-        idField = idField(fields, gettersAndSetters);
-        nonComplexFields = nonComplexFields(fields, gettersAndSetters);
-        foreignKeyFields = foreignKeyFields(fields, gettersAndSetters);
-        referredFields = referredFields(fields, gettersAndSetters);
-        crossTableFields = crossTableFields(fields, gettersAndSetters);
-        collectionTableFields = collectionTableFields(fields, gettersAndSetters);
-        jsonFields = jsonFields(fields, gettersAndSetters);
-        typeName = TypeName.get(type.asType());
+    EntityModel() {
         ENTITY_MODELS.add(this);
     }
+
 
     <A extends Annotation> A getAnnotation(Class<A> annotationType) {
         return type.getAnnotation(annotationType);
     }
-
-    private Set<VariableElement> fields(TypeElement type) {
-        return type.getEnclosedElements().stream()
-                .filter(e -> e.getKind() == ElementKind.FIELD)
-                .map(VariableElement.class::cast)
-                .collect(Collectors.toUnmodifiableSet());
-    }
-
-    private SimpleEntityFieldModel idField(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
-        return fields.stream()
-                .filter(field -> field.getAnnotation(Id.class) != null)
-                .map(field -> new EntityFieldModel(this, field, gettersAndSetters))
-                .collect(CollectorUtils.toOnlyElement("@Id in " + type));
-    }
-
-    private Set<JsonFieldModel> jsonFields(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
-        return fields.stream()
-                .filter(field -> field.getAnnotation(Json.class) != null)
-                .map(field -> new JsonFieldModel(this, field, gettersAndSetters))
-                .collect(Collectors.toUnmodifiableSet());
-    }
-
-    private Set<SimpleEntityFieldModel> nonComplexFields(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
-        return fields.stream()
-                .filter(field -> JavaModelUtils.isNonComplex(field.asType()))
-                .filter(field -> !JavaModelUtils.isCollection(field))
-                .filter(field -> field.getAnnotation(Json.class) == null)
-                .map(field -> new SimpleEntityFieldModel(this, field, gettersAndSetters))
-                .collect(Collectors.toUnmodifiableSet());
-    }
-
-    private Set<ForeignKeyFieldModel> foreignKeyFields(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
-        return fields.stream()
-                .filter(field -> field.getAnnotation(ForeignKey.class) != null)
-                .map(field -> new ForeignKeyFieldModel(this, field, gettersAndSetters))
-                .collect(Collectors.toUnmodifiableSet());
-    }
-
-    private Set<ReferredFieldModel> referredFields(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
-        return fields.stream()
-                .filter(field -> field.getAnnotation(Referred.class) != null)
-                .map(field -> new ReferredFieldModel(this, field, gettersAndSetters))
-                .collect(Collectors.toUnmodifiableSet());
-    }
-
-    private Set<CrossTableFieldModel> crossTableFields(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
-        return fields.stream()
-                .filter(field -> field.getAnnotation(CrossTable.class) != null)
-                .map(field -> new CrossTableFieldModel(this, field, gettersAndSetters))
-                .collect(Collectors.toUnmodifiableSet());
-    }
-
-    private Set<CollectionTableFieldModel> collectionTableFields(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
-        return fields.stream()
-                .filter(field -> field.getAnnotation(CollectionTable.class) != null)
-                .map(field -> new CollectionTableFieldModel(this, field, gettersAndSetters))
-                .collect(Collectors.toUnmodifiableSet());
-    }
-
 
     String getProxySimpleName() {
         return getSimpleName() + "Proxy";
@@ -164,14 +92,6 @@ class EntityModel {
         set.addAll(collectionTableFields);
         return set;
     }
-
-    public List<? extends FieldModel> getAllFieldsInAlphabeticalOrder() {
-        List<? extends FieldModel> list = new ArrayList<>(getAllFields());
-        Collections.sort(list, Comparator.comparing(f -> f.getFieldName().toString()));
-        return list;
-
-    }
-
     @Override
     public String toString() {
         return String.format("%s(%s)", getClass().getSimpleName(), getType());

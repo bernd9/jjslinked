@@ -3,7 +3,7 @@ package one.xis.sql.processor;
 import one.xis.sql.Entity;
 import one.xis.sql.ForeignKey;
 import one.xis.sql.Id;
-import one.xis.sql.Referred;
+import one.xis.sql.ReferringColumn;
 
 import java.util.List;
 
@@ -20,7 +20,7 @@ class Customer {
     @ForeignKey(columnName = "address_id")
     private Address invoiceAddress;
 
-    @Referred("customer_id")
+    @ReferringColumn("customer_id")
     private List<Order> orders;
 
     public String getFirstName() {

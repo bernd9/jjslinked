@@ -2,7 +2,6 @@ package one.xis.sql.processor;
 
 import one.xis.sql.Entity;
 import one.xis.sql.Id;
-import one.xis.sql.Referred;
 
 @Entity
 class Address {

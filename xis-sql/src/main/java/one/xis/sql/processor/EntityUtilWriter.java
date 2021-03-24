@@ -135,9 +135,16 @@ class EntityUtilWriter {
                     .build();
         }
 
+        private List<? extends FieldModel> getAllFieldsInAlphabeticalOrder() {
+            List<? extends FieldModel> list = new ArrayList<>(entityModel().getAllFields());
+            Collections.sort(list, Comparator.comparing(f -> f.getFieldName().toString()));
+            return list;
+
+        }
+
         private CodeBlock copyFieldValues() {
             CodeBlock.Builder builder = CodeBlock.builder();
-            entityModel().getAllFieldsInAlphabeticalOrder().forEach(field -> copyFieldValue(field, builder));
+            getAllFieldsInAlphabeticalOrder().forEach(field -> copyFieldValue(field, builder));
             return builder.build();
         }
 

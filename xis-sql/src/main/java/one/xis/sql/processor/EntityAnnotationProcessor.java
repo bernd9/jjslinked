@@ -20,6 +20,7 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
 
     private Map<TypeMirror, TypeElement> entities;
     private Boolean processed;
+    private EntityModelFactory entityModelFactory;
 
     @Override
     public Set<String> getSupportedAnnotationTypes() {
@@ -29,6 +30,7 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
     @Override
     public synchronized void init(ProcessingEnvironment processingEnv) {
         processed = false;
+        entityModelFactory = new EntityModelFactory(processingEnv);
         super.init(processingEnv);
     }
 
@@ -46,6 +48,7 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
             }
             processed = true;
             Set<EntityModel> allModels = entities.stream().map(this::createEntityModel).collect(Collectors.toSet());
+            findReferredFields(allModels);
             allModels.forEach(model -> processEntityModel(model, allModels));
         }
         return true;
@@ -61,7 +64,17 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
 
 
     private EntityModel createEntityModel(TypeElement entityType) {
-        return new EntityModel(entityType, processingEnv.getTypeUtils());
+        return entityModelFactory.createEntityModel(entityType);
+    }
+
+    private void findReferredFields(Set<EntityModel> allEntityModels) {
+        Set<ForeignKeyFieldModel> foreignKeyFields  = allEntityModels.stream()
+                .map(EntityModel::getForeignKeyFields)
+                .flatMap(Set::stream)
+                .collect(Collectors.toUnmodifiableSet());
+        allEntityModels.forEach(entityModel -> entityModelFactory.postsAssignReferredFields(entityModel, foreignKeyFields));
+
+
     }
 
     private void processEntityModel(EntityModel entityModel, Set<EntityModel> allModels) {
@@ -76,9 +89,7 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
         } catch (ModelValidationException | IOException e) {
             ProcessorLogger.reportError(this, processingEnv, e);
         }
-
     }
-
 
     private void writeEntityUtil(EntityModel entityModel) {
         EntityUtilModel model = new EntityUtilModel(entityModel); // TODO Validation

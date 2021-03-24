@@ -108,6 +108,7 @@ public class JavaModelUtils {
         return collectionVariable.asType().toString().replaceAll("<[^>]+>", "");
     }
 
+    // TODO rename to getGenericCollectionTypeArgument
     public static TypeMirror getGenericCollectionType(Element collectionVariable) {
         GenericCollectionTypeVisitor visitor = new GenericCollectionTypeVisitor();
         return collectionVariable.asType().accept(visitor, null).orElseThrow(() -> new IllegalStateException(collectionVariable + " must have generic type"));
