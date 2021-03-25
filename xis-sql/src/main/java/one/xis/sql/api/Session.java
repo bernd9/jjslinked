@@ -1,7 +1,6 @@
 package one.xis.sql.api;
 
 import com.ejc.util.ObjectUtils;
-import lombok.Getter;
 import lombok.NonNull;
 
 import java.util.Collections;
@@ -12,6 +11,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
+@SuppressWarnings({"rawtypes", "unchecked"})
 public class Session {
 
     private static final ThreadLocal<Session> sessions = ThreadLocal.withInitial(Session::new);
@@ -22,36 +22,36 @@ public class Session {
         return sessions.get();
     }
 
-    public <E> void register(E o, UnaryOperator<E> cloneOperator) {
+    public void register(Object o, UnaryOperator<Object> cloneOperator) {
         storeClone(cloneOperator.apply(o), System.identityHashCode(o));
     }
 
-    <E> SqlSaveAction getSaveAction(E o, EntityFunctions<E,?> functions) {
+    SqlSaveAction getSaveAction(Object o, EntityFunctions functions) {
         return getRegisteredClone(o).map(clone -> getSaveAction(o, clone, functions)).orElse(SqlSaveAction.INSERT);
     }
 
-    private <E> SqlSaveAction getSaveAction(E orig, E clone, EntityFunctions<E,?> functions) {
+    private SqlSaveAction getSaveAction(Object orig, Object clone, EntityFunctions functions) {
         checkPrimaryKeyUnchanged(orig, clone, functions::getPk);
         return getSaveAction(orig, clone, functions::compareColumnValues);
     }
 
-    private <E> SqlSaveAction getSaveAction(E orig, E clone, BiFunction<E,E, Boolean> compareFunction) {
+    private SqlSaveAction getSaveAction(Object orig, Object clone, BiFunction<Object,Object, Boolean> compareFunction) {
         return compareFunction.apply(orig, clone) ? SqlSaveAction.NOOP : SqlSaveAction.UPDATE;
     }
 
-    private <E> void checkPrimaryKeyUnchanged(E orig, E clone, Function<E, ?> getPkFunction) {
+    private void checkPrimaryKeyUnchanged(Object orig, Object clone, Function<Object, Object> getPkFunction) {
         if (ObjectUtils.equals(getPkFunction.apply(orig), getPkFunction.apply(clone))) {
             throw new IllegalStateException("primary key changed: " + orig);
         }
     }
 
-    private <E> void storeClone(E clone, int hashCode) {
+    private void storeClone(Object clone, int hashCode) {
         sessionEntities.computeIfAbsent(clone.getClass(), c -> new HashMap<>()).put(hashCode, clone);
     }
 
     @SuppressWarnings("unchecked")
-    private <E> Optional<E> getRegisteredClone(@NonNull E orig) {
-        return Optional.ofNullable((E) sessionEntities.getOrDefault(orig.getClass(), Collections.EMPTY_MAP).get(System.identityHashCode(orig)));
+    private Optional<Object> getRegisteredClone(@NonNull Object orig) {
+        return Optional.ofNullable(sessionEntities.getOrDefault(orig.getClass(), Collections.EMPTY_MAP).get(System.identityHashCode(orig)));
     }
 
 

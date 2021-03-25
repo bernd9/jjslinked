@@ -2,6 +2,7 @@ package one.xis.sql.api;
 
 import com.ejc.api.context.UsedInGeneratedCode;
 import lombok.Data;
+import lombok.experimental.Delegate;
 import one.xis.sql.api.action.EntityAction;
 import one.xis.sql.api.action.EntityDeleteAction;
 import one.xis.sql.api.action.EntitySaveAction;
@@ -78,7 +79,7 @@ public class EntityCrudHandlerSession {
     private static class EntityActions {
 
         private final Class<?> entityType;
-        private final EntityTableAccessor<?,?> entityTableAccessor;
+        private final EntityTableAccessor<? extends Object,? extends Object> entityTableAccessor;
         private final EntityFunctions<?,?> functions;
         private Map<Integer, EntityAction<Object>> entityActions = new HashMap<>();
 
@@ -124,26 +125,27 @@ public class EntityCrudHandlerSession {
         }
 
         void executeActions() {
-            entityActions.values().forEach(this::executeAction);
-        }
+            Collection<Object> insertEntities = new HashSet<>();
+            Collection<Object> updateEntities = new HashSet<>();
+            Collection<Object> deleteEntities = new HashSet<>();
 
-        void executeAction(EntityAction<?> action) {
-            if (action instanceof EntitySaveAction) {
-                executeSaveAction((EntitySaveAction<?>) action);
-            } else if (action instanceof EntityDeleteAction) {
-                executeDeleteAction((EntityDeleteAction<?>) action);
-            } else {
-                throw new IllegalStateException();
+            for (EntityAction<Object> action : entityActions.values()) {
+                Object entity = action.getEntity();
+                if (action instanceof EntitySaveAction) {
+                    SqlSaveAction sqlSaveAction = Session.getInstance().getSaveAction(entity, functions);
+                    switch (sqlSaveAction) {
+                        case INSERT: insertEntities.add(entity);
+                        break;
+                        case UPDATE: updateEntities.add(entity);
+                    }
+                } else if (action instanceof EntityDeleteAction) {
+                    deleteEntities.add(entity);
+                }
             }
-        }
-
-        private void executeSaveAction(EntitySaveAction<?> action) {
-            //Session.getInstance().getSaveAction(action.getEntity(), functions)
-        }
-
-
-        private void executeDeleteAction(EntityDeleteAction<?> action) {
+            //entityTableAccessor.insert(insertEntities);
 
         }
+
+
     }
 }
