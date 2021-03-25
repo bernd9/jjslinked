@@ -137,6 +137,8 @@ public class EntityCrudHandlerSession {
                         case INSERT: insertEntities.add(entity);
                         break;
                         case UPDATE: updateEntities.add(entity);
+                        break;
+                        default: throw new IllegalStateException();
                     }
                 } else if (action instanceof EntityDeleteAction) {
                     deleteEntities.add(entity);
