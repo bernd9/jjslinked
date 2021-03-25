@@ -16,9 +16,6 @@ public class Session {
 
     private static final ThreadLocal<Session> sessions = ThreadLocal.withInitial(Session::new);
 
-    @Getter
-    private CrudHandlerSession crudHandlerSession = new CrudHandlerSession();
-
     private Map<Class<?>, Map<Integer,Object>> sessionEntities = new HashMap<>();
 
     public static Session getInstance() {
@@ -59,11 +56,7 @@ public class Session {
 
 
     public void clear() {
-        try {
-            crudHandlerSession.clear();
-        } finally {
-            sessionEntities.clear();
-        }
+        sessionEntities.clear();
     }
 
 }

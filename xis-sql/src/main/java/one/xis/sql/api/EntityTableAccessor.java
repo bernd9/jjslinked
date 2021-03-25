@@ -1,6 +1,7 @@
 package one.xis.sql.api;
 
 import com.ejc.api.context.UsedInGeneratedCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.JdbcException;
 import one.xis.sql.api.collection.EntityArrayList;
@@ -17,6 +18,8 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     private static final String TEXT_NO_PK = "Entity has no primary key. Consider to set ";// TODO
 
     private final EntityStatements<E, EID> entityStatements;
+
+    @Getter
     private final Class<EID> pkType;
 
     Optional<E> getById(EID id) {

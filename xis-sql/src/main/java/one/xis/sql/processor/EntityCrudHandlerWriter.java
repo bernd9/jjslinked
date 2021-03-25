@@ -3,7 +3,9 @@ package one.xis.sql.processor;
 import com.ejc.util.StringUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
+import one.xis.sql.api.EntityCrudHandlerSession;
 import one.xis.sql.api.EntityCrudHandler;
+import one.xis.sql.api.EntityFunctions;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
@@ -123,8 +125,9 @@ class EntityCrudHandlerWriter {
 
     private void addConstructor(TypeSpec.Builder builder) {
         TypeName entityTableAccessor = EntityTableAccessorModel.getEntityTableAccessorTypeName(entityModel());
+        TypeName entityFunctions = EntityFunctionsModel.getEntityFunctionsTypeName(entityModel());
         builder.addMethod(MethodSpec.constructorBuilder()
-                .addStatement("super(new $T())", entityTableAccessor)
+                .addStatement("super(new $T(), new $T())", entityTableAccessor, entityFunctions)
                 .build());
     }
 
@@ -148,7 +151,8 @@ class EntityCrudHandlerWriter {
             builder = MethodSpec.methodBuilder("doSave")
                     .addAnnotation(Override.class)
                     .addModifiers(Modifier.PROTECTED)
-                    .addParameter(ParameterSpec.builder(entityTypeName(), "entity").build());
+                    .addParameter(ParameterSpec.builder(entityTypeName(), "entity").build())
+                    .addParameter(ParameterSpec.builder(TypeName.get(EntityCrudHandlerSession.class), "session").build());
         }
 
         MethodSpec implementSaveMethod() {
@@ -166,11 +170,11 @@ class EntityCrudHandlerWriter {
             String handlerInstanceFieldName = StringUtils.firstToLowerCase(foreignkeyFieldModel.getCrudHandlerName().simpleName());
             TypeName entityUtilTypeName = EntityUtilModel.getEntityUtilTypeName(entityModel());
             String fieldValueGetterName = EntityUtilModel.getGetterName(foreignkeyFieldModel.getFieldName().toString());
-            builder.addStatement("$L.save($T.$L(entity))", handlerInstanceFieldName, entityUtilTypeName, fieldValueGetterName);
+            builder.addStatement("$L.save($T.$L(entity), session)", handlerInstanceFieldName, entityUtilTypeName, fieldValueGetterName);
         }
 
         private void addSaveEntityStatement() {
-            builder.addStatement("getEntityTableAccessor().save(entity)");
+            builder.addStatement("session.addSaveAction(entity, getEntityTableAccessor(), getEntityFunctions())");
         }
 
         private void addReferencedFieldHandlerCalls() {
@@ -181,7 +185,7 @@ class EntityCrudHandlerWriter {
             String handlerInstanceFieldName = StringUtils.firstToLowerCase(referencedFieldModel.getFieldHandlerName());
             TypeName entityUtilTypeName = EntityUtilModel.getEntityUtilTypeName(entityModel());
             String fieldValueGetterName = EntityUtilModel.getGetterName(referencedFieldModel.getFieldName().toString());
-            builder.addStatement("$L.updateFieldValues(entity, $T.$L(entity))", handlerInstanceFieldName, entityUtilTypeName, fieldValueGetterName);
+            builder.addStatement("$L.updateFieldValues(entity, $T.$L(entity), session)", handlerInstanceFieldName, entityUtilTypeName, fieldValueGetterName);
         }
     }
 

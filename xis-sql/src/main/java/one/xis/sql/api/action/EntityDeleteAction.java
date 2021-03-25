@@ -8,7 +8,6 @@ import one.xis.sql.api.EntityTableAccessor;
 @RequiredArgsConstructor
 public class EntityDeleteAction<E> implements EntityAction<E> {
     private final E entity;
-    private final EntityTableAccessor<E,?> entityTableAccessor;
 
     @Override
     public String toString() {

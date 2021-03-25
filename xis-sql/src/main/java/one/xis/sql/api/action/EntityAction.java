@@ -6,5 +6,4 @@ public interface EntityAction<E> {
 
     E getEntity();
 
-    EntityTableAccessor<E,?> getEntityTableAccessor();
 }

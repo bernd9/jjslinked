@@ -1,5 +1,7 @@
 package one.xis.sql.processor;
 
+import one.xis.sql.api.EntityCrudHandlerSession;
+
 public class CustomerCrudHandler extends EntityCrudHandler<Customer, Long> {
 
     private static class OrdersFieldHandler extends ReferredFieldHandler<Customer, Long, Order, Long> {
@@ -39,9 +41,9 @@ public class CustomerCrudHandler extends EntityCrudHandler<Customer, Long> {
     }
 
     @Override
-    protected void doSave(Customer entity) {
-        addressCrudHandler.save(CustomerUtil.getInvoiceAddress(entity));
-        getEntityTableAccessor().save(entity);
-        ordersFieldHandler.updateFieldValues(CustomerUtil.getPk(entity), CustomerUtil.getOrders(entity));
+    protected void doSave(Customer entity, EntityCrudHandlerSession session) {
+        addressCrudHandler.save(CustomerUtil.getInvoiceAddress(entity), session);
+        session.addSaveAction(entity, getEntityTableAccessor());
+        ordersFieldHandler.updateFieldValues(CustomerUtil.getPk(entity), CustomerUtil.getOrders(entity), session);
     }
 }

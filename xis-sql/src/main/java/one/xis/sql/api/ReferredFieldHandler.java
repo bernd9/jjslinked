@@ -15,12 +15,12 @@ public abstract class ReferredFieldHandler<E, EID, F, FID> {
 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
-    public void updateFieldValues(E entity, F fieldValue) {
-        updateFieldValues(entity, Collections.singleton(fieldValue));
+    public void updateFieldValues(E entity, F fieldValue, EntityCrudHandlerSession session) {
+        updateFieldValues(entity, Collections.singleton(fieldValue), session);
     }
 
     @UsedInGeneratedCode
-    public void updateFieldValues(E entity, Collection<F> fieldValues) {
+    public void updateFieldValues(E entity, Collection<F> fieldValues, EntityCrudHandlerSession session) {
         if (fieldValues instanceof EntityCollection) {
             updateCollectionProxyFieldValues(entity, (EntityCollection) fieldValues);
         } else {
