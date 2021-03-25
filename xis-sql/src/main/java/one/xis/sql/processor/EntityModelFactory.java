@@ -160,12 +160,10 @@ class EntityModelFactory {
             return nameInAnnotation.isEmpty() ? NamingRules.toSqlName(entityType.getSimpleName().toString()) : nameInAnnotation;
         }
 
-
-
         private SimpleEntityFieldModel idField(Set<VariableElement> fields, GettersAndSetters gettersAndSetters) {
             return fields.stream()
                     .filter(field -> field.getAnnotation(Id.class) != null)
-                    .map(field -> new EntityFieldModel(entityModel, field, gettersAndSetters))
+                    .map(field -> new SimpleEntityFieldModel(entityModel, field, gettersAndSetters))
                     .collect(CollectorUtils.toOnlyElement("@Id in " + type));
         }
 

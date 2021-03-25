@@ -1,5 +1,6 @@
 package one.xis.sql.processor;
 
+import com.squareup.javapoet.TypeName;
 import lombok.Getter;
 import one.xis.sql.Column;
 import one.xis.sql.NamingRules;
@@ -11,13 +12,17 @@ import javax.lang.model.type.TypeMirror;
 import java.lang.annotation.Annotation;
 import java.util.Optional;
 
-class FieldModel {
+abstract class FieldModel {
     @Getter
     protected final VariableElement field;
     protected final ExecutableElement getter;
     protected final ExecutableElement setter;
 
-    FieldModel(VariableElement field, GettersAndSetters gettersAndSetters) {
+    @Getter
+    protected final EntityModel entityModel;
+
+    FieldModel(EntityModel entityModel, VariableElement field, GettersAndSetters gettersAndSetters) {
+        this.entityModel = entityModel;
         this.field = field;
         this.getter = gettersAndSetters.getGetter(field).orElse(null);
         this.setter = gettersAndSetters.getSetter(field).orElse(null);
@@ -53,4 +58,18 @@ class FieldModel {
         return field.getAnnotation(annotationType);
     }
 
+    @Override
+    public boolean equals(Object obj) {
+       return toString().equals(obj.toString());
+    }
+
+    @Override
+    public int hashCode() {
+        return toString().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return getEntityModel().getTypeName() + "." + getField().getSimpleName();
+    }
 }

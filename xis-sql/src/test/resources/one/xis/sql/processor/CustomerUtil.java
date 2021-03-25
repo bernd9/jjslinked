@@ -1,5 +1,7 @@
 package one.xis.sql.processor;
 
+import com.ejc.util.ObjectUtils;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -29,6 +31,22 @@ public class CustomerUtil {
 
     public static Map<Long,Customer> mapByPk(Collection<Customer> entities) {
         return entities.stream().collect(Collectors.toMap(CustomerUtil::getPk, Function.identity()));
+    }
+
+    public static boolean compareColumnValues(Customer entity1, Customer entity2) {
+        if (!ObjectUtils.equals(getFirstName(entity1), getFirstName(entity2))) {
+            return false;
+        }
+        if (!ObjectUtils.equals(getId(entity1), getId(entity2))) {
+            return false;
+        }
+        if (!ObjectUtils.equals(AddressUtil.getPk(getInvoiceAddress(entity1)), AddressUtil.getPk(getInvoiceAddress(entity2)))) {
+            return false;
+        }
+        if (!ObjectUtils.equals(getLastName(entity1), getLastName(entity2))) {
+            return false;
+        }
+        return true;
     }
 
     public static Customer doClone(Customer o) {

@@ -36,6 +36,9 @@ class EntityProxyWriter {
         JavaFile javaFile = JavaFile.builder(entityProxyModel.getEntityProxyPackageName(), typeSpec)
                 .skipJavaLangImports(true)
                 .build();
+        StringBuilder s = new StringBuilder();
+        javaFile.writeTo(s);
+        //System.out.println(s);
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
@@ -88,16 +91,15 @@ class EntityProxyWriter {
     }
 
     private void overrideSetters(TypeSpec.Builder builder) {
-        Collection<FieldModel> fields = new HashSet<>(entityProxyModel.getEntityModel().getAllFields());
+        List<FieldModel> fields = new ArrayList<>(entityProxyModel.getEntityModel().getAllFields());
         fields.remove(entityProxyModel.getEntityModel().getIdField());
+        Collections.sort(fields, Comparator.comparing(FieldModel::getColumnName));
         fields.stream()
-                .filter(f -> !(f instanceof ReferencedFieldModel))
                 .map(FieldModel::getSetter)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .map(this::overrideSetter)
                 .forEach(builder::addMethod);
-
     }
 
     protected MethodSpec overrideSetter(ExecutableElement setter) {

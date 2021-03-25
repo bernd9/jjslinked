@@ -80,6 +80,7 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
     private void processEntityModel(EntityModel entityModel, Set<EntityModel> allModels) {
         try {
             writeEntityUtil(entityModel);
+            writeEntityFunctions(entityModel);
             writeEntityProxy(entityModel, allModels);
             writeEntityStatements(entityModel);
             writeEntityResultSet(entityModel);
@@ -91,24 +92,22 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
         }
     }
 
-    private void writeEntityUtil(EntityModel entityModel) {
+    private void writeEntityUtil(EntityModel entityModel) throws IOException {
         EntityUtilModel model = new EntityUtilModel(entityModel); // TODO Validation
         EntityUtilWriter writer = new EntityUtilWriter(model, processingEnv);
-        try {
-            writer.write();
-        } catch (IOException e) {
-            ProcessorLogger.reportError(this, processingEnv, e);
-        }
+        writer.write();
     }
 
-    private void writeEntityProxy(EntityModel entityModel, Set<EntityModel> allModels) {
+    private void writeEntityFunctions(EntityModel entityModel) throws IOException {
+        EntityFunctionsModel model = new EntityFunctionsModel(entityModel);
+        EntityFunctionsWriter writer = new EntityFunctionsWriter(model, processingEnv);
+        writer.write();
+    }
+
+    private void writeEntityProxy(EntityModel entityModel, Set<EntityModel> allModels) throws IOException {
         EntityProxyModel model = new EntityProxyModel(entityModel); // TODO Validation
         EntityProxyWriter writer = new EntityProxyWriter(model, processingEnv);
-        try {
-            writer.write();
-        } catch (IOException e) {
-            ProcessorLogger.reportError(this, processingEnv, e);
-        }
+        writer.write();
     }
 
     private void writeEntityStatements(EntityModel entityModel) throws ModelValidationException, IOException {

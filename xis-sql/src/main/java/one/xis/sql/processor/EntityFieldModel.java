@@ -4,20 +4,17 @@ import com.ejc.util.JavaModelUtils;
 import com.ejc.util.StringUtils;
 import com.squareup.javapoet.ClassName;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import one.xis.sql.Entity;
 
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
 @Getter
-class EntityFieldModel extends SimpleEntityFieldModel {
+class EntityFieldModel extends FieldModel {
 
     public EntityFieldModel(EntityModel entityModel, VariableElement field, GettersAndSetters gettersAndSetters) {
         super(entityModel, field, gettersAndSetters);
-    }
-
-    TypeMirror getCollectionsGenericType() {
-        return JavaModelUtils.getGenericCollectionType(field);
     }
 
     boolean isCollection() {

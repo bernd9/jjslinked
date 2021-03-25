@@ -17,7 +17,7 @@ class Customer {
     private String firstName;
     private String lastName;
 
-    @ForeignKey(columnName = "address_id")
+    @ForeignKey(columnName = "invoice_address_id")
     private Address invoiceAddress;
 
     @Referenced(externalColumnName = "customer_id")

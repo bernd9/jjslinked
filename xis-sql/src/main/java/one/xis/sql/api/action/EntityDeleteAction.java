@@ -6,17 +6,13 @@ import one.xis.sql.api.EntityTableAccessor;
 
 @Getter
 @RequiredArgsConstructor
-public class EntityDeleteAction<E> implements EntityAction {
+public class EntityDeleteAction<E> implements EntityAction<E> {
     private final E entity;
-    private final Class<E> entityClass;
+    private final EntityTableAccessor<E,?> entityTableAccessor;
 
     @Override
     public String toString() {
         return String.format("%s(%s)", getClass().getSimpleName(), entity);
     }
 
-    @Override
-    public EntityTableAccessor getEntityTableAccessor() {
-        return null;
-    }
 }

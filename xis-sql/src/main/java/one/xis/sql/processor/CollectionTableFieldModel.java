@@ -7,7 +7,7 @@ import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;
 
 // TODO table-accessor-class for this
-public class CollectionTableFieldModel extends SimpleEntityFieldModel {
+public class CollectionTableFieldModel extends EntityFieldModel {
 
     private final CollectionTable collectionTable;
 

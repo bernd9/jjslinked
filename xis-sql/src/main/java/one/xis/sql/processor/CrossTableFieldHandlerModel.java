@@ -1,5 +1,6 @@
 package one.xis.sql.processor;
 
+import com.ejc.util.JavaModelUtils;
 import com.ejc.util.StringUtils;
 import lombok.RequiredArgsConstructor;
 
@@ -26,11 +27,11 @@ class CrossTableFieldHandlerModel {
         return entityFieldModel.getEntityModel().getIdField().getFieldType();
     }
 
-    TypeMirror getFieldType() {
-        return entityFieldModel.getCollectionsGenericType();
+    TypeMirror getCollectionsGenericType() {
+        return JavaModelUtils.getGenericCollectionType(entityFieldModel.getField());
     }
 
     TypeMirror getFieldIdType() {
-        return EntityModel.getEntityModel(getFieldType()).getIdField().getFieldType();
+        return entityFieldModel.getEntityModel().getIdField().getFieldType();
     }
 }

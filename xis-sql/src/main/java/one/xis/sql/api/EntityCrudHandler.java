@@ -13,7 +13,9 @@ public abstract class EntityCrudHandler<E, EID> {
 
 
     public void save(E e) {
-
+        if (!CrudHandlerSession.getInstance().hasSaveAction(e)) {
+            doSave(e);
+        }
     }
 
     protected abstract void doSave(E entity);

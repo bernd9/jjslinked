@@ -1,6 +1,7 @@
 package one.xis.sql.processor;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import one.xis.sql.api.EntityProxy;
@@ -47,9 +48,9 @@ public class CustomerProxy extends Customer implements EntityProxy<Customer, Lon
     }
 
     @Override
-    public void setLastName(String value) {
+    public void setFirstName(String value) {
         dirty = true;
-        super.setLastName(value);
+        super.setFirstName(value);
     }
 
     @Override
@@ -59,9 +60,15 @@ public class CustomerProxy extends Customer implements EntityProxy<Customer, Lon
     }
 
     @Override
-    public void setFirstName(String value) {
+    public void setLastName(String value) {
         dirty = true;
-        super.setFirstName(value);
+        super.setLastName(value);
+    }
+
+    @Override
+    public void setOrders(List<Order> value) {
+        dirty = true;
+        super.setOrders(value);
     }
 
 }

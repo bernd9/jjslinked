@@ -1,6 +1,7 @@
 package one.xis.sql.processor;
 
 import com.ejc.util.FieldUtils;
+import com.ejc.util.ObjectUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 
@@ -29,7 +30,9 @@ class EntityUtilWriter {
         JavaFile javaFile = JavaFile.builder(entityUtilModel.getEntityUtilPackageName(), typeSpec)
                 .skipJavaLangImports(true)
                 .build();
-
+        StringBuilder s = new StringBuilder();
+        javaFile.writeTo(s);
+        //System.out.println(s);
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
@@ -39,6 +42,7 @@ class EntityUtilWriter {
         builder.addMethod(implementSetPk());
         builder.addMethod(implementGetPks());
         builder.addMethod(implementMapByPk());
+        builder.addMethod(implementCompareColumnValues());
         builder.addMethod(new DoCloneMethodSingle().create());
         builder.addMethod(new DoCloneCollection(ClassName.get(HashSet.class), ClassName.get(Set.class)).create());
         builder.addMethod(new DoCloneCollection(ClassName.get(LinkedList.class), ClassName.get(List.class)).create());
@@ -57,6 +61,7 @@ class EntityUtilWriter {
         }
     }
 
+    // TODO : this can be removed, if we are using util-getters and -setters.
     @RequiredArgsConstructor
     class GetFieldValue {
         private final FieldModel fieldModel;
@@ -100,6 +105,88 @@ class EntityUtilWriter {
                     .add("$T.setFieldValue(rv, \"$L\", $L)", FieldUtils.class, fieldModel.getFieldName(), getFieldValue)
                     .build();
         }
+
+    }
+
+    @RequiredArgsConstructor
+    class CompareColumnValues {
+        private final EntityUtilModel model;
+
+        MethodSpec createCompareMethod() {
+            return MethodSpec.methodBuilder("compareColumnValues")
+                    .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                    .addParameter(model.getTypeName(), "entity1")
+                    .addParameter(model.getTypeName(), "entity2")
+                    .addCode(getCompareFieldsCode())
+                    .addStatement("return true")
+                    .returns(TypeName.BOOLEAN)
+                    .build();
+        }
+
+        private CodeBlock getCompareFieldsCode() {
+            CodeBlock.Builder builder = CodeBlock.builder();
+            model.getAllFields().stream()
+                    .sorted(Comparator.comparing(FieldModel::getColumnName))
+                    .map(this::compareField)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .forEach(builder::add);
+            return builder.build();
+        }
+
+        private Optional<CodeBlock> compareField(FieldModel fieldModel) {
+            if (fieldModel instanceof ForeignKeyFieldModel) {
+                return Optional.of(compareForeignKeyField((ForeignKeyFieldModel) fieldModel));
+            }
+            if (fieldModel instanceof JsonFieldModel) {
+                return Optional.of(compareJsonField((JsonFieldModel) fieldModel));
+            }
+            if (fieldModel instanceof CollectionTableFieldModel) {
+                return Optional.of(compareCollectionTableFieldModel((CollectionTableFieldModel) fieldModel));
+            }
+            if (fieldModel instanceof SimpleEntityFieldModel) {
+                return Optional.of(compareNonComplexField((SimpleEntityFieldModel) fieldModel));
+            }
+            return Optional.empty();
+        }
+
+        private CodeBlock compareNonComplexField(SimpleEntityFieldModel fieldModel) {
+            String getterName = EntityUtilModel.getGetterName(fieldModel.getFieldName().toString());
+            return CodeBlock.builder()
+                    .beginControlFlow("if (!$T.equals($L(entity1), $L(entity2)))", ObjectUtils.class, getterName, getterName)
+                    .addStatement("return false")
+                    .endControlFlow()
+                    .build();
+        }
+
+        private CodeBlock compareForeignKeyField(ForeignKeyFieldModel fieldModel) {
+            String getterName = EntityUtilModel.getGetterName(fieldModel.getFieldName().toString());
+            TypeName fieldEntityUtilType = EntityUtilModel.getEntityUtilTypeName(fieldModel.getFieldEntityModel());
+            return CodeBlock.builder()
+                    .beginControlFlow("if (!$T.equals($T.getPk($L(entity1)), $T.getPk($L(entity2))))", ObjectUtils.class, fieldEntityUtilType, getterName, fieldEntityUtilType, getterName)
+                    .addStatement("return false")
+                    .endControlFlow()
+                    .build();
+        }
+
+        private CodeBlock compareJsonField(JsonFieldModel fieldModel) {
+            String getterName = EntityUtilModel.getGetterName(fieldModel.getFieldName().toString());
+            return CodeBlock.builder()
+                    .beginControlFlow("if (!$T.equals($L(entity1), $L(entity2))", ObjectUtils.class, getterName, getterName)
+                    .addStatement("return false")
+                    .endControlFlow()
+                    .build();
+        }
+
+        private CodeBlock compareCollectionTableFieldModel(CollectionTableFieldModel fieldModel) {
+            String getterName = EntityUtilModel.getGetterName(fieldModel.getFieldName().toString());
+            return CodeBlock.builder()
+                    .beginControlFlow("if (!$T.equals($L(entity1), $L(entity2))", ObjectUtils.class, getterName, getterName)
+                    .addStatement("return false")
+                    .endControlFlow()
+                    .build();
+        }
+
 
     }
 
@@ -154,18 +241,20 @@ class EntityUtilWriter {
             CodeBlock getFieldValue = getFieldValue(fieldModel);
             if(fieldModel instanceof ReferencedFieldModel) {
                 copyFieldValueReferredField((ReferencedFieldModel) fieldModel, builder, getFieldValue);
-            } else if (fieldModel instanceof EntityFieldModel) {
-                copyFieldValueForeignKeyField((EntityFieldModel) fieldModel, builder, getFieldValue);
+            } else if (fieldModel instanceof ForeignKeyFieldModel) {
+                copyFieldValueForeignKeyField((ForeignKeyFieldModel) fieldModel, builder, getFieldValue);
             } else {
                 copyFieldValueNonComplex(fieldModel, builder, getFieldValue);
             }
+
+            // TODO add missing types
         }
 
         private void copyFieldValueNonComplex(FieldModel fieldModel, CodeBlock.Builder builder, CodeBlock getFieldValue) {
             builder.addStatement(setFieldValue(fieldModel, getFieldValue));
         }
 
-        private void copyFieldValueForeignKeyField(EntityFieldModel fieldModel, CodeBlock.Builder builder, CodeBlock getFieldValue) {
+        private void copyFieldValueForeignKeyField(ForeignKeyFieldModel fieldModel, CodeBlock.Builder builder, CodeBlock getFieldValue) {
             CodeBlock createClone = new CloneEntity(fieldModel).create(getFieldValue);
             builder.addStatement(setFieldValue(fieldModel, createClone));
         }
@@ -255,6 +344,10 @@ class EntityUtilWriter {
                 .addStatement("return entities.stream().collect($T.toMap($T::getPk, $T.identity()))", Collectors.class, entityUtilModel.getEntityUtilTypeName(), Function.class)
                 .returns(ParameterizedTypeName.get(ClassName.get(Map.class), pkType(), entityType()))
                 .build();
+    }
+
+    private MethodSpec implementCompareColumnValues() {
+        return new CompareColumnValues(entityUtilModel).createCompareMethod();
     }
 
     private void addFieldValueGettersAndSetter(TypeSpec.Builder builder) {
