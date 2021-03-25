@@ -25,7 +25,7 @@ public class EntityTableAccessorWriter {
         TypeSpec.Builder builder = TypeSpec.classBuilder(accessorModel.getEntityTableAccessorSimpleName())
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(ParameterizedTypeName.get(ClassName.get(EntityTableAccessor.class),
-                        entityTypeName(), entityPkTypeName(), entityProxyTypeName()))
+                        entityTypeName(), entityPkTypeName()))
                 .addOriginatingElement(accessorModel.getEntityModel().getType());
 
         writeTypeBody(builder);

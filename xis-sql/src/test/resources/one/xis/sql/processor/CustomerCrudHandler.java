@@ -1,11 +1,16 @@
 package one.xis.sql.processor;
 
-public class CustomerCrudHandler extends EntityCrudHandler<Customer, Long, CustomerProxy> {
+public class CustomerCrudHandler extends EntityCrudHandler<Customer, Long> {
 
-    private static class OrdersFieldHandler extends ReferredFieldHandler<Long, Order, Long, OrderProxy> {
+    private static class OrdersFieldHandler extends ReferredFieldHandler<Customer, Long, Order, Long> {
 
         OrdersFieldHandler() {
             super(new OrderCrudHandler(), "customer_id");
+        }
+
+        @Override
+        protected Long getEntityPk(Customer entity) {
+            return CustomerUtil.getPk(entity);
         }
 
         @Override
@@ -14,16 +19,19 @@ public class CustomerCrudHandler extends EntityCrudHandler<Customer, Long, Custo
         }
 
         @Override
-        protected void unlinkFieldValues(Collection<FID> fieldPks) {
-            unlinkBySetFkToNull(fieldPks);
+        protected void setFieldValueFk(Order fieldValue, Customer entity) {
+            OrderUtil.setCustomer(fieldValue, entity);
         }
 
         @Override
-        protected void setFk(Order fieldValue, Long fk) {
-            OrderUtil.setFk(fk);
+        protected void unlinkFieldValues(Collection<Long> fieldPks) {
+            unlinkBySetFkToNull(fieldPks);
         }
+
+
     }
 
+    private static AddressCrudHandler addressCrudHandler = new AddressCrudHandler();
     private static OrdersFieldHandler ordersFieldHandler = new OrdersFieldHandler();
 
     public CustomerCrudHandler() {
@@ -31,7 +39,8 @@ public class CustomerCrudHandler extends EntityCrudHandler<Customer, Long, Custo
     }
 
     @Override
-    public void save(Customer entity) {
+    protected void doSave(Customer entity) {
+        addressCrudHandler.save(CustomerUtil.getInvoiceAddress(entity));
         getEntityTableAccessor().save(entity);
         ordersFieldHandler.updateFieldValues(CustomerUtil.getPk(entity), CustomerUtil.getOrders(entity));
     }

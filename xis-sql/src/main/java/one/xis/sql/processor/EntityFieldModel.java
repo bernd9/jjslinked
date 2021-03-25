@@ -1,6 +1,8 @@
 package one.xis.sql.processor;
 
 import com.ejc.util.JavaModelUtils;
+import com.ejc.util.StringUtils;
+import com.squareup.javapoet.ClassName;
 import lombok.Getter;
 import one.xis.sql.Entity;
 
@@ -36,4 +38,7 @@ class EntityFieldModel extends SimpleEntityFieldModel {
         return fieldEntityModel;
     }
 
+    ClassName getCrudHandlerName() {
+        return EntityCrudHandlerModel.getCrudHandlerTypeName(getFieldEntityModel());
+    }
 }

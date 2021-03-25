@@ -11,7 +11,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 @RequiredArgsConstructor
-public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E, EID>> extends JdbcExecutor {
+public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     // TODO validate entity must have more then one parameter (1. is id), otherwise @CollectionTable !
     private static final String TEXT_NO_PK = "Entity has no primary key. Consider to set ";// TODO
@@ -57,7 +57,7 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E, EID>>
 
     public void save(E entity) {
         if (entity instanceof EntityProxy) {
-            update(Collections.singletonList((P)entity));
+            update(Collections.singletonList((EntityProxy<E, EID>) entity));
         } else if (getPk(entity) != null){
             insert(entity);
         }
@@ -87,14 +87,14 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E, EID>>
     }
 
     private void save(Collection<E> entities, Collection<E> saved) {
-        List<P> proxiesForUpdate = new ArrayList<>();
+        List<EntityProxy<E,EID>> proxiesForUpdate = new ArrayList<>();
         List<E> entitiesForInsert = new ArrayList<>();
         Iterator<E> entityIterator = entities.iterator();
         while (entityIterator.hasNext()) {
             E entity = entityIterator.next();
-            P entityProxy;
+            EntityProxy<E,EID> entityProxy;
             if (entity instanceof EntityProxy) {
-                entityProxy = (P) entity;
+                entityProxy = (EntityProxy) entity;
                 if (entityProxy.dirty()) {
                     proxiesForUpdate.add(entityProxy);
                 }
@@ -108,17 +108,17 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E, EID>>
         insert(entitiesForInsert);
     }
 
-    protected void updateProxies(List<P> entityProxies) {
+    protected void updateProxies(List<EntityProxy<E,EID>> entityProxies) {
         update(entityProxies);
     }
 
 
-    private Collection<P> update(List<P> entityProxies) {
-        Set<P> failedEntities = new HashSet<>();
-        Iterator<P> entityProxyIterator = entityProxies.iterator();
+    private void update(List<EntityProxy<E,EID>> entityProxies) {
+        Set<EntityProxy<E,EID>> failedEntities = new HashSet<>();
+        Iterator<EntityProxy<E,EID>> entityProxyIterator = entityProxies.iterator();
         try (PreparedEntityStatement st = prepare(entityStatements.getUpdateSql())) {
             while (entityProxyIterator.hasNext()) {
-                P proxy = entityProxyIterator.next();
+                EntityProxy<E,EID> proxy = entityProxyIterator.next();
                 if (proxy.pk() == null) {
                     throw new IllegalStateException();
                 }
@@ -134,7 +134,7 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E, EID>>
                     failedEntities.add(entityProxies.get(index));
                 }
             }
-            return failedEntities;
+            //return failedEntities;
         } catch (SQLException e) {
             throw new JdbcException("failed to execute update", e);
         }
@@ -297,7 +297,7 @@ public abstract class EntityTableAccessor<E, EID, P extends EntityProxy<E, EID>>
     }
 
 
-    protected abstract P toEntityProxy(ResultSet rs) throws SQLException;
+    protected abstract EntityProxy<E,EID> toEntityProxy(ResultSet rs) throws SQLException;
 
     protected abstract void setPk(PreparedEntityStatement st, int index, EID id);
 

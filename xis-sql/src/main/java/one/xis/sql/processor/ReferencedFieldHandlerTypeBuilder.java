@@ -15,18 +15,19 @@ class ReferencedFieldHandlerTypeBuilder {
                 .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
                 .superclass(fieldHandlerSuperClass())
                 .addMethod(constructor())
-                .addMethod(implementGetFieldValue())
+                .addMethod(implementGetEntityPk())
+                .addMethod(implementGetFieldValuePk())
+                .addMethod(implementSetFieldValueFk())
                 .addMethod(implementUnlinkFieldValues())
-                .addMethod(implementSetFk())
                 .build();
     }
 
     private TypeName fieldHandlerSuperClass() {
         return ParameterizedTypeName.get(ClassName.get(ReferredFieldHandler.class),
+                TypeName.get(model.getEntityModel().getType().asType()),
                 TypeName.get(model.getEntityModel().getIdField().getFieldType()),
                 TypeName.get(model.getFieldEntityModel().getType().asType()),
-                TypeName.get(model.getFieldEntityModel().getIdField().getFieldType()),
-                EntityProxyModel.getEntityProxyTypeName(model.getFieldEntityModel()));
+                TypeName.get(model.getFieldEntityModel().getIdField().getFieldType()));
     }
 
     private MethodSpec constructor() {
@@ -35,13 +36,37 @@ class ReferencedFieldHandlerTypeBuilder {
                 .build();
     }
 
-    private MethodSpec implementGetFieldValue() {
+    private MethodSpec implementGetEntityPk() {
+        return MethodSpec.methodBuilder("getEntityPk")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PROTECTED)
+                .addParameter(TypeName.get(model.getEntityModel().getType().asType()), "entity")
+                .returns(TypeName.get(model.getEntityModel().getIdField().getFieldType()))
+                .addStatement("return $T.getPk(entity)", EntityUtilModel.getEntityUtilTypeName(model.getEntityModel()))
+                .build();
+    }
+
+    private MethodSpec implementGetFieldValuePk() {
         return MethodSpec.methodBuilder("getFieldValuePk")
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PROTECTED)
                 .addParameter(TypeName.get(model.getFieldEntityModel().getType().asType()), "fieldValue")
                 .returns(TypeName.get(model.getFieldEntityModel().getIdField().getFieldType()))
                 .addStatement("return $T.getPk(fieldValue)", EntityUtilModel.getEntityUtilTypeName(model.getFieldEntityModel()))
+                .build();
+    }
+
+    private MethodSpec implementSetFieldValueFk() {
+        EntityModel fieldEntityModel = model.getFieldEntityModel();
+        TypeName entityType = TypeName.get(model.getEntityModel().getType().asType());
+        String setterName = EntityUtilModel.getSetterName(model.getReferringField().getFieldName().toString());
+        TypeName entityUtilTypeName = EntityUtilModel.getEntityUtilTypeName(model.getFieldEntityModel());
+        return MethodSpec.methodBuilder("setFieldValueFk")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PROTECTED)
+                .addParameter(TypeName.get(fieldEntityModel.getType().asType()), "fieldValue")
+                .addParameter(entityType, "entity")
+                .addStatement("$T.$L(fieldValue, entity)", entityUtilTypeName, setterName)
                 .build();
     }
 
@@ -56,17 +81,4 @@ class ReferencedFieldHandlerTypeBuilder {
                 .addStatement(statement)
                 .build();
     }
-
-    private MethodSpec implementSetFk() {
-        EntityModel fieldEntityModel = model.getFieldEntityModel();
-        TypeName pkType = TypeName.get(fieldEntityModel.getIdField().getFieldType());
-        return MethodSpec.methodBuilder("setFk")
-                .addAnnotation(Override.class)
-                .addModifiers(Modifier.PROTECTED)
-                .addParameter(TypeName.get(fieldEntityModel.getType().asType()), "fieldValue")
-                .addParameter(pkType, "pk")
-                .addStatement("$T.setPk(fieldValue, pk)", EntityUtilModel.getEntityUtilTypeName(model.getFieldEntityModel()))
-                .build();
-    }
-
 }

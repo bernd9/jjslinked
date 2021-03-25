@@ -1,6 +1,12 @@
 package one.xis.sql.api.action;
 
-public interface EntityAction {
+import one.xis.sql.api.EntityTableAccessor;
 
-    Class<?> getEntityClass();
+public interface EntityAction<E, EID> {
+
+    E getEntity();
+
+    Class<E> getEntityClass();
+
+    EntityTableAccessor<E,EID> getEntityTableAccessor();
 }

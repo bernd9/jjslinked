@@ -1,5 +1,6 @@
 package one.xis.sql.processor;
 
+import com.ejc.util.StringUtils;
 import one.xis.sql.Column;
 import one.xis.sql.ForeignKey;
 import one.xis.sql.NamingRules;
@@ -26,4 +27,5 @@ public class ForeignKeyFieldModel extends EntityFieldModel {
         EntityModel fieldEntityModel = EntityModel.getEntityModel(getFieldType());
         return fieldEntityModel.getTableName() + "_" + NamingRules.toSqlName(fieldEntityModel.getIdField().getFieldName().toString());
     }
+
 }

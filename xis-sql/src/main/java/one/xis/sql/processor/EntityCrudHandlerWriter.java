@@ -17,20 +17,20 @@ class EntityCrudHandlerWriter {
     private final ProcessingEnvironment processingEnvironment;
 
     void write() throws IOException {
-            TypeSpec.Builder builder = TypeSpec.classBuilder(entityCrudHandlerModel.getCrudHandlerSimpleName())
-                    .addModifiers(Modifier.PUBLIC)
-                    .superclass(ParameterizedTypeName.get(ClassName.get(EntityCrudHandler.class),
-                        entityTypeName(), entityPkTypeName(), entityProxyTypeName()));
+        TypeSpec.Builder builder = TypeSpec.classBuilder(entityCrudHandlerModel.getCrudHandlerSimpleName())
+                .addModifiers(Modifier.PUBLIC)
+                .superclass(ParameterizedTypeName.get(ClassName.get(EntityCrudHandler.class),
+                        entityTypeName(), entityPkTypeName()));
 
-            writeTypeBody(builder);
-            TypeSpec typeSpec = builder.build();
-            JavaFile javaFile = JavaFile.builder(entityCrudHandlerModel.getCrudHandlerPackageName(), typeSpec)
-                    .skipJavaLangImports(true)
-                    .build();
-            StringBuilder s = new StringBuilder();
-            javaFile.writeTo(s);
-            System.out.println(s);
-            javaFile.writeTo(processingEnvironment.getFiler());
+        writeTypeBody(builder);
+        TypeSpec typeSpec = builder.build();
+        JavaFile javaFile = JavaFile.builder(entityCrudHandlerModel.getCrudHandlerPackageName(), typeSpec)
+                .skipJavaLangImports(true)
+                .build();
+        StringBuilder s = new StringBuilder();
+        javaFile.writeTo(s);
+        System.out.println(s);
+        javaFile.writeTo(processingEnvironment.getFiler());
     }
 
     private void writeTypeBody(TypeSpec.Builder builder) {
@@ -41,22 +41,33 @@ class EntityCrudHandlerWriter {
     }
 
     private MethodSpec implementSaveMethod() {
-        return new SaveMethodBuilder().implementSaveMethod();
+        return new DoSaveMethodBuilder().implementSaveMethod();
     }
 
-
-
     private void addFieldHandlerTypes(TypeSpec.Builder builder) {
-       addReferredFieldHandlerTypes(builder);
+        addReferredFieldHandlerTypes(builder);
     }
 
     private void addFieldHandlerFields(TypeSpec.Builder builder) {
+        addForeignKeyFieldHandlerFields(builder);
+        addReferredFieldHandlerFields(builder);
+    }
+
+
+    private void addReferredFieldHandlerTypes(TypeSpec.Builder builder) {
         sortedReferencedFieldModels()
                 .map(this::getReferencedFieldHandlerTypeSpec)
                 .forEach(builder::addType);
     }
 
-    private void addReferredFieldHandlerTypes(TypeSpec.Builder builder) {
+    private void addForeignKeyFieldHandlerFields(TypeSpec.Builder builder) {
+        sortedForeignKeyFieldModels()
+                .map(this::getForeignKeyCrudHandlerField)
+                .forEach(builder::addField);
+    }
+
+
+    private void addReferredFieldHandlerFields(TypeSpec.Builder builder) {
         sortedReferencedFieldModels()
                 .map(this::getReferencedFieldHandlerField)
                 .forEach(builder::addField);
@@ -64,21 +75,38 @@ class EntityCrudHandlerWriter {
 
     private Stream<ReferencedFieldModel> sortedReferencedFieldModels() {
         return entityCrudHandlerModel.getEntityModel().getReferredFields().stream()
-                .sorted(Comparator.comparing(ReferencedFieldModel::getColumnName));
+                .sorted(Comparator.comparing(FieldModel::getColumnName));
+    }
+
+    private Stream<ForeignKeyFieldModel> sortedForeignKeyFieldModels() {
+        return entityCrudHandlerModel.getEntityModel().getForeignKeyFields().stream()
+                .sorted(Comparator.comparing(FieldModel::getColumnName));
     }
 
     private TypeSpec getReferencedFieldHandlerTypeSpec(ReferencedFieldModel fieldModel) {
-       return new ReferencedFieldHandlerTypeBuilder(fieldModel).fieldHandlerDeclaration();
+        return new ReferencedFieldHandlerTypeBuilder(fieldModel).fieldHandlerDeclaration();
+    }
+
+    private FieldSpec getForeignKeyCrudHandlerField(ForeignKeyFieldModel fieldModel) {
+        ClassName crudHandlerType = fieldModel.getCrudHandlerName();
+        String crudHandlerFieldName = StringUtils.firstToLowerCase(crudHandlerType.simpleName());
+        return FieldSpec.builder(crudHandlerType, crudHandlerFieldName, Modifier.PRIVATE, Modifier.STATIC)
+                .initializer(CodeBlock.builder().add("new $L()", crudHandlerType).build())
+                .build();
     }
 
     private FieldSpec getReferencedFieldHandlerField(ReferencedFieldModel fieldModel) {
+        String fieldHandlerName = fieldModel.getFieldHandlerName();
         String fieldHandlerFieldName = StringUtils.firstToLowerCase(fieldModel.getFieldHandlerName());
+        return getFieldHandlerField(fieldHandlerFieldName, fieldHandlerName);
+    }
+
+    private FieldSpec getFieldHandlerField(String fieldHandlerFieldName, String fieldHandlerName) {
         ClassName crudHandlerClassName = entityCrudHandlerModel.getCrudHandlerTypeName(entityModel());
-        ClassName fieldHandlerInnerClassName = crudHandlerClassName.nestedClass(fieldModel.getFieldHandlerName());
-        return FieldSpec.builder(fieldHandlerInnerClassName,  fieldHandlerFieldName, Modifier.PRIVATE, Modifier.STATIC)
+        ClassName fieldHandlerInnerClassName = crudHandlerClassName.nestedClass(fieldHandlerName);
+        return FieldSpec.builder(fieldHandlerInnerClassName, fieldHandlerFieldName, Modifier.PRIVATE, Modifier.STATIC)
                 .initializer(CodeBlock.builder().add("new $L()", fieldHandlerInnerClassName).build())
                 .build();
-
     }
 
     private TypeName fieldEntityTypeName(ReferencedFieldModel fieldModel) {
@@ -113,24 +141,32 @@ class EntityCrudHandlerWriter {
         return entityCrudHandlerModel.getEntityModel();
     }
 
-    private TypeName entityProxyTypeName() {
-        return entityCrudHandlerModel.getEntityProxyTypeName();
-    }
-
-    private class SaveMethodBuilder {
+    private class DoSaveMethodBuilder {
         private final MethodSpec.Builder builder;
 
-        SaveMethodBuilder() {
-            builder = MethodSpec.methodBuilder("save")
+        DoSaveMethodBuilder() {
+            builder = MethodSpec.methodBuilder("doSave")
                     .addAnnotation(Override.class)
-                    .addModifiers(Modifier.PUBLIC)
+                    .addModifiers(Modifier.PROTECTED)
                     .addParameter(ParameterSpec.builder(entityTypeName(), "entity").build());
         }
 
         MethodSpec implementSaveMethod() {
+            addForeignKeyFieldCrudHandlerCalls();
             addSaveEntityStatement();
             addReferencedFieldHandlerCalls();
             return builder.build();
+        }
+
+        private void addForeignKeyFieldCrudHandlerCalls() {
+            sortedForeignKeyFieldModels().forEach(this::addForeignKeyFieldCrudHandlerCall);
+        }
+
+        private void addForeignKeyFieldCrudHandlerCall(ForeignKeyFieldModel foreignkeyFieldModel) {
+            String handlerInstanceFieldName = StringUtils.firstToLowerCase(foreignkeyFieldModel.getCrudHandlerName().simpleName());
+            TypeName entityUtilTypeName = EntityUtilModel.getEntityUtilTypeName(entityModel());
+            String fieldValueGetterName = EntityUtilModel.getGetterName(foreignkeyFieldModel.getFieldName().toString());
+            builder.addStatement("$L.save($T.$L(entity))", handlerInstanceFieldName, entityUtilTypeName, fieldValueGetterName);
         }
 
         private void addSaveEntityStatement() {
@@ -145,7 +181,7 @@ class EntityCrudHandlerWriter {
             String handlerInstanceFieldName = StringUtils.firstToLowerCase(referencedFieldModel.getFieldHandlerName());
             TypeName entityUtilTypeName = EntityUtilModel.getEntityUtilTypeName(entityModel());
             String fieldValueGetterName = EntityUtilModel.getGetterName(referencedFieldModel.getFieldName().toString());
-            builder.addStatement("$L.updateFieldValues($T.getPk(entity), $T.$L(entity))", handlerInstanceFieldName, entityUtilTypeName, entityUtilTypeName, fieldValueGetterName);
+            builder.addStatement("$L.updateFieldValues(entity, $T.$L(entity))", handlerInstanceFieldName, entityUtilTypeName, fieldValueGetterName);
         }
     }
 

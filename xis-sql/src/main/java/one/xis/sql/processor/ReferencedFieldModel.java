@@ -1,6 +1,5 @@
 package one.xis.sql.processor;
 
-import com.ejc.util.CollectorUtils;
 import com.ejc.util.StringUtils;
 import lombok.Getter;
 import one.xis.sql.Referenced;
@@ -26,7 +25,7 @@ public class ReferencedFieldModel extends EntityFieldModel {
 
 
     String getFieldHandlerName() {
-        return StringUtils.firstToUpperCase(getFieldName().toString())+"FieldHandler";
+        return StringUtils.firstToUpperCase(getFieldName().toString()) + "FieldHandler";
     }
 
 }

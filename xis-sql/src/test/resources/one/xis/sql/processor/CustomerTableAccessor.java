@@ -6,7 +6,7 @@ import java.util.Collection;
 import one.xis.sql.api.EntityTableAccessor;
 import one.xis.sql.api.PreparedEntityStatement;
 
-public class CustomerTableAccessor extends EntityTableAccessor<Customer, Long, CustomerProxy> {
+public class CustomerTableAccessor extends EntityTableAccessor<Customer, Long> {
 
     public CustomerTableAccessor() {
         super(new CustomerStatements(), Long.class);

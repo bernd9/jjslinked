@@ -5,44 +5,41 @@ import com.google.common.base.Functions;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.api.collection.EntityCollection;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-public abstract class ReferredFieldHandler<EID, F, FID, P extends EntityProxy<F, FID>> {
-    private final EntityCrudHandler<F, FID, P> entityCrudHandler;
+public abstract class ReferredFieldHandler<E, EID, F, FID> {
+    private final EntityCrudHandler<F, FID> entityCrudHandler;
     private final String foreignKeyColumnName;
 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
-    public void updateFieldValues(EID entityId, F fieldValue) {
-        updateFieldValues(entityId, Collections.singleton(fieldValue));
+    public void updateFieldValues(E entity, F fieldValue) {
+        updateFieldValues(entity, Collections.singleton(fieldValue));
     }
 
     @UsedInGeneratedCode
-    public void updateFieldValues(EID entityId, Collection<F> fieldValues) {
+    public void updateFieldValues(E entity, Collection<F> fieldValues) {
         if (fieldValues instanceof EntityCollection) {
-            updateCollectionProxyFieldValues(entityId, (EntityCollection) fieldValues);
+            updateCollectionProxyFieldValues(entity, (EntityCollection) fieldValues);
         } else {
-            updateCollectionFieldValues(entityId, fieldValues);
+            updateCollectionFieldValues(entity, fieldValues);
         }
     }
 
-    private void updateCollectionProxyFieldValues(EID entityId, EntityCollection<F> fieldValues) {
+    private void updateCollectionProxyFieldValues(E entity, EntityCollection<F> fieldValues) {
         if (fieldValues.isDirty()) {
             unlinkFieldValues(fieldValues.stream().map(this::getFieldValuePk).collect(Collectors.toList()));
-            saveFieldValues(entityId, fieldValues.getDirtyValues());
+            saveFieldValues(entity, fieldValues.getDirtyValues());
         }
     }
 
-    private void updateCollectionFieldValues(EID entityId, Collection<F> fieldValues) {
-        Collection<FID> fieldPksInDb = entityCrudHandler.getEntityTableAccessor().getPksByColumnValue(entityId, foreignKeyColumnName);
+    private void updateCollectionFieldValues(E entity, Collection<F> fieldValues) {
+        Collection<FID> fieldPksInDb = entityCrudHandler.getEntityTableAccessor().getPksByColumnValue(getEntityPk(entity), foreignKeyColumnName);
         Map<FID,F> fieldValueMap = asMap(fieldValues);
         unlinkObsoleteFieldValues(fieldPksInDb, fieldValueMap);
-        saveFieldValues(entityId, fieldValues);
+        saveFieldValues(entity, fieldValues);
     }
 
     private void unlinkObsoleteFieldValues(Collection<FID> fieldPksInDb, Map<FID,F> fieldValueMap) {
@@ -50,8 +47,8 @@ public abstract class ReferredFieldHandler<EID, F, FID, P extends EntityProxy<F,
         unlinkFieldValues(unlinkFieldValuePks);
     }
 
-    private void saveFieldValues(EID entityId, Collection<F> fieldValues) {
-        fieldValues.forEach(value -> setFk(value, entityId));
+    private void saveFieldValues(E entity, Collection<F> fieldValues) {
+        fieldValues.forEach(value -> setFieldValueFk(value, entity));
         entityCrudHandler.save(fieldValues);
     }
 
@@ -69,10 +66,6 @@ public abstract class ReferredFieldHandler<EID, F, FID, P extends EntityProxy<F,
         entityCrudHandler.getEntityTableAccessor().updateColumnValuesToNull(fieldPks, foreignKeyColumnName);
     }
 
-    protected abstract FID getFieldValuePk(F fieldValue);
-
-    // depends on delete cascade behaviour
-    protected abstract void unlinkFieldValues(Collection<FID> fieldPks);
 
     protected void unlinkByDelete(Collection<FID> fieldPks) {
         entityCrudHandler.getEntityTableAccessor().deleteAllById(fieldPks);
@@ -83,7 +76,15 @@ public abstract class ReferredFieldHandler<EID, F, FID, P extends EntityProxy<F,
 
     }
 
-    protected abstract void setFk(F fieldValue, EID fk);
+    protected abstract EID getEntityPk(E entity);
+
+    protected abstract FID getFieldValuePk(F fieldValue);
+
+    protected abstract void setFieldValueFk(F fieldValue, E entity);
+
+
+    // depends on delete cascade behaviour
+    protected abstract void unlinkFieldValues(Collection<FID> fieldPks);
 
 
 
