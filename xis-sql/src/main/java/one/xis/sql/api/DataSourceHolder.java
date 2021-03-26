@@ -1,10 +1,11 @@
-package one.xis.sql;
+package one.xis.sql.api;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 
-class SqlConnector {
+class DataSourceHolder {
 
-    static SqlConnector getInstance() {
+    static DataSourceHolder getInstance() {
         return null;
     }
 
@@ -20,7 +21,7 @@ class SqlConnector {
 
     }
 
-    Connection getConnection() {
+    DataSource getDataSource() {
         return null;
     }
 
