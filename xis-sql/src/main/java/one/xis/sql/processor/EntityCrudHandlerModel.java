@@ -4,7 +4,6 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import one.xis.sql.NamingRules;
 
 @Getter
 @RequiredArgsConstructor

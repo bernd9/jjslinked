@@ -1,12 +1,9 @@
 package one.xis.sql.processor;
 
-import com.ejc.util.StringUtils;
 import one.xis.sql.Column;
 import one.xis.sql.ForeignKey;
-import one.xis.sql.NamingRules;
 
 import javax.lang.model.element.VariableElement;
-import java.util.Optional;
 
 // TODO validate ForeignKey can not be used to annotate collections, arrays etc
 public class ForeignKeyFieldModel extends EntityFieldModel {

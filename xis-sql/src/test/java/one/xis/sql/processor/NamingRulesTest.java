@@ -1,5 +1,6 @@
-package one.xis.sql;
+package one.xis.sql.processor;
 
+import one.xis.sql.processor.NamingRules;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

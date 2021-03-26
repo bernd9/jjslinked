@@ -1,9 +1,7 @@
 package one.xis.sql.processor;
 
-import com.squareup.javapoet.TypeName;
 import lombok.Getter;
 import one.xis.sql.Column;
-import one.xis.sql.NamingRules;
 
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Name;

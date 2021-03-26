@@ -2,7 +2,6 @@ package one.xis.sql.api;
 
 import com.ejc.api.context.UsedInGeneratedCode;
 import lombok.Data;
-import lombok.experimental.Delegate;
 import one.xis.sql.api.action.EntityAction;
 import one.xis.sql.api.action.EntityDeleteAction;
 import one.xis.sql.api.action.EntitySaveAction;
@@ -70,7 +69,7 @@ public class EntityCrudHandlerSession {
     }
 
     private EntityActions createNewEntityActions(Class<?> entityType, EntityTableAccessor<?,?> tableAccessor, EntityFunctions<?,?> functions) {
-        EntityActions entityActions = new EntityActions(entityType, tableAccessor, functions);
+        EntityActions entityActions = new EntityActions(entityType, (EntityTableAccessor<Object, Object>) tableAccessor, functions);
         actionsForEntityTypes.add(entityActions);
         return entityActions;
     }
@@ -79,7 +78,7 @@ public class EntityCrudHandlerSession {
     private static class EntityActions {
 
         private final Class<?> entityType;
-        private final EntityTableAccessor<? extends Object,? extends Object> entityTableAccessor;
+        private final EntityTableAccessor<Object,Object> entityTableAccessor;
         private final EntityFunctions<?,?> functions;
         private Map<Integer, EntityAction<Object>> entityActions = new HashMap<>();
 
@@ -144,7 +143,10 @@ public class EntityCrudHandlerSession {
                     deleteEntities.add(entity);
                 }
             }
-            //entityTableAccessor.insert(insertEntities);
+            entityTableAccessor.delete(deleteEntities);
+            entityTableAccessor.insert(insertEntities);
+            entityTableAccessor.update(updateEntities);
+
 
         }
 

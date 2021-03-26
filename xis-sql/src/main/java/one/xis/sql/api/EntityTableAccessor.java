@@ -3,6 +3,7 @@ package one.xis.sql.api;
 import com.ejc.api.context.UsedInGeneratedCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import one.xis.sql.Entity;
 import one.xis.sql.JdbcException;
 import one.xis.sql.api.collection.EntityArrayList;
 import one.xis.sql.api.collection.EntityCollection;
@@ -56,7 +57,23 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     protected abstract void insert(E entity);
 
-    protected abstract void insert(Collection<E> entities);
+    abstract void insert(Collection<E> entities);
+
+    public void update(Collection<E> updateEntities) {
+        Iterator<E> entityIterator = updateEntities.iterator();
+        try (PreparedEntityStatement st = prepare(entityStatements.getUpdateSql())) {
+            while (entityIterator.hasNext()) {
+                E entity = entityIterator.next();
+                st.clearParameters();
+                entityStatements.setUpdateSqlParameters(st, entity);
+                st.addBatch();
+            }
+            st.executeBatch();
+        } catch (SQLException e) {
+            throw new JdbcException("failed to execute update", e);
+        }
+    }
+
 
     public void save(E entity) {
         if (entity instanceof EntityProxy) {
@@ -117,7 +134,6 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
 
     private void update(List<EntityProxy<E,EID>> entityProxies) {
-        Set<EntityProxy<E,EID>> failedEntities = new HashSet<>();
         Iterator<EntityProxy<E,EID>> entityProxyIterator = entityProxies.iterator();
         try (PreparedEntityStatement st = prepare(entityStatements.getUpdateSql())) {
             while (entityProxyIterator.hasNext()) {
@@ -131,13 +147,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
                 st.addBatch();
                 proxy.doSetClean();
             }
-            int[] result = st.executeBatch();
-            for (int index = 0; index < result.length; index++) {
-                if (result[index] == 0) {
-                    failedEntities.add(entityProxies.get(index));
-                }
-            }
-            //return failedEntities;
+            st.executeBatch();
         } catch (SQLException e) {
             throw new JdbcException("failed to execute update", e);
         }
@@ -300,6 +310,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     }
 
 
+
     protected abstract EntityProxy<E,EID> toEntityProxy(ResultSet rs) throws SQLException;
 
     protected abstract void setPk(PreparedEntityStatement st, int index, EID id);
@@ -311,5 +322,6 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     protected abstract EID getPk(ResultSet rs, int columnIndex) throws SQLException;
 
     protected abstract EID generateKey();
+
 
 }

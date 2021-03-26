@@ -4,7 +4,6 @@ import com.ejc.util.JavaModelUtils;
 import lombok.Builder;
 import lombok.NonNull;
 import one.xis.sql.CrossTable;
-import one.xis.sql.NamingRules;
 
 import javax.lang.model.element.VariableElement;
 

@@ -14,9 +14,21 @@ import java.util.function.UnaryOperator;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class Session {
 
-    private static final ThreadLocal<Session> sessions = ThreadLocal.withInitial(Session::new);
+    private static final ThreadLocal<Session> sessions = new ThreadLocal<>();
 
     private Map<Class<?>, Map<Integer,Object>> sessionEntities = new HashMap<>();
+
+    public static boolean start() {
+        if (sessions.get() != null) {
+            return false;
+        }
+        sessions.set(new Session());
+        return true;
+    }
+
+    public static void remove() {
+        sessions.remove();
+    }
 
     public static Session getInstance() {
         return sessions.get();
@@ -59,4 +71,19 @@ public class Session {
         sessionEntities.clear();
     }
 
+    public void startTransaction(int isolationlevel) {
+
+    }
+
+    public boolean hasTransaction() {
+        return false;
+    }
+
+    public void commit() {
+
+    }
+
+    public void close() {
+
+    }
 }
