@@ -26,6 +26,7 @@ class AdviceWriter {
     private final Class<? extends InvocationHandler> advice;
     private final Collection<ExecutableElement> methods;
     private final ProcessingEnvironment processingEnvironment;
+    private final int priority;
 
     void write() throws IOException {
         String simpleName = advice.getSimpleName() + "Mapped";
@@ -47,6 +48,7 @@ class AdviceWriter {
         return AnnotationSpec.builder(Advice.class)
                 .addMember("annotation", "$T.class", annotation)
                 .addMember("targets", createAdviceTargetAnnotations())
+                .addMember("priority", Integer.toString(priority))
                 .build();
     }
 

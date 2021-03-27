@@ -38,6 +38,8 @@ public class AdviceAnnotationProcessorBase<A extends Annotation> extends Abstrac
     @Getter
     private final Class<? extends InvocationHandler> handlerClass;
 
+    private final int priority;
+
     @Override
     public Set<String> getSupportedAnnotationTypes() {
         return Collections.singleton(annotationClass.getName());
@@ -89,7 +91,7 @@ public class AdviceAnnotationProcessorBase<A extends Annotation> extends Abstrac
     }
 
     private void writeAdvice(Collection<ExecutableElement> methods) {
-        AdviceWriter adviceWriter = new AdviceWriter(annotationClass, handlerClass, methods, processingEnv);
+        AdviceWriter adviceWriter = new AdviceWriter(annotationClass, handlerClass, methods, processingEnv, priority);
         try {
             adviceWriter.write();
         } catch (IOException e) {

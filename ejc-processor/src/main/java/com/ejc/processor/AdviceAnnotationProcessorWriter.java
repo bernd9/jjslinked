@@ -20,6 +20,7 @@ class AdviceAnnotationProcessorWriter {
     private ProcessingEnvironment processingEnvironment;
     private TypeElement annotation;
     private String adviceClass;
+    private final int priority;
 
     void write() {
         String processorName = annotation.getQualifiedName() + "Processor";
@@ -43,7 +44,7 @@ class AdviceAnnotationProcessorWriter {
     private MethodSpec constructor(TypeElement annotation, String adviceClass) {
         return MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
-                .addStatement("super($T.class, $L.class)", annotation.asType(), adviceClass)
+                .addStatement("super($T.class, $L.class, $L)", annotation.asType(), adviceClass, priority)
                 .build();
     }
 

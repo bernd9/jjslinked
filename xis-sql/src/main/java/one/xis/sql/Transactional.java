@@ -11,7 +11,7 @@ import java.sql.Connection;
 
 @Target({ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME) // checked at runtime !
-@AdviceClass(TransactionalAdvice.class)
+@AdviceClass(value = TransactionalAdvice.class)
 public @interface Transactional {
     int isolationLevel() default Connection.TRANSACTION_NONE;
 }

@@ -8,8 +8,10 @@ import com.google.auto.service.AutoService;
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
 import javax.lang.model.element.TypeElement;
 import javax.tools.Diagnostic;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -48,10 +50,13 @@ public class AdviceClassAnnotationProcessor extends AbstractProcessor {
         AnnotationMirror mirror = JavaModelUtils.getAnnotationMirror(annotation, AdviceClass.class);
         String adviceClass = JavaModelUtils.getAnnotationValue(mirror, "value")
                 .getValue().toString().replace(".class", "");
+        int priority = Optional.ofNullable(JavaModelUtils.getAnnotationValue(mirror, "priority"))
+                .map(AnnotationValue::getValue).map(Object::toString).map(Integer::parseInt).orElse(0);
         AdviceAnnotationProcessorWriter annotationProcessorWriter = AdviceAnnotationProcessorWriter.builder()
                 .adviceClass(adviceClass)
                 .annotation(annotation)
                 .processingEnvironment(processingEnv)
+                .priority(priority)
                 .build();
 
         annotationProcessorWriter.write();

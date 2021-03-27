@@ -9,4 +9,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AdviceClass {
     Class<? extends MethodAdvice> value();
+
+    int priority() default 0;
 }

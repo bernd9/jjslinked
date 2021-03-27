@@ -37,7 +37,7 @@ class TransactionalAdvice implements MethodAdvice {
         }
     }
 
-    private int getTransactionIsolationLevel(Method method) {
+    private Integer getTransactionIsolationLevel(Method method) {
         if (method.isAnnotationPresent(Transactional.class)) {
             return method.getAnnotation(Transactional.class).isolationLevel();
         }
