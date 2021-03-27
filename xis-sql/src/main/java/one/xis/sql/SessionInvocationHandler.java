@@ -16,7 +16,7 @@ class SessionInvocationHandler implements InvocationHandler {
             return doInvoke(proxy, method, args);
         } finally {
             if (isOpener) {
-                Session.remove();
+                Session.getInstance().close();
             }
         }
     }
@@ -40,11 +40,11 @@ class SessionInvocationHandler implements InvocationHandler {
         Session session = Session.getInstance();
         session.startTransaction(isolationLevel);
         try {
-            Object rv =  method.invoke(proxy, args);
+            Object rv = method.invoke(proxy, args);
             session.commit();
             return rv;
         } finally {
-            session.close();
+            session.endTransaction();
         }
     }
 

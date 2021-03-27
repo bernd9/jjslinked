@@ -1,5 +1,6 @@
 package one.xis.sql.api;
 
+import com.ejc.api.context.ApplicationContext;
 import com.ejc.util.ObjectUtils;
 import lombok.NonNull;
 import one.xis.sql.JdbcException;
@@ -19,7 +20,7 @@ public class Session {
 
     private static final ThreadLocal<Session> sessions = new ThreadLocal<>();
 
-    private final Map<Class<?>, Map<Integer,Object>> sessionEntities = new HashMap<>();
+    private final Map<Class<?>, Map<Integer, Object>> sessionEntities = new HashMap<>();
     private final ConnectionHolder connectionHolder = new ConnectionHolder();
 
     public static boolean start() {
@@ -30,9 +31,6 @@ public class Session {
         return true;
     }
 
-    public static void remove() {
-        sessions.remove();
-    }
 
     public static Session getInstance() {
         return sessions.get();
@@ -51,7 +49,7 @@ public class Session {
         return getSaveAction(orig, clone, functions::compareColumnValues);
     }
 
-    private SqlSaveAction getSaveAction(Object orig, Object clone, BiFunction<Object,Object, Boolean> compareFunction) {
+    private SqlSaveAction getSaveAction(Object orig, Object clone, BiFunction<Object, Object, Boolean> compareFunction) {
         return compareFunction.apply(orig, clone) ? SqlSaveAction.NOOP : SqlSaveAction.UPDATE;
     }
 
@@ -96,9 +94,9 @@ public class Session {
     }
 
     public void close() {
-        sessionEntities.clear();
+        sessions.remove();
         try {
-            getConnection().close();
+            connectionHolder.closeConnection();
         } catch (SQLException e) {
             throw new JdbcException("closing connection failed", e);
         }
@@ -112,15 +110,38 @@ public class Session {
         }
     }
 
+    public void endTransaction() {
+        try {
+            getConnection().setAutoCommit(true);
+        } catch (SQLException e) {
+            throw new JdbcException("getting connection failed", e);
+        }
+    }
 
     private static class ConnectionHolder {
         private Connection connection;
+        private static SqlDataSourceHolder dataSourceHolder;
 
         synchronized Connection getConnection() throws SQLException {
             if (connection == null) {
-                connection = DataSourceHolder.getInstance().getDataSource().getConnection();
+                connection = getDataSourceHolder().getDataSource().getConnection();
             }
             return connection;
+        }
+
+        synchronized void closeConnection() throws SQLException {
+            try {
+                connection.close();
+            } finally {
+                connection = null;
+            }
+        }
+
+        private SqlDataSourceHolder getDataSourceHolder() {
+            if (dataSourceHolder == null) {
+                dataSourceHolder = ApplicationContext.getInstance().getBean(SqlDataSourceHolder.class);
+            }
+            return dataSourceHolder;
         }
     }
 }
