@@ -14,4 +14,6 @@ public @interface Advice {
 
     AdviceTarget[] targets();
 
+    int priority() default 0;
+
 }

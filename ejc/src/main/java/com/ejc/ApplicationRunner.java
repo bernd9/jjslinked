@@ -36,6 +36,7 @@ public abstract class ApplicationRunner {
 
     protected abstract void doRun(Collection<SingletonPreProcessor> singletonPreProcessors, Collection<Supplier<Object>> suppliers) throws Exception;
 
+
     public static void main(String[] args) throws Exception {
         long t0 = System.currentTimeMillis();
         run();

@@ -1,7 +1,6 @@
 package com.ejc;
 
-import java.lang.reflect.InvocationHandler;
+public interface MethodAdvice {
 
-public interface MethodAdvice extends InvocationHandler {
-
+    Object execute(Object proxy, Object[] args, JoinPoint joinPoint) throws Throwable;
 }

@@ -1,12 +1,13 @@
 package com.ejc.processor.advice;
 
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
+import com.ejc.JoinPoint;
+import com.ejc.MethodAdvice;
 
-class TestHandler implements InvocationHandler {
+class TestHandler implements MethodAdvice {
 
-    public Object invoke(Object bean, Method method, Object[] parameters) {
+    @Override
+    public Object execute(Object var1, Object[] var2, JoinPoint var3) throws Throwable {
         return 43;
     }
 }

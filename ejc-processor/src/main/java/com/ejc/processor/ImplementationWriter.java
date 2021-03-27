@@ -1,5 +1,7 @@
 package com.ejc.processor;
 
+import com.ejc.JoinPoint;
+import com.ejc.MethodAdvice;
 import com.ejc.api.context.ApplicationContext;
 import com.ejc.util.JavaModelUtils;
 import com.squareup.javapoet.*;
@@ -15,11 +17,7 @@ import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static com.ejc.util.JavaModelUtils.*;
@@ -30,6 +28,7 @@ class ImplementationWriter {
     private final String superClassQualifiedName;
     private final Map<String, List<TypeElement>> advices;
     private final ProcessingEnvironment processingEnvironment;
+    private int counter;
 
     void write() throws IOException {
         String implName = superClassQualifiedName + "Impl";
@@ -37,13 +36,18 @@ class ImplementationWriter {
                 .addAnnotation(createImplAnnotation())
                 .addModifiers(Modifier.PUBLIC)
                 .superclass(asTypeMirror(superClassQualifiedName))
-                .addMethods(createImplMethods());
+                .addField(createJoinPointMapField())
+                .addMethods(createImplMethodsAndDelegates());
         advices.values().stream().flatMap(List::stream).forEach(builder::addOriginatingElement);
         TypeSpec typeSpec = builder.build();
 
         JavaFile javaFile = JavaFile.builder(getPackageName(implName), typeSpec).build();
+        StringBuilder s = new StringBuilder();
+        javaFile.writeTo(s);
+        System.out.println(s);
         javaFile.writeTo(processingEnvironment.getFiler());
     }
+
 
     private AnnotationSpec createImplAnnotation() {
         return AnnotationSpec.builder(Implementation.class)
@@ -51,9 +55,34 @@ class ImplementationWriter {
                 .build();
     }
 
-    private List<MethodSpec> createImplMethods() {
-        return getMethodsToOverride().map(this::createImplMethod).collect(Collectors.toList());
+    private FieldSpec createJoinPointMapField() {
+        return FieldSpec.builder(ParameterizedTypeName.get(ClassName.get(Map.class), TypeName.get(String.class), TypeName.get(JoinPoint.class)), "joinPointsMap")
+                .addModifiers(Modifier.STATIC, Modifier.PRIVATE)
+                .initializer("new $T<>()", HashMap.class)
+                .build();
     }
+
+
+    private Collection<MethodSpec> createImplMethodsAndDelegates() {
+        List<MethodSpec> methods = new ArrayList<>();
+        getMethodsToOverride().map(this::createImplMethodAndDelegate).flatMap(List::stream).forEach(methods::add);
+        return methods;
+    }
+
+    private List<MethodSpec> createImplMethodAndDelegate(ExecutableElement executableElement) {
+        String delegateName = nextDelegateName();
+        return Arrays.asList(createDelegate(executableElement, delegateName), createImplMethod(executableElement, delegateName));
+    }
+
+    private String nextDelegateName() {
+        return "__delegate_" + UUID.randomUUID().toString().replaceAll("-", "");
+    }
+
+
+    private MethodSpec createDelegate(ExecutableElement executableElement, String methodName) {
+        return new ExecutionDelegateBuilder(executableElement, methodName).createMethodDelegate();
+    }
+
 
     private Stream<ExecutableElement> getMethodsToOverride() {
         Set<String> overrideSignatures = advices.keySet();
@@ -64,51 +93,79 @@ class ImplementationWriter {
     }
 
 
-    private MethodSpec createImplMethod(ExecutableElement orig) {
-        String signature = signature(orig);
+    private MethodSpec createImplMethod(ExecutableElement orig, String delegateName) {
         MethodSpec.Builder builder = MethodSpec.overriding(orig)
-                .addModifiers(Modifier.PUBLIC)
-                .addCode(createAdviceListBlock(signature))
-                .addCode(createMethodInstanceBlock(orig))
-                .addCode(createMethodParameterBlock(orig))
-                .addCode(createAdviceExecutionBlock());
-        if (orig.getReturnType().getKind() != TypeKind.VOID) {
-            builder.addCode(createReturnStatement(orig));
-        }
-        return builder.build();
-
-    }
-
-
-    private CodeBlock createAdviceListBlock(String signature) {
-        CodeBlock.Builder builder = CodeBlock.builder()
-                .addStatement("$T<$T> advices = new $T<>()", List.class, InvocationHandler.class, ArrayList.class);
-        advices.get(signature).forEach(advice -> builder.addStatement("advices.add($T.getInstance().getBean($L.class))", ApplicationContext.class, advice.asType()));
-        return builder.build();
-    }
-
-    private CodeBlock createMethodInstanceBlock(ExecutableElement e) {
-        CodeBlock.Builder builder = CodeBlock.builder()
-                .addStatement("$T method", Method.class)
-                .beginControlFlow("try");
-        if (e.getParameters().isEmpty()) {
-            builder.addStatement("method = getClass().getSuperclass().getDeclaredMethod(\"$L\")", e.getSimpleName());
+                .addModifiers(Modifier.PUBLIC);
+        if (orig.getReturnType().getKind() == TypeKind.VOID) {
+            builder.addStatement("$L(new Object[]{$L})", delegateName, JavaModelUtils.parameterNameList(orig));
         } else {
-            builder.add("method = getClass().getSuperclass().getDeclaredMethod(\"$L\",", e.getSimpleName())
-                    .add(parameterTypeListBlock(e))
-                    .add(");");
+            builder.addStatement("return $L(new Object[]{$L})", delegateName, JavaModelUtils.parameterNameList(orig));
         }
-        return builder.nextControlFlow("catch ($T e)", NoSuchMethodException.class)
-                .addStatement("throw new $T(e)", RuntimeException.class)
-                .endControlFlow()
-                .addStatement("method.setAccessible(true)")
-                .build();
+        return builder.build();
+
     }
 
-    private CodeBlock createMethodParameterBlock(ExecutableElement orig) {
-        return CodeBlock.builder()
-                .addStatement("Object[] args = new Object[]{$L}", JavaModelUtils.parameterNameList(orig))
-                .build();
+    @RequiredArgsConstructor
+    class ExecutionDelegateBuilder {
+        private final ExecutableElement executableElement;
+        private final String methodName;
+
+        MethodSpec createMethodDelegate() {
+            MethodSpec.Builder builder = MethodSpec.methodBuilder(methodName)
+                    .addModifiers(Modifier.PRIVATE)
+                    .addParameter(TypeName.get(Object[].class), "args")
+                    .addCode(createMethodInstanceBlock(executableElement))
+                    .addCode(createJoinPointBlock(signature(executableElement)))
+                    .addStatement("");
+
+
+            if (executableElement.getReturnType().getKind() != TypeKind.VOID) {
+                builder.returns(TypeName.get(executableElement.getReturnType()));
+                builder.addStatement("return ($T) joinPoint.execute(this, args)", executableElement.getReturnType());
+            } else {
+                builder.addStatement("joinPoint.execute(this, args)");
+            }
+            return builder.build();
+        }
+
+        private CodeBlock createMethodInstanceBlock(ExecutableElement e) {
+            CodeBlock.Builder builder = CodeBlock.builder()
+                    .addStatement("$T method", Method.class)
+                    .beginControlFlow("try");
+            if (e.getParameters().isEmpty()) {
+                builder.addStatement("method = getClass().getSuperclass().getDeclaredMethod(\"$L\")", e.getSimpleName());
+            } else {
+                builder.add("method = getClass().getSuperclass().getDeclaredMethod(\"$L\",", e.getSimpleName())
+                        .add(parameterTypeListBlock(e))
+                        .add(");");
+            }
+            return builder.nextControlFlow("catch ($T e)", NoSuchMethodException.class)
+                    .addStatement("throw new $T(e)", RuntimeException.class)
+                    .endControlFlow()
+                    .addStatement("method.setAccessible(true)")
+                    .build();
+        }
+
+        private CodeBlock createJoinPointBlock(String signature) {
+            return CodeBlock.builder()
+                    .addStatement("String signature = \"$L\"", signature)
+                    .add("$T joinPoint = joinPointsMap.computeIfAbsent(signature, $L)", JoinPoint.class, joinPointLambda(signature))
+                    .build();
+        }
+
+        private CodeBlock joinPointLambda(String signature) {
+            CodeBlock.Builder builder = CodeBlock.builder()
+                    .add("sig -> ")
+                    .add("{")
+                    .addStatement("$T<$T> advices = new $T<>()", List.class, MethodAdvice.class, ArrayList.class);
+            advices.get(signature).forEach(advice -> builder.addStatement("advices.add($T.getInstance().getBean($L.class))", ApplicationContext.class, advice.asType()));
+
+            return builder
+                    .addStatement("return $T.prepare(advices, method)", JoinPoint.class)
+                    .add("}")
+                    .build();
+        }
+
     }
 
 
