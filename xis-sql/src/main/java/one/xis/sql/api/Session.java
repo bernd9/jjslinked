@@ -22,11 +22,12 @@ public class Session {
 
     private final Map<Class<?>, Map<Integer, Object>> sessionEntities = new HashMap<>();
     private final ConnectionHolder connectionHolder = new ConnectionHolder();
+    private Integer transactionIsolationLevel;
 
     public static boolean exists() {
         return sessions.get() != null;
     }
-    
+
     public static Session getInstance() {
         if (sessions.get() == null) {
             sessions.set(new Session());
@@ -67,20 +68,19 @@ public class Session {
     }
 
     public void startTransaction(int isolationLevel) {
-        try {
-            getConnection().setAutoCommit(false);
-            getConnection().setTransactionIsolation(isolationLevel);
-        } catch (SQLException e) {
-            throw new JdbcException("starting transaction failed", e);
+        transactionIsolationLevel = isolationLevel;
+        if (isolationLevel != Connection.TRANSACTION_NONE) {
+            try {
+                getConnection().setAutoCommit(false);
+                getConnection().setTransactionIsolation(isolationLevel);
+            } catch (SQLException e) {
+                throw new JdbcException("starting transaction failed", e);
+            }
         }
     }
 
-    public boolean hasTransaction() {
-        try {
-            return !getConnection().getAutoCommit() && getConnection().getTransactionIsolation() != Connection.TRANSACTION_NONE;
-        } catch (SQLException e) {
-            throw new JdbcException("checking autocommit status failed", e);
-        }
+    public boolean hasTransactionConfig() {
+        return transactionIsolationLevel != null;
     }
 
     public void commit() {

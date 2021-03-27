@@ -4,10 +4,9 @@ import com.ejc.JoinPoint;
 import com.ejc.MethodAdvice;
 import one.xis.sql.api.Session;
 
-import java.lang.reflect.Method;
 import java.sql.Connection;
 
-class TransactionalAdvice implements MethodAdvice {
+class ServiceAdvice implements MethodAdvice {
 
     @Override
     public Object execute(Object o, Object[] objects, JoinPoint joinPoint) throws Throwable {
@@ -15,11 +14,9 @@ class TransactionalAdvice implements MethodAdvice {
         boolean isTransactionStarter = false;
         Session session = Session.getInstance();
         if (!session.hasTransactionConfig()) {
-            int isolationLevel = getTransactionIsolationLevel(joinPoint.getMethod());
-            if (isolationLevel != Connection.TRANSACTION_NONE) {
-                session.startTransaction(isolationLevel);
-                isTransactionStarter = true;
-            }
+            // no @Transactional
+            session.startTransaction(Connection.TRANSACTION_READ_COMMITTED);
+            isTransactionStarter = true;
         }
         try {
             return joinPoint.proceed(o, objects);
@@ -35,15 +32,5 @@ class TransactionalAdvice implements MethodAdvice {
                 }
             }
         }
-    }
-
-    private Integer getTransactionIsolationLevel(Method method) {
-        if (method.isAnnotationPresent(Transactional.class)) {
-            return method.getAnnotation(Transactional.class).isolationLevel();
-        }
-        if (method.getDeclaringClass().isAnnotationPresent(Transactional.class)) {
-            return method.getDeclaringClass().getAnnotation(Transactional.class).isolationLevel();
-        }
-        throw new IllegalStateException();
     }
 }

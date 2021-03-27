@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
-@AdviceClass(TransactionalAdvice.class)
+@AdviceClass(value = TransactionalAdvice.class, priority = 2000)
 public @interface Service {
 
 }
