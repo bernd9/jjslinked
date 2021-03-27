@@ -5,7 +5,6 @@ import com.ejc.MethodAdvice;
 import one.xis.sql.api.Session;
 
 import java.lang.reflect.Method;
-import java.sql.Connection;
 
 class TransactionalAdvice implements MethodAdvice {
 
@@ -16,10 +15,9 @@ class TransactionalAdvice implements MethodAdvice {
         Session session = Session.getInstance();
         if (!session.hasTransactionConfig()) {
             int isolationLevel = getTransactionIsolationLevel(joinPoint.getMethod());
-            if (isolationLevel != Connection.TRANSACTION_NONE) {
-                session.startTransaction(isolationLevel);
-                isTransactionStarter = true;
-            }
+            session.setTransactionIsolationLevel(isolationLevel);
+            isTransactionStarter = true;
+
         }
         try {
             return joinPoint.proceed(o, objects);

@@ -15,7 +15,7 @@ class ServiceAdvice implements MethodAdvice {
         Session session = Session.getInstance();
         if (!session.hasTransactionConfig()) {
             // no @Transactional
-            session.startTransaction(Connection.TRANSACTION_READ_COMMITTED);
+            session.setTransactionIsolationLevel(Connection.TRANSACTION_READ_COMMITTED);
             isTransactionStarter = true;
         }
         try {

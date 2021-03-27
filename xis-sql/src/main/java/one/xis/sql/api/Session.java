@@ -67,7 +67,7 @@ public class Session {
         return Optional.ofNullable(sessionEntities.getOrDefault(orig.getClass(), Collections.EMPTY_MAP).get(System.identityHashCode(orig)));
     }
 
-    public void startTransaction(int isolationLevel) {
+    public void setTransactionIsolationLevel(int isolationLevel) {
         transactionIsolationLevel = isolationLevel;
         if (isolationLevel != Connection.TRANSACTION_NONE) {
             try {
