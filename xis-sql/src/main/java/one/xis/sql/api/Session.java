@@ -18,21 +18,19 @@ import java.util.function.UnaryOperator;
 @SuppressWarnings({"rawtypes", "unchecked"})
 public class Session {
 
-    private static final ThreadLocal<Session> sessions = new ThreadLocal<>();
+    private static final ThreadLocal<Session> sessions = new ThreadLocal();
 
     private final Map<Class<?>, Map<Integer, Object>> sessionEntities = new HashMap<>();
     private final ConnectionHolder connectionHolder = new ConnectionHolder();
 
-    public static boolean start() {
-        if (sessions.get() != null) {
-            return false;
-        }
-        sessions.set(new Session());
-        return true;
+    public static boolean exists() {
+        return sessions.get() != null;
     }
-
-
+    
     public static Session getInstance() {
+        if (sessions.get() == null) {
+            sessions.set(new Session());
+        }
         return sessions.get();
     }
 

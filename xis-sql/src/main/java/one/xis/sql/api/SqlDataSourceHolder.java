@@ -23,7 +23,7 @@ class SqlDataSourceHolder {
 
     @Init
     void init() {
-
+        
     }
 
     DataSource getDataSource() {

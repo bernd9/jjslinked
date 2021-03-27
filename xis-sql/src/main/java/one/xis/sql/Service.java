@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
-@AdviceClass(SessionInvocationHandler.class)
+@AdviceClass(TransactionalAdvice.class)
 public @interface Service {
 
 }

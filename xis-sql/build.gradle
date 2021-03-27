@@ -20,7 +20,8 @@ dependencies {
     implementation 'org.projectlombok:lombok:1.18.12'
     implementation group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7'
 
-    compile group: 'mysql', name: 'mysql-connector-java', version: '8.0.23'
+    compileOnly group: 'mysql', name: 'mysql-connector-java', version: '8.0.23'
+    compileOnly group: 'org.mariadb.jdbc', name: 'mariadb-java-client', version: '2.7.2'
 
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
     testAnnotationProcessor files('../ejc-test/build/libs/ejc-test-1.0-SNAPSHOT.jar')

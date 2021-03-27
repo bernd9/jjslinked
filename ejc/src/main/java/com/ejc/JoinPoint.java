@@ -13,6 +13,8 @@ public abstract class JoinPoint {
 
     public abstract Object proceed(Object proxy, Object[] args) throws Throwable;
 
+    public abstract Method getMethod();
+
     public Object execute(Object proxy, Object[] args) {
         try {
             return proceed(proxy, args);
@@ -45,6 +47,8 @@ public abstract class JoinPoint {
 
     @RequiredArgsConstructor
     private static class MethodJoinPoint extends JoinPoint {
+
+        @Getter
         private final Method method;
 
         @Override
@@ -61,6 +65,11 @@ public abstract class JoinPoint {
         @Override
         public Object proceed(Object proxy, Object[] args) throws Throwable {
             return methodAdvice.execute(proxy, args, next);
+        }
+
+        @Override
+        public Method getMethod() {
+            return next.getMethod();
         }
 
     }

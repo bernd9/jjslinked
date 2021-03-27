@@ -15,7 +15,6 @@ import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
 import java.io.IOException;
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Stream;
@@ -28,7 +27,6 @@ class ImplementationWriter {
     private final String superClassQualifiedName;
     private final Map<String, List<TypeElement>> advices;
     private final ProcessingEnvironment processingEnvironment;
-    private int counter;
 
     void write() throws IOException {
         String implName = superClassQualifiedName + "Impl";
@@ -48,7 +46,6 @@ class ImplementationWriter {
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
-
     private AnnotationSpec createImplAnnotation() {
         return AnnotationSpec.builder(Implementation.class)
                 .addMember("forClassName", String.format("\"%s\"", superClassQualifiedName))
@@ -61,7 +58,6 @@ class ImplementationWriter {
                 .initializer("new $T<>()", HashMap.class)
                 .build();
     }
-
 
     private Collection<MethodSpec> createImplMethodsAndDelegates() {
         List<MethodSpec> methods = new ArrayList<>();
@@ -83,7 +79,6 @@ class ImplementationWriter {
         return new ExecutionDelegateBuilder(executableElement, methodName).createMethodDelegate();
     }
 
-
     private Stream<ExecutableElement> getMethodsToOverride() {
         Set<String> overrideSignatures = advices.keySet();
         return asTypeElement(superClassQualifiedName).getEnclosedElements().stream()
@@ -91,7 +86,6 @@ class ImplementationWriter {
                 .map(ExecutableElement.class::cast)
                 .filter(e -> overrideSignatures.contains(signature(e)));
     }
-
 
     private MethodSpec createImplMethod(ExecutableElement orig, String delegateName) {
         MethodSpec.Builder builder = MethodSpec.overriding(orig)
@@ -102,7 +96,6 @@ class ImplementationWriter {
             builder.addStatement("return $L(new Object[]{$L})", delegateName, JavaModelUtils.parameterNameList(orig));
         }
         return builder.build();
-
     }
 
     @RequiredArgsConstructor
@@ -117,8 +110,6 @@ class ImplementationWriter {
                     .addCode(createMethodInstanceBlock(executableElement))
                     .addCode(createJoinPointBlock(signature(executableElement)))
                     .addStatement("");
-
-
             if (executableElement.getReturnType().getKind() != TypeKind.VOID) {
                 builder.returns(TypeName.get(executableElement.getReturnType()));
                 builder.addStatement("return ($T) joinPoint.execute(this, args)", executableElement.getReturnType());
@@ -159,33 +150,12 @@ class ImplementationWriter {
                     .add("{")
                     .addStatement("$T<$T> advices = new $T<>()", List.class, MethodAdvice.class, ArrayList.class);
             advices.get(signature).forEach(advice -> builder.addStatement("advices.add($T.getInstance().getBean($L.class))", ApplicationContext.class, advice.asType()));
-
             return builder
                     .addStatement("return $T.prepare(advices, method)", JoinPoint.class)
                     .add("}")
                     .build();
         }
 
-    }
-
-
-    private CodeBlock createAdviceExecutionBlock() {
-        return CodeBlock.builder()
-                .addStatement("Object rv = null")
-                .beginControlFlow("try")
-                .beginControlFlow("for ($T advice : advices)", InvocationHandler.class)
-                .addStatement("rv = advice.invoke(this, method, args)")
-                .endControlFlow()
-                .nextControlFlow("catch ($T e)", Throwable.class)
-                .addStatement("throw new $T(e)", RuntimeException.class)
-                .endControlFlow()
-                .build();
-    }
-
-    private CodeBlock createReturnStatement(ExecutableElement orig) {
-        return CodeBlock.builder()
-                .addStatement("return ($T) rv", orig.getReturnType())
-                .build();
     }
 
     private TypeMirror asTypeMirror(String classname) {
