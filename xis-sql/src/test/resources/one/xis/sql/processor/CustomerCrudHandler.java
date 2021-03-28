@@ -29,8 +29,6 @@ public class CustomerCrudHandler extends EntityCrudHandler<Customer, Long> {
         protected void unlinkFieldValues(Collection<Long> fieldPks) {
             unlinkBySetFkToNull(fieldPks);
         }
-
-
     }
 
     private static AddressCrudHandler addressCrudHandler = new AddressCrudHandler();

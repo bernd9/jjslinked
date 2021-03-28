@@ -53,7 +53,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     protected abstract void insert(E entity);
 
-    abstract void insert(Collection<E> entities);
+    protected abstract void insert(Collection<E> entities);
 
     public void update(Collection<E> updateEntities) {
         Iterator<E> entityIterator = updateEntities.iterator();

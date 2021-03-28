@@ -13,12 +13,12 @@ public class CustomerTableAccessor extends EntityTableAccessor<Customer, Long> {
     }
 
     @Override
-    protected void insert(Customer entity) {
+    public void insert(Customer entity) {
         insertWithDbmsGeneratedKey(entity);
     }
 
     @Override
-    protected void insert(Collection<Customer> entities) {
+    public void insert(Collection<Customer> entities) {
         insertWithDbmsGeneratedKeys(entities);
     }
 

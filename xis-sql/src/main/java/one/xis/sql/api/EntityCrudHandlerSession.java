@@ -157,12 +157,12 @@ public class EntityCrudHandlerSession {
                             updateEntities.add(entity);
                         }
                     } else {
-                        SqlSaveAction sqlSaveAction = Session.getInstance().getSaveAction(entity, functions);
-                        switch (sqlSaveAction) {
-                            case INSERT:
+                        EntityState entityState = Session.getInstance().getEntityState(entity, functions);
+                        switch (entityState) {
+                            case NEW:
                                 insertEntities.add(entity);
                                 break;
-                            case UPDATE:
+                            case UPDATED:
                                 updateEntities.add(entity);
                                 break;
                             default:

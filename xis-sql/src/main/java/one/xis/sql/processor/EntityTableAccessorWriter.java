@@ -34,7 +34,9 @@ public class EntityTableAccessorWriter {
         JavaFile javaFile = JavaFile.builder(accessorModel.getEntityTableAccessorPackageName(), typeSpec)
                 .skipJavaLangImports(true)
                 .build();
-
+        StringBuilder s = new StringBuilder();
+        javaFile.writeTo(s);
+        //System.out.println(s);
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
@@ -64,7 +66,7 @@ public class EntityTableAccessorWriter {
 
     private MethodSpec implementInsertSingleEntityProxy() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("insert")
-                .addModifiers(Modifier.PROTECTED)
+                .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
                 .addParameter(entityTypeName(), "entity");
         switch (entityModel().getIdField().getAnnotation(Id.class).generationStrategy()) {
@@ -83,7 +85,7 @@ public class EntityTableAccessorWriter {
 
     private MethodSpec implementInsertEntityCollection() {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("insert")
-                .addModifiers(Modifier.PROTECTED)
+                .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
                 .addParameter(entityCollectionTypeName(), "entities");
         switch (entityModel().getIdField().getAnnotation(Id.class).generationStrategy()) {

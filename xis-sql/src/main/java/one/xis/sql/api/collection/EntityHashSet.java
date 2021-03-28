@@ -3,12 +3,15 @@ package one.xis.sql.api.collection;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.function.Predicate;
 
 @Getter
 @RequiredArgsConstructor
-public class EntityHashSet<E> extends HashSet<E> {
+public class EntityHashSet<E> extends HashSet<E> { // TODO implement EntityCollection
 
     protected final List<E> deletedValues = new ArrayList<>();
 
@@ -56,7 +59,7 @@ public class EntityHashSet<E> extends HashSet<E> {
         for (Object o : c) {
             if (contains(o)) {
                 rv = true;
-               super.remove(o);
+                super.remove(o);
                 deletedValues.add((E) o);
             }
         }

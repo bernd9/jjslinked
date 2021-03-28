@@ -160,7 +160,7 @@ public class EntityArrayList<E> extends ArrayList<E> implements EntityCollection
     }
 
     @Override
-    public Collection<E> getDirtyValues() {
+    public List<E> getDirtyValues() {
         return null;
     }
 }

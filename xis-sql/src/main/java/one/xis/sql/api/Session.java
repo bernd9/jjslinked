@@ -40,17 +40,17 @@ public class Session {
         storeClone(cloneOperator.apply(o), System.identityHashCode(o));
     }
 
-    SqlSaveAction getSaveAction(Object o, EntityFunctions functions) {
-        return getRegisteredClone(o).map(clone -> getSaveAction(o, clone, functions)).orElse(SqlSaveAction.INSERT);
+    EntityState getEntityState(Object o, EntityFunctions functions) {
+        return getRegisteredClone(o).map(clone -> getEntityState(o, clone, functions)).orElse(EntityState.NEW);
     }
 
-    private SqlSaveAction getSaveAction(Object orig, Object clone, EntityFunctions functions) {
+    private EntityState getEntityState(Object orig, Object clone, EntityFunctions functions) {
         checkPrimaryKeyUnchanged(orig, clone, functions::getPk);
-        return getSaveAction(orig, clone, functions::compareColumnValues);
+        return getEntityState(orig, clone, functions::compareColumnValues);
     }
 
-    private SqlSaveAction getSaveAction(Object orig, Object clone, BiFunction<Object, Object, Boolean> compareFunction) {
-        return compareFunction.apply(orig, clone) ? SqlSaveAction.NOOP : SqlSaveAction.UPDATE;
+    private EntityState getEntityState(Object orig, Object clone, BiFunction<Object, Object, Boolean> compareFunction) {
+        return compareFunction.apply(orig, clone) ? EntityState.UNCHANGED : EntityState.UPDATED;
     }
 
     private void checkPrimaryKeyUnchanged(Object orig, Object clone, Function<Object, Object> getPkFunction) {
