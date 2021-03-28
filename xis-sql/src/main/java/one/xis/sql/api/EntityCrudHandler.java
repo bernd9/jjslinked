@@ -2,36 +2,49 @@ package one.xis.sql.api;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import one.xis.sql.api.action.EntityAction;
+import one.xis.sql.api.collection.EntityCollection;
 
 import java.util.Collection;
-import java.util.List;
 
 @Getter
 @RequiredArgsConstructor
 public abstract class EntityCrudHandler<E, EID> {
 
     private final EntityTableAccessor<E, EID> entityTableAccessor;
-    private final EntityFunctions<E,EID> entityFunctions;
+    private final EntityFunctions<E, EID> entityFunctions;
 
-    public void save(E e) {
+    public void save(E entity) {
         EntityCrudHandlerSession session = new EntityCrudHandlerSession();
-        save(e, session);
+        save(entity, session);
         session.executeActions();
     }
 
-    public void save(E e, EntityCrudHandlerSession session) {
-        if (!session.hasSaveAction(e)) {
-            doSave(e, session);
+    public void save(E entity, EntityCrudHandlerSession session) {
+        if (!session.hasSaveAction(entity)) {
+            doSave(entity, session);
+        }
+    }
+
+    public void save(Collection<E> entities) {
+        EntityCrudHandlerSession session = new EntityCrudHandlerSession();
+        save(entities, session);
+        session.executeActions();
+    }
+
+    public void save(Collection<E> entities, EntityCrudHandlerSession session) {
+        if (entities instanceof EntityCollection) {
+            EntityCollection<E> entityCollection = (EntityCollection<E>) entities;
+            session.addBulkUpdateAction(entityCollection.getDirtyValues(), entityTableAccessor, entityFunctions);
+        } else {
+            entities.forEach(e -> save(e, session));
         }
     }
 
     protected abstract void doSave(E entity, EntityCrudHandlerSession session);
 
-    public void save(Collection<E> entities) {
+    private void doSave(Collection<E> entities) {
         entities.forEach(this::save); // TODO this might be slow. Better implement similar logic again
     }
-
 
 
 }

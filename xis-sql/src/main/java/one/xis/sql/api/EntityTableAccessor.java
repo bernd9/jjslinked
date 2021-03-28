@@ -3,15 +3,14 @@ package one.xis.sql.api;
 import com.ejc.api.context.UsedInGeneratedCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import one.xis.sql.Entity;
 import one.xis.sql.JdbcException;
 import one.xis.sql.api.collection.EntityArrayList;
-import one.xis.sql.api.collection.EntityCollection;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+
 @RequiredArgsConstructor
 public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
@@ -39,20 +38,17 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     List<E> findAll() {
         EntityArrayList<E> list = new EntityArrayList<>();
-        findAll(list);
-        return list;
-    }
-
-    private void findAll(Collection<E> coll) {
         try (PreparedStatement st = prepare(entityStatements.getSelectAllSql())) {
             try (ResultSet rs = st.executeQuery()) {
                 while (rs.next()) {
-                    coll.add((E) toEntityProxy(rs));
+                    list.add((E) toEntityProxy(rs));
                 }
             }
         } catch (SQLException e) {
             throw new JdbcException("failed to execute select all", e);
         }
+
+        return list;
     }
 
     protected abstract void insert(E entity);
@@ -67,85 +63,6 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
                 st.clearParameters();
                 entityStatements.setUpdateSqlParameters(st, entity);
                 st.addBatch();
-            }
-            st.executeBatch();
-        } catch (SQLException e) {
-            throw new JdbcException("failed to execute update", e);
-        }
-    }
-
-
-    public void save(E entity) {
-        if (entity instanceof EntityProxy) {
-            update(Collections.singletonList((EntityProxy<E, EID>) entity));
-        } else if (getPk(entity) != null){
-            insert(entity);
-        }
-    }
-
-
-    @UsedInGeneratedCode
-    @SuppressWarnings("unused")
-    public Collection<E> save(Collection<E> entities) {
-        if (entities instanceof EntityCollection) {
-            if (!((EntityCollection<?>) entities).isDirty()) {
-                return entities;
-            }
-        }
-        Collection<E> rv;
-        if (entities instanceof ArrayList) {
-            rv = new EntityArrayList<>();
-            save(entities, rv);
-        } else if (entities instanceof List) {
-            rv = new EntityArrayList<>();
-            save(entities, rv);
-        } else {
-            // TODO more collection types
-            throw new IllegalArgumentException();
-        }
-        return rv;
-    }
-
-    private void save(Collection<E> entities, Collection<E> saved) {
-        List<EntityProxy<E,EID>> proxiesForUpdate = new ArrayList<>();
-        List<E> entitiesForInsert = new ArrayList<>();
-        Iterator<E> entityIterator = entities.iterator();
-        while (entityIterator.hasNext()) {
-            E entity = entityIterator.next();
-            EntityProxy<E,EID> entityProxy;
-            if (entity instanceof EntityProxy) {
-                entityProxy = (EntityProxy) entity;
-                if (entityProxy.dirty()) {
-                    proxiesForUpdate.add(entityProxy);
-                }
-                saved.add(entity);
-            } else {
-                entitiesForInsert.add(entity);
-                saved.add(entity);
-            }
-        }
-        updateProxies(proxiesForUpdate);
-        insert(entitiesForInsert);
-    }
-
-    protected void updateProxies(List<EntityProxy<E,EID>> entityProxies) {
-        update(entityProxies);
-    }
-
-
-    private void update(List<EntityProxy<E,EID>> entityProxies) {
-        Iterator<EntityProxy<E,EID>> entityProxyIterator = entityProxies.iterator();
-        try (PreparedEntityStatement st = prepare(entityStatements.getUpdateSql())) {
-            while (entityProxyIterator.hasNext()) {
-                EntityProxy<E,EID> proxy = entityProxyIterator.next();
-                if (proxy.pk() == null) {
-                    throw new IllegalStateException();
-                }
-                E entity = proxy.entity();
-                st.clearParameters();
-                entityStatements.setUpdateSqlParameters(st, entity);
-                st.addBatch();
-                proxy.doSetClean();
             }
             st.executeBatch();
         } catch (SQLException e) {
@@ -180,7 +97,6 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
             throw new JdbcException("failed to execute delete", e);
         }
     }
-
 
 
     public void deleteAllById(Collection<EID> ids) {
@@ -219,7 +135,6 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
             throw new JdbcException("failed to execute delete", e);
         }
     }
-
 
 
     @UsedInGeneratedCode
@@ -310,8 +225,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     }
 
 
-
-    protected abstract EntityProxy<E,EID> toEntityProxy(ResultSet rs) throws SQLException;
+    protected abstract EntityProxy<E, EID> toEntityProxy(ResultSet rs) throws SQLException;
 
     protected abstract void setPk(PreparedEntityStatement st, int index, EID id);
 

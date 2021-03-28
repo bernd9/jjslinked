@@ -1,0 +1,8 @@
+xis:
+  sql:
+    url: jdbc:h2:mem:test
+    user:
+    password:
+    cachePrepStmts: true
+    prepStmtCacheSize: 250
+    prepStmtCacheSqlLimit: 2048

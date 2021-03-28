@@ -5,6 +5,7 @@ import com.ejc.util.ObjectUtils;
 import lombok.NonNull;
 import one.xis.sql.JdbcException;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collections;
@@ -118,11 +119,11 @@ public class Session {
 
     private static class ConnectionHolder {
         private Connection connection;
-        private static SqlDataSourceHolder dataSourceHolder;
+        private static DataSource dataSource;
 
         synchronized Connection getConnection() throws SQLException {
             if (connection == null) {
-                connection = getDataSourceHolder().getDataSource().getConnection();
+                connection = getDataSource().getConnection();
             }
             return connection;
         }
@@ -135,11 +136,11 @@ public class Session {
             }
         }
 
-        private SqlDataSourceHolder getDataSourceHolder() {
-            if (dataSourceHolder == null) {
-                dataSourceHolder = ApplicationContext.getInstance().getBean(SqlDataSourceHolder.class);
+        private DataSource getDataSource() {
+            if (dataSource == null) {
+                dataSource = ApplicationContext.getInstance().getBean(DataSource.class);
             }
-            return dataSourceHolder;
+            return dataSource;
         }
     }
 }

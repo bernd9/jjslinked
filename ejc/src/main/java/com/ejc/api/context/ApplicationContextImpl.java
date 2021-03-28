@@ -20,7 +20,7 @@ class ApplicationContextImpl extends ApplicationContext {
         List<Object> result = new ArrayList<>(getBeans(c));
         switch (result.size()) {
             case 0:
-                throw new IllegalArgumentException("no bean of type " + c.getName());
+                throw new UnsatisfiedDependencyException(c);
             case 1:
                 return (T) result.get(0);
             default:

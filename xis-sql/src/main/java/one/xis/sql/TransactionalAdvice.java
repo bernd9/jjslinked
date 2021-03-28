@@ -42,6 +42,6 @@ class TransactionalAdvice implements MethodAdvice {
         if (method.getDeclaringClass().isAnnotationPresent(Transactional.class)) {
             return method.getDeclaringClass().getAnnotation(Transactional.class).isolationLevel();
         }
-        throw new IllegalStateException();
+        throw new IllegalStateException(method + ": @Transactional-annotation not found");
     }
 }

@@ -3,11 +3,13 @@ package one.xis.sql.api;
 import com.ejc.api.context.UsedInGeneratedCode;
 import lombok.Data;
 import one.xis.sql.api.action.EntityAction;
+import one.xis.sql.api.action.EntityBulkUpdate;
 import one.xis.sql.api.action.EntityDeleteAction;
 import one.xis.sql.api.action.EntitySaveAction;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class EntityCrudHandlerSession {
 
@@ -30,22 +32,31 @@ public class EntityCrudHandlerSession {
 
     @UsedInGeneratedCode
     @SuppressWarnings({"unchecked", "unused"})
-    public void addSaveAction(Object o, EntityTableAccessor<?,?> tableAccessor, EntityFunctions<?,?> functions) {
+    public void addSaveAction(Object o, EntityTableAccessor<?, ?> tableAccessor, EntityFunctions<?, ?> functions) {
         Class<?> entityClass = o.getClass();
         entityActionsForType(entityClass, tableAccessor, functions).addSaveAction(o);
     }
 
     @UsedInGeneratedCode
     @SuppressWarnings({"unchecked", "unused"})
-    public void addDeleteAction(Object o, EntityTableAccessor<?,?> tableAccessor, EntityFunctions<?,?> functions) {
+    public void addDeleteAction(Object o, EntityTableAccessor<?, ?> tableAccessor, EntityFunctions<?, ?> functions) {
         Class<?> entityClass = o.getClass();
         entityActionsForType(entityClass, tableAccessor, functions).addDeleteAction(o);
     }
 
     @SuppressWarnings("unchecked")
-    public void addValueUpdateAction(Object o, Consumer<Object> valueUpdater, EntityTableAccessor<?,?> tableAccessor, EntityFunctions<?,?> functions) {
+    public void addValueUpdateAction(Object o, Consumer<Object> valueUpdater, EntityTableAccessor<?, ?> tableAccessor, EntityFunctions<?, ?> functions) {
         Class<?> entityClass = o.getClass();
         entityActionsForType(entityClass, tableAccessor, functions).addValueUpdateAction(o, valueUpdater);
+    }
+
+    @UsedInGeneratedCode
+    @SuppressWarnings({"unchecked", "unused"})
+    public void addBulkUpdateAction(List<?> entities, EntityTableAccessor<?, ?> tableAccessor, EntityFunctions<?, ?> functions) {
+        if (!entities.isEmpty()) {
+            Class<?> entityClass = entities.get(0).getClass();
+            entityActionsForType(entityClass, tableAccessor, functions).addBulkUpdateAction((Collection<Object>) entities);
+        }
     }
 
 
@@ -57,7 +68,7 @@ public class EntityCrudHandlerSession {
         actionsForEntityTypes.clear();
     }
 
-    private EntityActions entityActionsForType(Class<?> entityType, EntityTableAccessor<?,?> tableAccessor, EntityFunctions<?,?> functions) {
+    private EntityActions entityActionsForType(Class<?> entityType, EntityTableAccessor<?, ?> tableAccessor, EntityFunctions<?, ?> functions) {
         return findExistingEntityActions(entityType).orElseGet(() -> createNewEntityActions(entityType, tableAccessor, functions));
     }
 
@@ -68,7 +79,7 @@ public class EntityCrudHandlerSession {
                 .findFirst();
     }
 
-    private EntityActions createNewEntityActions(Class<?> entityType, EntityTableAccessor<?,?> tableAccessor, EntityFunctions<?,?> functions) {
+    private EntityActions createNewEntityActions(Class<?> entityType, EntityTableAccessor<?, ?> tableAccessor, EntityFunctions<?, ?> functions) {
         EntityActions entityActions = new EntityActions(entityType, (EntityTableAccessor<Object, Object>) tableAccessor, functions);
         actionsForEntityTypes.add(entityActions);
         return entityActions;
@@ -78,9 +89,10 @@ public class EntityCrudHandlerSession {
     private static class EntityActions {
 
         private final Class<?> entityType;
-        private final EntityTableAccessor<Object,Object> entityTableAccessor;
-        private final EntityFunctions<?,?> functions;
+        private final EntityTableAccessor<Object, Object> entityTableAccessor;
+        private final EntityFunctions<?, ?> functions;
         private Map<Integer, EntityAction<Object>> entityActions = new HashMap<>();
+        private final Collection<EntityBulkUpdate<?>> bulkUpdateActions = new ArrayList<>();
 
         boolean hasSaveAction(Object o) {
             return Optional.ofNullable(entityActions.get(System.identityHashCode(o)))
@@ -116,11 +128,15 @@ public class EntityCrudHandlerSession {
                 entityActions.put(hashCode, new EntitySaveAction<>(o));
             } else if (action instanceof EntitySaveAction) {
                 valueUpdater.accept(action.getEntity());
-            } else if (action instanceof EntityDeleteAction){
+            } else if (action instanceof EntityDeleteAction) {
                 throw new IllegalStateException("you are trying to update deleted entity " + o);
             } else {
                 throw new IllegalStateException("unknown action: " + action);
             }
+        }
+
+        void addBulkUpdateAction(Collection<Object> entities) {
+            bulkUpdateActions.add(new EntityBulkUpdate<>(entities));
         }
 
         void executeActions() {
@@ -128,16 +144,30 @@ public class EntityCrudHandlerSession {
             Collection<Object> updateEntities = new HashSet<>();
             Collection<Object> deleteEntities = new HashSet<>();
 
+            updateEntities.addAll(bulkUpdateActions.stream()
+                    .map(EntityBulkUpdate::getEntities)
+                    .flatMap(Collection::stream).collect(Collectors.toSet()));
+
             for (EntityAction<Object> action : entityActions.values()) {
                 Object entity = action.getEntity();
                 if (action instanceof EntitySaveAction) {
-                    SqlSaveAction sqlSaveAction = Session.getInstance().getSaveAction(entity, functions);
-                    switch (sqlSaveAction) {
-                        case INSERT: insertEntities.add(entity);
-                        break;
-                        case UPDATE: updateEntities.add(entity);
-                        break;
-                        default: throw new IllegalStateException();
+                    if (action.getEntity() instanceof EntityProxy) {
+                        EntityProxy<Object, Object> entityProxy = (EntityProxy<Object, Object>) action.getEntity();
+                        if (entityProxy.dirty()) {
+                            updateEntities.add(entity);
+                        }
+                    } else {
+                        SqlSaveAction sqlSaveAction = Session.getInstance().getSaveAction(entity, functions);
+                        switch (sqlSaveAction) {
+                            case INSERT:
+                                insertEntities.add(entity);
+                                break;
+                            case UPDATE:
+                                updateEntities.add(entity);
+                                break;
+                            default:
+                                throw new IllegalStateException();
+                        }
                     }
                 } else if (action instanceof EntityDeleteAction) {
                     deleteEntities.add(entity);
@@ -146,10 +176,8 @@ public class EntityCrudHandlerSession {
             entityTableAccessor.delete(deleteEntities);
             entityTableAccessor.insert(insertEntities);
             entityTableAccessor.update(updateEntities);
-
-
         }
-
-
     }
+
+
 }
