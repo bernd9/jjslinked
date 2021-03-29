@@ -2,14 +2,9 @@ package one.xis.sql.api;
 
 import com.ejc.api.context.UsedInGeneratedCode;
 import lombok.Data;
-import one.xis.sql.api.action.EntityAction;
-import one.xis.sql.api.action.EntityBulkUpdate;
-import one.xis.sql.api.action.EntityDeleteAction;
-import one.xis.sql.api.action.EntitySaveAction;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 public class EntityCrudHandlerSession {
 
@@ -92,8 +87,6 @@ public class EntityCrudHandlerSession {
         private final Class<?> entityType;
         private final EntityTableAccessor<Object, Object> entityTableAccessor;
         private final EntityFunctions<?, ?> functions;
-        private Map<Integer, EntityAction<Object>> entityActions = new HashMap<>();
-        private final Collection<EntityBulkUpdate<?>> bulkUpdateActions = new ArrayList<>();
 
         private final Map<Integer, Object> insertEntities = new HashMap<>();
         private final Map<Integer, Object> updateEntities = new HashMap<>();
@@ -167,7 +160,7 @@ public class EntityCrudHandlerSession {
         }
 
         void addBulkUpdateAction(Collection<Object> entities) {
-            bulkUpdateActions.add(new EntityBulkUpdate<>(entities));
+           entities.forEach(e -> updateEntities.put(System.identityHashCode(e), e));
         }
 
         void executeActions() {
