@@ -34,20 +34,20 @@ public class EntityCrudHandlerSession {
     @SuppressWarnings({"unchecked", "unused"})
     public void addSaveAction(Object o, EntityTableAccessor<?, ?> tableAccessor, EntityFunctions<?, ?> functions) {
         Class<?> entityClass = o.getClass();
-        entityActionsForType(entityClass, tableAccessor, functions).addSaveAction(o);
+        entityActionsForType(entityClass, tableAccessor, functions).addEntityToSave(o);
     }
 
     @UsedInGeneratedCode
     @SuppressWarnings({"unchecked", "unused"})
     public void addDeleteAction(Object o, EntityTableAccessor<?, ?> tableAccessor, EntityFunctions<?, ?> functions) {
         Class<?> entityClass = o.getClass();
-        entityActionsForType(entityClass, tableAccessor, functions).addDeleteAction(o);
+        entityActionsForType(entityClass, tableAccessor, functions).addEntityToDelete(o);
     }
 
     @SuppressWarnings("unchecked")
     public void addValueUpdateAction(Object o, Consumer<Object> valueUpdater, EntityTableAccessor<?, ?> tableAccessor, EntityFunctions<?, ?> functions) {
         Class<?> entityClass = o.getClass();
-        entityActionsForType(entityClass, tableAccessor, functions).addValueUpdateAction(o, valueUpdater);
+        entityActionsForType(entityClass, tableAccessor, functions).addEntityForFieldUpdate(o, valueUpdater);
     }
 
     @UsedInGeneratedCode
@@ -85,6 +85,7 @@ public class EntityCrudHandlerSession {
         return entityActions;
     }
 
+
     @Data
     private static class EntityActions {
 
@@ -94,45 +95,75 @@ public class EntityCrudHandlerSession {
         private Map<Integer, EntityAction<Object>> entityActions = new HashMap<>();
         private final Collection<EntityBulkUpdate<?>> bulkUpdateActions = new ArrayList<>();
 
+        private final Map<Integer, Object> insertEntities = new HashMap<>();
+        private final Map<Integer, Object> updateEntities = new HashMap<>();
+        private final Map<Integer, Object> deleteEntities = new HashMap<>();
+
         boolean hasSaveAction(Object o) {
-            return Optional.ofNullable(entityActions.get(System.identityHashCode(o)))
-                    .map(EntitySaveAction.class::isInstance)
-                    .orElse(false);
+            int hashCode = System.identityHashCode(o);
+            return insertEntities.containsKey(hashCode) || updateEntities.containsKey(hashCode);
         }
 
         boolean hasDeleteAction(Object o) {
-            return Optional.ofNullable(entityActions.get(System.identityHashCode(o)))
-                    .map(EntityDeleteAction.class::isInstance)
-                    .orElse(false);
+            return deleteEntities.containsKey(System.identityHashCode(o));
         }
 
         boolean matches(Class<?> type) {
             return entityType.equals(type);
         }
 
-        void addSaveAction(Object o) {
+        void addEntityToSave(Object o) {
             // replace previous action
-            entityActions.put(System.identityHashCode(o), new EntitySaveAction<>(o));
-        }
-
-        void addDeleteAction(Object o) {
-            // replace previous action
-            entityActions.put(System.identityHashCode(o), new EntityDeleteAction<>(o));
-        }
-
-        void addValueUpdateAction(Object o, Consumer<Object> valueUpdater) {
             int hashCode = System.identityHashCode(o);
-            EntityAction<Object> action = entityActions.get(hashCode);
-            if (action == null) {
-                valueUpdater.accept(o);
-                entityActions.put(hashCode, new EntitySaveAction<>(o));
-            } else if (action instanceof EntitySaveAction) {
-                valueUpdater.accept(action.getEntity());
-            } else if (action instanceof EntityDeleteAction) {
-                throw new IllegalStateException("you are trying to update deleted entity " + o);
-            } else {
-                throw new IllegalStateException("unknown action: " + action);
+            if (o instanceof EntityProxy) {
+                EntityProxy<?, ?> entityProxy = (EntityProxy<?, ?>) o;
+                if (entityProxy.dirty()) {
+                    if (updateEntities.containsKey(hashCode)) {
+                        throw new IllegalStateException();
+                    }
+                    updateEntities.put(hashCode, entityProxy);
+                    return;
+                }
             }
+            EntityState entityState = Session.getInstance().getEntityState(o, functions);
+            switch (entityState) {
+                case NEW:
+                    if (insertEntities.containsKey(hashCode)) {
+                        throw new IllegalStateException();
+                    }
+                    insertEntities.put(hashCode, o);
+                    break;
+                case EDITED:
+                    if (updateEntities.containsKey(hashCode)) {
+                        throw new IllegalStateException();
+                    }
+                    updateEntities.put(hashCode, o);
+                    break;
+                case UNCHANGED:
+                    // NOOP
+                    break;
+                default:
+                    throw new IllegalStateException();
+            }
+        }
+
+        void addEntityToDelete(Object o) {
+            // replace previous action
+            deleteEntities.put(System.identityHashCode(o), o);
+        }
+
+        void addEntityForFieldUpdate(Object o, Consumer<Object> fieldUpdater) {
+            int hashCode = System.identityHashCode(o);
+            if (updateEntities.containsKey(hashCode)) {
+                fieldUpdater.accept(updateEntities.get(hashCode));
+                return;
+            }
+            if (insertEntities.containsKey(hashCode)) {
+                fieldUpdater.accept(insertEntities.get(hashCode));
+                return;
+            }
+            fieldUpdater.accept(o);
+            updateEntities.put(hashCode, o);
         }
 
         void addBulkUpdateAction(Collection<Object> entities) {
@@ -140,44 +171,10 @@ public class EntityCrudHandlerSession {
         }
 
         void executeActions() {
-            Collection<Object> insertEntities = new HashSet<>();
-            Collection<Object> updateEntities = new HashSet<>();
-            Collection<Object> deleteEntities = new HashSet<>();
-
-            updateEntities.addAll(bulkUpdateActions.stream()
-                    .map(EntityBulkUpdate::getEntities)
-                    .flatMap(Collection::stream).collect(Collectors.toSet()));
-
-            for (EntityAction<Object> action : entityActions.values()) {
-                Object entity = action.getEntity();
-                if (action instanceof EntitySaveAction) {
-                    if (action.getEntity() instanceof EntityProxy) {
-                        EntityProxy<Object, Object> entityProxy = (EntityProxy<Object, Object>) action.getEntity();
-                        if (entityProxy.dirty()) {
-                            updateEntities.add(entity);
-                        }
-                    } else {
-                        EntityState entityState = Session.getInstance().getEntityState(entity, functions);
-                        switch (entityState) {
-                            case NEW:
-                                insertEntities.add(entity);
-                                break;
-                            case UPDATED:
-                                updateEntities.add(entity);
-                                break;
-                            default:
-                                throw new IllegalStateException();
-                        }
-                    }
-                } else if (action instanceof EntityDeleteAction) {
-                    deleteEntities.add(entity);
-                }
-            }
-            entityTableAccessor.delete(deleteEntities);
-            entityTableAccessor.insert(insertEntities);
-            entityTableAccessor.update(updateEntities);
+            entityTableAccessor.delete(deleteEntities.values());
+            entityTableAccessor.insert(insertEntities.values());
+            entityTableAccessor.update(updateEntities.values());
         }
     }
-
 
 }

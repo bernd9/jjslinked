@@ -2,6 +2,6 @@ package one.xis.sql.api;
 
 enum EntityState {
     NEW,
-    UPDATED,
+    EDITED,
     UNCHANGED
 }

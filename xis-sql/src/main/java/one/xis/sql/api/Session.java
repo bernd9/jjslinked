@@ -50,7 +50,7 @@ public class Session {
     }
 
     private EntityState getEntityState(Object orig, Object clone, BiFunction<Object, Object, Boolean> compareFunction) {
-        return compareFunction.apply(orig, clone) ? EntityState.UNCHANGED : EntityState.UPDATED;
+        return compareFunction.apply(orig, clone) ? EntityState.UNCHANGED : EntityState.EDITED;
     }
 
     private void checkPrimaryKeyUnchanged(Object orig, Object clone, Function<Object, Object> getPkFunction) {
