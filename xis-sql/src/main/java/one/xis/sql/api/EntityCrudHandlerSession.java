@@ -54,12 +54,8 @@ public class EntityCrudHandlerSession {
         }
     }
 
-
     void executeActions() {
         actionsForEntityTypes.forEach(EntityActions::executeActions);
-    }
-
-    void clear() {
         actionsForEntityTypes.clear();
     }
 
