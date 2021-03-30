@@ -3,15 +3,16 @@ package one.xis.sql.processor;
 import com.ejc.util.StringUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
-import one.xis.sql.api.EntityCrudHandlerSession;
 import one.xis.sql.api.EntityCrudHandler;
-import one.xis.sql.api.EntityFunctions;
+import one.xis.sql.api.EntityCrudHandlerSession;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.Comparator;
-import java.util.stream.Stream;;
+import java.util.stream.Stream;
+
+;
 
 @RequiredArgsConstructor
 class EntityCrudHandlerWriter {
@@ -31,7 +32,7 @@ class EntityCrudHandlerWriter {
                 .build();
         StringBuilder s = new StringBuilder();
         javaFile.writeTo(s);
-        //System.out.println(s);
+        System.out.println(s);
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 

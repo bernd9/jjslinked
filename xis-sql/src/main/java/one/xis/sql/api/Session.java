@@ -29,6 +29,15 @@ public class Session {
         return sessions.get() != null;
     }
 
+    public static void required() {
+        if (!exists()) {
+            throw new IllegalStateException("No session. Possible fixes: \n" +
+                    "1. Add @Service to declaring class of current method\n" +
+                    "2. Add @Transactional to declaring class of current method\n" +
+                    "3. Add @Transactional to current method od caller");
+        }
+    }
+
     public static Session getInstance() {
         if (sessions.get() == null) {
             sessions.set(new Session());
@@ -36,9 +45,19 @@ public class Session {
         return sessions.get();
     }
 
-    public void register(Object o, UnaryOperator<Object> cloneOperator) {
-        storeClone(cloneOperator.apply(o), System.identityHashCode(o));
+    public <E> Optional<E> getCloneFromSession(Object o) {
+        return (Optional<E>) getRegisteredClone(o);
     }
+
+    public <E> void register(Object o, UnaryOperator<E> cloneOperator) {
+        storeClone(cloneOperator.apply((E) o), System.identityHashCode(o));
+    }
+
+
+    public void unregister(Object value) {
+        sessionEntities.getOrDefault(value.getClass(), Collections.emptyMap()).remove(System.identityHashCode(value));
+    }
+
 
     EntityState getEntityState(Object o, EntityFunctions functions) {
         return getRegisteredClone(o).map(clone -> getEntityState(o, clone, functions)).orElse(EntityState.NEW);

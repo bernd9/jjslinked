@@ -1,6 +1,6 @@
 package one.xis.sql.api;
 
-public interface EntityFunctions<E,EID> {
+public interface EntityFunctions<E, EID> {
 
     boolean compareColumnValues(E e1, E e2);
 
@@ -8,4 +8,6 @@ public interface EntityFunctions<E,EID> {
 
     void setPk(E entity, EID pk);
 
+    E doClone(E entity);
+    
 }

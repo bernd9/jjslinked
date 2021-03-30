@@ -9,5 +9,7 @@ public interface EntityCollection<E> extends Collection<E> {
 
     Collection<E> getUnlinkedValues();
 
-    List<E> getDirtyValues();
+    Collection<E> getDirtyValues();
+
+    Collection<E> getNewValues();
 }

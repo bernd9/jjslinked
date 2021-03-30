@@ -26,8 +26,8 @@ public class CustomerCrudHandler extends EntityCrudHandler<Customer, Long> {
         }
 
         @Override
-        protected void unlinkFieldValues(Collection<Long> fieldPks) {
-            unlinkBySetFkToNull(fieldPks);
+        protected void unlinkFieldValues(Collection<Order> fieldValues, EntityCrudHandlerSession crudHandlerSession) {
+            unlinkBySetFkToNull(fieldValues, crudHandlerSession);
         }
     }
 

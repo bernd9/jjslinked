@@ -1,10 +1,14 @@
 package one.xis.sql.processor;
 
+import com.ejc.util.JavaModelUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
+import one.xis.sql.api.EntityCrudHandlerSession;
 import one.xis.sql.api.ReferredFieldHandler;
+
 import javax.lang.model.element.Modifier;
 import java.util.Collection;
+import java.util.Collections;
 
 @RequiredArgsConstructor
 class ReferencedFieldHandlerTypeBuilder {
@@ -16,9 +20,9 @@ class ReferencedFieldHandlerTypeBuilder {
                 .superclass(fieldHandlerSuperClass())
                 .addMethod(constructor())
                 .addMethod(implementGetEntityPk())
-                .addMethod(implementGetFieldValuePk())
                 .addMethod(implementSetFieldValueFk())
-                .addMethod(implementUnlinkFieldValues())
+                .addMethod(implementHandleUnlinkedFieldValues())
+                .addMethod(implementGetFieldValues())
                 .build();
     }
 
@@ -32,7 +36,11 @@ class ReferencedFieldHandlerTypeBuilder {
 
     private MethodSpec constructor() {
         return MethodSpec.constructorBuilder()
-                .addStatement("super(new $T(), \"$L\")", EntityCrudHandlerModel.getCrudHandlerTypeName(model.getFieldEntityModel()), model.getReferringField().getColumnName())
+                .addStatement("super(new $T(), new $T(), $T.class, $T.class)",
+                        EntityTableAccessorModel.getEntityTableAccessorTypeName(model.getFieldEntityModel()),
+                        EntityFunctionsModel.getEntityFunctionsTypeName(model.getFieldEntityModel()),
+                        model.getEntityModel().getTypeName(),
+                        model.getFieldEntityModel().getTypeName())
                 .build();
     }
 
@@ -43,16 +51,6 @@ class ReferencedFieldHandlerTypeBuilder {
                 .addParameter(TypeName.get(model.getEntityModel().getType().asType()), "entity")
                 .returns(TypeName.get(model.getEntityModel().getIdField().getFieldType()))
                 .addStatement("return $T.getPk(entity)", EntityUtilModel.getEntityUtilTypeName(model.getEntityModel()))
-                .build();
-    }
-
-    private MethodSpec implementGetFieldValuePk() {
-        return MethodSpec.methodBuilder("getFieldValuePk")
-                .addAnnotation(Override.class)
-                .addModifiers(Modifier.PROTECTED)
-                .addParameter(TypeName.get(model.getFieldEntityModel().getType().asType()), "fieldValue")
-                .returns(TypeName.get(model.getFieldEntityModel().getIdField().getFieldType()))
-                .addStatement("return $T.getPk(fieldValue)", EntityUtilModel.getEntityUtilTypeName(model.getFieldEntityModel()))
                 .build();
     }
 
@@ -70,15 +68,38 @@ class ReferencedFieldHandlerTypeBuilder {
                 .build();
     }
 
-    private MethodSpec implementUnlinkFieldValues() {
-        EntityModel fieldEntityModel = model.getFieldEntityModel();
-        TypeName pkType = TypeName.get(fieldEntityModel.getIdField().getFieldType());
-        String statement = model.isDeleteUnlinked() ? "unlinkByDelete(fieldPks)" : "unlinkBySetFkToNull(fieldPks)";
-        return MethodSpec.methodBuilder("unlinkFieldValues")
+    private MethodSpec implementHandleUnlinkedFieldValues() {
+        TypeName entityPkType = TypeName.get(model.getFieldEntityModel().getIdField().getFieldType());
+        String statement = model.isDeleteUnlinked() ? "unlinkByDelete(fieldValues, crudHandlerSession)" : "unlinkBySetFkToNull(fieldValues, crudHandlerSession)";
+        return MethodSpec.methodBuilder("handleUnlinkedFieldValues")
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PROTECTED)
-                .addParameter(ParameterizedTypeName.get(ClassName.get(Collection.class), pkType), "fieldPks")
+                .addParameter(entityPkType, "entityId")
+                .addParameter(fieldCollectionType(), "fieldValues")
+                .addParameter(TypeName.get(EntityCrudHandlerSession.class), "crudHandlerSession")
                 .addStatement(statement)
                 .build();
+    }
+
+    private TypeName fieldCollectionType() {
+        return ParameterizedTypeName.get(ClassName.get(Collection.class), model.getFieldEntityModel().getTypeName());
+    }
+
+    private MethodSpec implementGetFieldValues() {
+        return MethodSpec.methodBuilder("getFieldValues")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PROTECTED)
+                .addParameter(TypeName.get(model.getEntityModel().getType().asType()), "entity")
+                .returns(fieldCollectionType())
+                .addStatement(implementFieldValuesStatement())
+                .build();
+    }
+
+    private CodeBlock implementFieldValuesStatement() {
+        String getterName = EntityUtilModel.getGetterName(model.getFieldName().toString());
+        if (!JavaModelUtils.isCollection(model.getField())) {
+            return CodeBlock.builder().add("return $T.singletonList($T.$L(entity))", Collections.class, EntityUtilModel.getEntityUtilTypeName(model.getEntityModel()), getterName).build();
+        }
+        return CodeBlock.builder().add("return $T.$L(entity)", EntityUtilModel.getEntityUtilTypeName(model.getEntityModel()), getterName).build();
     }
 }

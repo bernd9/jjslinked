@@ -1,91 +1,39 @@
 package one.xis.sql.api;
 
-import com.ejc.api.context.UsedInGeneratedCode;
-import com.google.common.base.Functions;
-import lombok.RequiredArgsConstructor;
-import one.xis.sql.api.collection.EntityCollection;
+import java.util.Collection;
+import java.util.function.Consumer;
 
-import java.util.*;
-import java.util.stream.Collectors;
+public abstract class ReferredFieldHandler<E, EID, F, FID> extends CollectionFieldHandler<E, EID, F, FID> {
 
-@RequiredArgsConstructor
-public abstract class ReferredFieldHandler<E, EID, F, FID> {
-    private final EntityCrudHandler<F, FID> entityCrudHandler;
-    private final String foreignKeyColumnName;
-
-    @UsedInGeneratedCode
-    @SuppressWarnings("unused")
-    public void updateFieldValues(E entity, F fieldValue, EntityCrudHandlerSession session) {
-        updateFieldValues(entity, Collections.singleton(fieldValue), session);
+    public ReferredFieldHandler(EntityTableAccessor<F, FID> fieldEntityTableAccessor, EntityFunctions<F, FID> fieldEntityFunctions, Class<E> entityType, Class<F> fieldType) {
+        super(fieldEntityTableAccessor, fieldEntityFunctions, entityType, fieldType);
     }
 
-    @UsedInGeneratedCode
-    public void updateFieldValues(E entity, Collection<F> fieldValues, EntityCrudHandlerSession session) {
-        if (fieldValues instanceof EntityCollection) {
-            updateCollectionProxyFieldValues(entity, (EntityCollection) fieldValues);
-        } else {
-            updateCollectionFieldValues(entity, fieldValues);
-        }
+    protected void unlinkBySetFkToNull(Collection<F> unlinkedFieldValues, EntityCrudHandlerSession crudHandlerSession) {
+        unlinkedFieldValues.forEach(fieldValue -> addValueUpdateAction(fieldValue, crudHandlerSession));
     }
 
-    private void updateCollectionProxyFieldValues(E entity, EntityCollection<F> fieldValues) {
-        if (fieldValues.isDirty()) {
-            unlinkFieldValues(fieldValues.stream().map(this::getFieldValuePk).collect(Collectors.toList()));
-            saveFieldValues(entity, fieldValues.getDirtyValues());
-        }
+    protected void unlinkByDelete(Collection<F> unlinkedFieldValues, EntityCrudHandlerSession crudHandlerSession) {
+        addBulDeleteAction(unlinkedFieldValues, crudHandlerSession);
     }
 
-    private void updateCollectionFieldValues(E entity, Collection<F> fieldValues) {
-        Collection<FID> fieldPksInDb = entityCrudHandler.getEntityTableAccessor().getPksByColumnValue(getEntityPk(entity), foreignKeyColumnName);
-        Map<FID,F> fieldValueMap = asMap(fieldValues);
-        unlinkObsoleteFieldValues(fieldPksInDb, fieldValueMap);
-        saveFieldValues(entity, fieldValues);
+    private void addBulDeleteAction(Collection<F> unlinkedFieldValues, EntityCrudHandlerSession crudHandlerSession) {
+        crudHandlerSession.addBulkDeleteAction(unlinkedFieldValues, getFieldEntityTableAccessor(), getFieldEntityFunctions());
     }
 
-    private void unlinkObsoleteFieldValues(Collection<FID> fieldPksInDb, Map<FID,F> fieldValueMap) {
-        Collection<FID> unlinkFieldValuePks = getUnlinkFieldValuePks(fieldPksInDb, fieldValueMap);
-        unlinkFieldValues(unlinkFieldValuePks);
+    private void addValueUpdateAction(F fieldValue, EntityCrudHandlerSession crudHandlerSession) {
+        crudHandlerSession.addValueUpdateAction(fieldValue, getForeignKeyToNullConsumer(), getFieldEntityTableAccessor(), getFieldEntityFunctions());
     }
 
-    private void saveFieldValues(E entity, Collection<F> fieldValues) {
-        fieldValues.forEach(value -> setFieldValueFk(value, entity));
-        entityCrudHandler.save(fieldValues);
-    }
-
-    private Collection<FID> getUnlinkFieldValuePks(Collection<FID> fieldPksInDb, Map<FID,F> fieldValueMap) {
-        Collection<FID> unlinkFieldIds = new HashSet<>(fieldPksInDb);
-        unlinkFieldIds.removeAll(fieldValueMap.keySet());
-        return unlinkFieldIds;
-    }
-
-    private Map<FID,F> asMap(Collection<F> entities) {
-        return entities.stream().collect(Collectors.toMap(this::getFieldValuePk, Functions.identity()));
-    }
-
-    protected void unlinkByFkFkToNull(Collection<FID> fieldPks) {
-        entityCrudHandler.getEntityTableAccessor().updateColumnValuesToNull(fieldPks, foreignKeyColumnName);
+    protected Consumer<F> getForeignKeyToNullConsumer() {
+        return fieldValue -> setFieldValueFk(fieldValue, null);
     }
 
 
-    protected void unlinkByDelete(Collection<FID> fieldPks) {
-        entityCrudHandler.getEntityTableAccessor().deleteAllById(fieldPks);
+    @Override
+    protected void updateLinkColumnValue(F fieldValue, E entity) {
+        setFieldValueFk(fieldValue, entity);
     }
 
-    protected void unlinkBySetFkToNull(Collection<FID> fieldPks) {
-        entityCrudHandler.getEntityTableAccessor().updateColumnValuesToNull(fieldPks, foreignKeyColumnName);
-
-    }
-
-    protected abstract EID getEntityPk(E entity);
-
-    protected abstract FID getFieldValuePk(F fieldValue);
-
-    protected abstract void setFieldValueFk(F fieldValue, E entity);
-
-
-    // depends on delete cascade behaviour
-    protected abstract void unlinkFieldValues(Collection<FID> fieldPks);
-
-
-
+    protected abstract void setFieldValueFk(F fieldValue, E foreignKey);
 }

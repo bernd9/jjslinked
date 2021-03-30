@@ -34,6 +34,7 @@ public class EntityFunctionsWriter {
         builder.addMethod(implementCompareColumnValuesMethod());
         builder.addMethod(implementGetPkMethod());
         builder.addMethod(implementSetPkMethod());
+        builder.addMethod(implementDoClone());
     }
 
     private MethodSpec implementCompareColumnValuesMethod() {
@@ -61,6 +62,15 @@ public class EntityFunctionsWriter {
                 .addParameter(model.getTypeName(), "entity")
                 .addParameter(TypeName.get(model.getEntityModel().getIdField().getFieldType()), "pk")
                 .addStatement("$T.setPk(entity, pk)", model.getEntityUtilTypeName())
+                .build();
+    }
+
+    private MethodSpec implementDoClone() {
+        return MethodSpec.methodBuilder("doClone")
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(model.getTypeName(), "entity")
+                .addStatement("return $T.doClone(entity)", model.getEntityUtilTypeName())
+                .returns(model.getTypeName())
                 .build();
     }
 }
