@@ -9,8 +9,23 @@ import java.util.function.Supplier;
 public class AddressProxy extends Address implements EntityProxy<Address, Long> {
 
     private boolean dirty;
+    private final boolean readOnly;
     private Map<String, Supplier<?>> suppliers = new HashMap<>();
 
+
+    AddressProxy(boolean readOnly) {
+        this.readOnly = readOnly;
+        suppliers = new HashMap<>();
+    }
+
+    AddressProxy() {
+        this(false);
+    }
+
+    @Override
+    public boolean readOnly() {
+        return readOnly;
+    }
 
     public static final Address NULL = new Address();
 

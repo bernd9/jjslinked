@@ -9,10 +9,23 @@ import java.util.function.Supplier;
 public class OrderProxy extends Order implements EntityProxy<Order, Long> {
 
     private boolean dirty;
-    private Map<String, Supplier<?>> suppliers = new HashMap<>();
+    private final boolean readOnly;
+    private final Map<String, Supplier<?>> suppliers;
 
+    OrderProxy(boolean readOnly) {
+        this.readOnly = readOnly;
+        suppliers = new HashMap<>();
+    }
 
-    public static final Order NULL = new Order();
+    OrderProxy() {
+        this(false);
+    }
+
+    @Override
+    public boolean readOnly() {
+        return readOnly;
+    }
+
 
     @Override
     public void pk(Long pk) {

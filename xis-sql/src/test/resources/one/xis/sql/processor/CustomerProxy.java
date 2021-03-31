@@ -9,16 +9,27 @@ import one.xis.sql.api.EntityProxy;
 public class CustomerProxy extends Customer implements EntityProxy<Customer, Long> {
 
     private boolean dirty;
+    private final boolean readOnly;
 
     private Map<String, Supplier> suppliers;
 
-    CustomerProxy() {
+    CustomerProxy(boolean readOnly) {
+        this.readOnly = readOnly;
         suppliers = new HashMap<>();
+    }
+
+    CustomerProxy() {
+        this(false);
     }
 
     @Override
     public Map<String, Supplier<?>> suppliers() {
         return suppliers();
+    }
+
+    @Override
+    public boolean readOnly() {
+        return readOnly;
     }
 
     @Override

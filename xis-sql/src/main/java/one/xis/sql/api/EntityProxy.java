@@ -15,6 +15,8 @@ public interface EntityProxy<E, EID> {
 
     boolean dirty();
 
+    boolean readOnly();
+
     void doSetClean();
 
     Map<String, Supplier<?>> suppliers();

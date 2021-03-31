@@ -1,6 +1,5 @@
 package one.xis.sql.processor;
 
-import com.ejc.util.FieldUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.api.EntityProxy;
@@ -38,14 +37,16 @@ class EntityProxyWriter {
                 .build();
         StringBuilder s = new StringBuilder();
         javaFile.writeTo(s);
-        //System.out.println(s);
+        System.out.println(s);
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
 
     private void writeTypeBody(TypeSpec.Builder builder) {
-        addConstructor(builder);
+        addConstructor1(builder);
+        addConstructor2(builder);
         addDirtyField(builder);
+        addReadOnlyField(builder);
         addSupplierField(builder);
         implementGetSuppliers(builder);
         implementProxyInterfaceMethods(builder);
@@ -68,10 +69,17 @@ class EntityProxyWriter {
                 .build());
     }
 
-
-    private void addConstructor(TypeSpec.Builder builder) {
+    private void addConstructor1(TypeSpec.Builder builder) {
         builder.addMethod(MethodSpec.constructorBuilder()
+                .addParameter(TypeName.BOOLEAN, "readOnly")
+                .addStatement("this.readOnly = readOnly")
                 .addStatement("suppliers = new $T<>()", HashMap.class)
+                .build());
+    }
+
+    private void addConstructor2(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.constructorBuilder()
+                .addStatement("this(false)")
                 .build());
     }
 
@@ -119,11 +127,22 @@ class EntityProxyWriter {
     }
 
     private void implementProxyInterfaceMethods(TypeSpec.Builder builder) {
+        builder.addMethod(implementGetReadOnlyMethod());
         builder.addMethod(implementSetPkMethod());
         builder.addMethod(implementGetPkMethod());
         builder.addMethod(implementIsDirtyMethod());
         builder.addMethod(implementDoSetCleanMethod());
     }
+
+    private MethodSpec implementGetReadOnlyMethod() {
+        return MethodSpec.methodBuilder("readOnly")
+                .addAnnotation(Override.class)
+                .addModifiers(Modifier.PUBLIC)
+                .returns(TypeName.BOOLEAN)
+                .addStatement("return readOnly")
+                .build();
+    }
+
 
     private MethodSpec implementGetPkMethod() {
         return MethodSpec.methodBuilder("pk")
@@ -165,6 +184,11 @@ class EntityProxyWriter {
     private void addDirtyField(TypeSpec.Builder builder) {
         builder.addField(FieldSpec.builder(TypeName.BOOLEAN, "dirty", Modifier.PRIVATE).build());
     }
+
+    private void addReadOnlyField(TypeSpec.Builder builder) {
+        builder.addField(FieldSpec.builder(TypeName.BOOLEAN, "readOnly", Modifier.PRIVATE, Modifier.FINAL).build());
+    }
+
 
     private void addSupplierField(TypeSpec.Builder builder) {
         builder.addField(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get(Map.class),
