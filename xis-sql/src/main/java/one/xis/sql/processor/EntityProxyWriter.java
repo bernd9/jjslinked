@@ -84,6 +84,7 @@ class EntityProxyWriter {
         fields.remove(entityProxyModel.getEntityModel().getIdField());
         Collections.sort(fields, Comparator.comparing(FieldModel::getColumnName));
         fields.stream()
+                .filter(field -> !ReferencedFieldModel.class.isInstance(field))// do not set dirty !
                 .map(FieldModel::getSetter)
                 .filter(Optional::isPresent)
                 .map(Optional::get)

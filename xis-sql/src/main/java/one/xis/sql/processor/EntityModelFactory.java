@@ -144,6 +144,7 @@ class EntityModelFactory {
             Set<VariableElement> fields = fields(type);
             GettersAndSetters gettersAndSetters = new GettersAndSetters(type, getTypeUtils());
             entityModel.setType(type);
+            entityModel.setTypeName(TypeName.get(type.asType()));
             entityModel.setTableName(tableName(type));
             entityModel.setIdField(idField(fields, gettersAndSetters));
             entityModel.setNonComplexFields(nonComplexFields(fields, gettersAndSetters));
@@ -151,7 +152,6 @@ class EntityModelFactory {
             entityModel.setCrossTableFields(crossTableFields(fields, gettersAndSetters));
             entityModel.setCollectionTableFields(collectionTableFields(fields, gettersAndSetters));
             entityModel.setJsonFields(jsonFields(fields, gettersAndSetters));
-            entityModel.setTypeName(TypeName.get(type.asType()));
             return entityModel;
         }
 

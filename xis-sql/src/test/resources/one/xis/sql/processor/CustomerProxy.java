@@ -65,10 +65,4 @@ public class CustomerProxy extends Customer implements EntityProxy<Customer, Lon
         super.setLastName(value);
     }
 
-    @Override
-    public void setOrders(List<Order> value) {
-        dirty = true;
-        super.setOrders(value);
-    }
-
 }
