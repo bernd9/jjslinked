@@ -19,18 +19,4 @@ public interface EntityProxy<E, EID> {
 
     void doSetClean();
 
-    Map<String, Supplier<?>> suppliers();
-
-    default E entity() {
-        return (E) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    default <T> T load(String fieldName) {
-        return (T) suppliers().get(fieldName).get();
-    }
-
-    default void addSupplier(String fieldName, Supplier<?> supplier) {
-        suppliers().put(fieldName, supplier);
-    }
 }

@@ -10,11 +10,9 @@ public class OrderProxy extends Order implements EntityProxy<Order, Long> {
 
     private boolean dirty;
     private final boolean readOnly;
-    private final Map<String, Supplier<?>> suppliers;
 
     OrderProxy(boolean readOnly) {
         this.readOnly = readOnly;
-        suppliers = new HashMap<>();
     }
 
     OrderProxy() {
@@ -40,10 +38,5 @@ public class OrderProxy extends Order implements EntityProxy<Order, Long> {
     @Override
     public boolean dirty() {
         return dirty;
-    }
-
-    @Override
-    public Map<String, Supplier<?>> suppliers() {
-        return suppliers;
     }
 }

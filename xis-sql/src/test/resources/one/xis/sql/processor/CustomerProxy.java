@@ -1,9 +1,6 @@
 package one.xis.sql.processor;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
 import one.xis.sql.api.EntityProxy;
 
 public class CustomerProxy extends Customer implements EntityProxy<Customer, Long> {
@@ -11,20 +8,12 @@ public class CustomerProxy extends Customer implements EntityProxy<Customer, Lon
     private boolean dirty;
     private final boolean readOnly;
 
-    private Map<String, Supplier> suppliers;
-
     CustomerProxy(boolean readOnly) {
         this.readOnly = readOnly;
-        suppliers = new HashMap<>();
     }
 
     CustomerProxy() {
         this(false);
-    }
-
-    @Override
-    public Map<String, Supplier<?>> suppliers() {
-        return suppliers();
     }
 
     @Override

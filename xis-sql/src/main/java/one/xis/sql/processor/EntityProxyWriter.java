@@ -9,7 +9,6 @@ import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.*;
-import java.util.function.Supplier;
 
 
 class EntityProxyWriter {
@@ -47,33 +46,15 @@ class EntityProxyWriter {
         addConstructor2(builder);
         addDirtyField(builder);
         addReadOnlyField(builder);
-        addSupplierField(builder);
-        implementGetSuppliers(builder);
         implementProxyInterfaceMethods(builder);
         overrideIdSetter(builder);
         overrideSetters(builder);
-        //overrideForeignKeyFieldGettersAndSetters(builder);
-        /*
-
-        addGetters(builder);
-        addSetters(builder);
-         */
-    }
-
-    private void implementGetSuppliers(TypeSpec.Builder builder) {
-        builder.addMethod(MethodSpec.methodBuilder("suppliers")
-                .addAnnotation(Override.class)
-                .returns(ParameterizedTypeName.get(ClassName.get(Map.class), TypeName.get(String.class), ParameterizedTypeName.get(ClassName.get(Supplier.class), WildcardTypeName.subtypeOf(Object.class))))
-                .addModifiers(Modifier.PUBLIC)
-                .addStatement("return suppliers()")
-                .build());
     }
 
     private void addConstructor1(TypeSpec.Builder builder) {
         builder.addMethod(MethodSpec.constructorBuilder()
                 .addParameter(TypeName.BOOLEAN, "readOnly")
                 .addStatement("this.readOnly = readOnly")
-                .addStatement("suppliers = new $T<>()", HashMap.class)
                 .build());
     }
 
@@ -189,11 +170,6 @@ class EntityProxyWriter {
         builder.addField(FieldSpec.builder(TypeName.BOOLEAN, "readOnly", Modifier.PRIVATE, Modifier.FINAL).build());
     }
 
-
-    private void addSupplierField(TypeSpec.Builder builder) {
-        builder.addField(FieldSpec.builder(ParameterizedTypeName.get(ClassName.get(Map.class),
-                TypeName.get(String.class), TypeName.get(Supplier.class)), "suppliers", Modifier.PRIVATE).build());
-    }
 
     private EntityModel entityModel() {
         return entityProxyModel.getEntityModel();

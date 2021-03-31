@@ -10,12 +10,9 @@ public class AddressProxy extends Address implements EntityProxy<Address, Long> 
 
     private boolean dirty;
     private final boolean readOnly;
-    private Map<String, Supplier<?>> suppliers = new HashMap<>();
-
 
     AddressProxy(boolean readOnly) {
         this.readOnly = readOnly;
-        suppliers = new HashMap<>();
     }
 
     AddressProxy() {
@@ -42,11 +39,6 @@ public class AddressProxy extends Address implements EntityProxy<Address, Long> 
     @Override
     public boolean dirty() {
         return dirty;
-    }
-
-    @Override
-    public Map<String, Supplier<?>> suppliers() {
-        return suppliers;
     }
     
     @Override
