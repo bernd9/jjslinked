@@ -38,10 +38,15 @@ class EntityDatabaseActions {
         if (o instanceof EntityProxy) {
             EntityProxy<?, ?> entityProxy = (EntityProxy<?, ?>) o;
             if (entityProxy.dirty()) {
-                if (updateEntities.containsKey(hashCode)) {
+                if (!updateEntities.containsKey(hashCode)) {
                     throw new IllegalStateException();
                 }
+                if (entityProxy.readOnly()) {
+                    throw new IllegalStateException("you are trying to update a read only-object: " +o
+                            +". @Service or @Transactional-Annotation will fix this issue.");
+                }
                 updateEntities.put(hashCode, entityProxy);
+                entityProxy.doSetClean();
                 return;
             }
         }
@@ -111,6 +116,6 @@ class EntityDatabaseActions {
         insertEntities.values().forEach(entity -> session.register(entity, cloneFunction));
 
         entityTableAccessor.update(updateEntities.values());
-        insertEntities.values().forEach(entity -> session.register(entity, cloneFunction));
+        updateEntities.values().forEach(entity -> session.register(entity, cloneFunction));
     }
 }
