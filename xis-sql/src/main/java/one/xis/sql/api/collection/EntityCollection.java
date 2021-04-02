@@ -12,4 +12,6 @@ public interface EntityCollection<E> extends Collection<E> {
     Collection<E> getDirtyValues();
 
     Collection<E> getNewValues();
+
+    Class<E> getElementType();
 }

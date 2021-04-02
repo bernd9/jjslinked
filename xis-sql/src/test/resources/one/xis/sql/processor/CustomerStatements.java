@@ -6,42 +6,42 @@ import one.xis.sql.api.PreparedEntityStatement;
 public class CustomerStatements implements EntityStatements<Customer, Long> {
     @Override
     public String getInsertSql() {
-        return "INSERT INTO `customer` (`id`,`first_name`,`invoice_address_id`,`last_name`) VALUES (?,?,?,?)";
+        return "INSERT INTO customer (id,first_name,invoice_address_id,last_name) VALUES (?,?,?,?)";
     }
 
     @Override
     public String getSelectByIdSql() {
-        return "SELECT `id`,`first_name`,`invoice_address_id`,`last_name` FROM `customer` WHERE `id`=?";
+        return "SELECT id,first_name,invoice_address_id,last_name FROM customer WHERE id=?";
     }
 
     @Override
     public String getUpdateSql() {
-        return "UPDATE `customer` SET `first_name`=?,`invoice_address_id`=?,`last_name`=? WHERE `id`=?";
+        return "UPDATE customer SET first_name=?,invoice_address_id=?,last_name=? WHERE id=?";
     }
 
     @Override
     public String getDeleteSql() {
-        return "DELETE FROM `customer` WHERE `id`=?";
+        return "DELETE FROM customer WHERE id=?";
     }
 
     @Override
     public String getSelectAllSql() {
-        return "SELECT `id`,`first_name`,`invoice_address_id`,`last_name` FROM `customer`";
+        return "SELECT id,first_name,invoice_address_id,last_name FROM customer";
     }
 
     @Override
     public String getDeleteAllSql() {
-        return "DELETE FROM `customer`";
+        return "DELETE FROM customer";
     }
 
     @Override
     public String getUpdateColumnValuesToNullByPkSql(String columnName) {
-        return String.format("UPDATE `customer` SET `%s`=NULL WHERE `id`=?", columnName);
+        return String.format("UPDATE customer SET %s=NULL WHERE id=?", columnName);
     }
 
     @Override
     public String getPksByColumnValueSql(String columnName) {
-        return String.format("SELECT `id` FROM `customer` WHERE `%s`=?", columnName);
+        return String.format("SELECT id FROM customer WHERE %s=?", columnName);
     }
 
     @Override

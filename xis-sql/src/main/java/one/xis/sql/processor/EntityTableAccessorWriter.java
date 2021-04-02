@@ -48,7 +48,7 @@ public class EntityTableAccessorWriter {
     private void createConstructor(TypeSpec.Builder builder) {
         builder.addMethod(MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
-                .addStatement("super(new $L(), $T.class)", EntityStatementsModel.getEntityStatementsSimpleName(entityModel()), entityPkType())
+                .addStatement("super(new $L(), $T.class, $T.class)", EntityStatementsModel.getEntityStatementsSimpleName(entityModel()), entityType(), entityPkType())
                 .build());
     }
 
@@ -194,5 +194,9 @@ public class EntityTableAccessorWriter {
 
     private TypeMirror entityPkType() {
         return entityModel().getIdField().getFieldType();
+    }
+
+    private TypeName entityType() {
+        return entityModel().getTypeName();
     }
 }

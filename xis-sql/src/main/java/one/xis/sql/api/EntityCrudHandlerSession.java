@@ -1,13 +1,12 @@
 package one.xis.sql.api;
 
 import com.ejc.api.context.UsedInGeneratedCode;
-import com.ejc.util.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public class EntityCrudHandlerSession {
 
@@ -50,34 +49,21 @@ public class EntityCrudHandlerSession {
 
     @UsedInGeneratedCode
     @SuppressWarnings({"unchecked", "unused"})
-    public void addBulkUpdateAction(Collection<?> entities, EntityTableAccessor<?, ?> tableAccessor, EntityFunctions<?, ?> functions) {
-        if (!entities.isEmpty()) {
-            Class<?> entityClass = CollectionUtils.getFirstOrThrow(entities).getClass();
-            entityActionsForType(entityClass, tableAccessor, functions).addBulkUpdateAction(entities);
-        }
+    public <E> void addBulkUpdateAction(Stream<E> entities, EntityTableAccessor<E, ?> tableAccessor, EntityFunctions<?, ?> functions, Class<E> entityClass) {
+        entityActionsForType(entityClass, tableAccessor, functions).addBulkUpdateAction(entities);
     }
 
     @UsedInGeneratedCode
     @SuppressWarnings({"unchecked", "unused"})
-    public void addBulkInsertAction(Collection<?> entities, EntityTableAccessor<?, ?> tableAccessor, EntityFunctions<?, ?> functions) {
-        if (!entities.isEmpty()) {
-            Class<?> entityClass = CollectionUtils.getFirstOrThrow(entities).getClass();
-            entityActionsForType(entityClass, tableAccessor, functions).addBulkInsertAction(entities);
-        }
+    public <E> void addBulkInsertAction(Stream<E> entities, EntityTableAccessor<E, ?> tableAccessor, EntityFunctions<?, ?> functions, Class<E> entityClass) {
+        entityActionsForType(entityClass, tableAccessor, functions).addBulkInsertAction(entities);
     }
 
 
     @UsedInGeneratedCode
     @SuppressWarnings({"unchecked", "unused"})
-    public void addBulkDeleteAction(Collection<?> entities, EntityTableAccessor<?, ?> tableAccessor, EntityFunctions<?, ?> functions) {
-        if (!entities.isEmpty()) {
-            Class<?> entityClass = CollectionUtils.getFirstOrThrow(entities).getClass();
-            entityActionsForType(entityClass, tableAccessor, functions).addBulkDeleteAction(entities);
-        }
-    }
-
-    Optional<EntityDatabaseActions> getEntityDatabaseActions(Class<?> entityType) {
-        return findExistingEntityActions(entityType);
+    public <E> void addBulkDeleteAction(Stream<E> entities, EntityTableAccessor<E, ?> tableAccessor, EntityFunctions<?, ?> functions, Class<E> entityClass) {
+        entityActionsForType(entityClass, tableAccessor, functions).addBulkDeleteAction(entities);
     }
 
     EntityDatabaseActions createNewEntityActions(Class<?> entityType, EntityTableAccessor<?, ?> tableAccessor, EntityFunctions<?, ?> functions) {
@@ -85,7 +71,6 @@ public class EntityCrudHandlerSession {
         actionsForEntityTypes.add(entityDatabaseActions);
         return entityDatabaseActions;
     }
-
 
     void executeActions() {
         actionsForEntityTypes.forEach(EntityDatabaseActions::executeActions);

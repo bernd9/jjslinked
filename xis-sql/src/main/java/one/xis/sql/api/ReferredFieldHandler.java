@@ -2,6 +2,7 @@ package one.xis.sql.api;
 
 import java.util.Collection;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 public abstract class ReferredFieldHandler<E, EID, F, FID> extends CollectionFieldHandler<E, EID, F, FID> {
 
@@ -18,7 +19,7 @@ public abstract class ReferredFieldHandler<E, EID, F, FID> extends CollectionFie
     }
 
     private void addBulDeleteAction(Collection<F> unlinkedFieldValues, EntityCrudHandlerSession crudHandlerSession) {
-        crudHandlerSession.addBulkDeleteAction(unlinkedFieldValues, getFieldEntityTableAccessor(), getFieldEntityFunctions());
+        crudHandlerSession.addBulkDeleteAction(unlinkedFieldValues.stream(), getFieldEntityTableAccessor(), getFieldEntityFunctions(), getFieldType());
     }
 
     private void addValueUpdateAction(F fieldValue, EntityCrudHandlerSession crudHandlerSession) {
@@ -29,11 +30,26 @@ public abstract class ReferredFieldHandler<E, EID, F, FID> extends CollectionFie
         return fieldValue -> setFieldValueFk(fieldValue, null);
     }
 
-
-    @Override
-    protected void updateLinkColumnValue(F fieldValue, E entity) {
+    private void updateForeignKeyColumnValue(F fieldValue, E entity) {
         setFieldValueFk(fieldValue, entity);
     }
 
+    @Override
+    protected void addSaveAction(E entity, F fieldValue, EntityCrudHandlerSession crudHandlerSession) {
+        updateForeignKeyColumnValue(fieldValue, entity);
+        super.addSaveAction(entity, fieldValue, crudHandlerSession);
+    }
+
+    @Override
+    protected void addBulkInsertAction(E entity, Stream<F> fieldValues, EntityCrudHandlerSession crudHandlerSession, Class<F> fieldType) {
+        super.addBulkInsertAction(entity, fieldValues.peek(value -> updateForeignKeyColumnValue(value,  entity)), crudHandlerSession, fieldType);
+    }
+
+    @Override
+    protected void addBulkUpdateAction(E entity, Stream<F> fieldValues, EntityCrudHandlerSession crudHandlerSession, Class<F> fieldType) {
+        super.addBulkUpdateAction(entity, fieldValues.peek(value -> updateForeignKeyColumnValue(value,  entity)), crudHandlerSession, fieldType);
+    }
+
     protected abstract void setFieldValueFk(F fieldValue, E foreignKey);
+
 }

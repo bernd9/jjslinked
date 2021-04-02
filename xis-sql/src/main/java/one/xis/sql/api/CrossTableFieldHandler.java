@@ -1,55 +1,36 @@
 package one.xis.sql.api;
 
-import lombok.NonNull;
-import one.xis.sql.CrudRepository;
-
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class CrossTableFieldHandler<E, F, EID, FID> {
+public abstract class CrossTableFieldHandler<E, F, EID, FID> extends CollectionFieldHandler<E, EID, F, FID> {
     // TODO validate crosstable field must be a collection
 
-    private final CrossTableAccessor<EID, FID> crossTableAccessor;
-    private final CrudRepository<E, EID> entityRepository;
+    private final CrossTableAccessor<EID,FID> crossTableAccessor;
 
-    private final CrudRepository<F, FID> fieldRepository;
-
-    public CrossTableFieldHandler(CrossTableAccessor<EID, FID> crossTableAccessor, CrudRepository<E, EID> entityRepository, CrudRepository<F, FID> fieldRepository) {
+    public CrossTableFieldHandler(EntityTableAccessor<F, FID> fieldEntityTableAccessor, CrossTableAccessor<EID,FID> crossTableAccessor, EntityFunctions<F, FID> fieldEntityFunctions, Class<E> entityType, Class<F> fieldType) {
+        super(fieldEntityTableAccessor, fieldEntityFunctions, entityType, fieldType);
         this.crossTableAccessor = crossTableAccessor;
-        this.entityRepository = entityRepository;
-        this.fieldRepository = fieldRepository;
     }
 
-    // TODO may be remove these methods. order may be static in generated code.
-    boolean isBeforeEntity() {
-        return false;
+    @Override
+    protected void handleUnlinkedFieldValues(EID entityId, Collection<F> unlinkedFieldValues, EntityCrudHandlerSession crudHandlerSession) {
+        crossTableAccessor.deleteReferences(entityId, unlinkedFieldValues.stream().map(this::getFieldValuePk));
     }
 
-    void onSaveEntity(E entity) {
-        @NonNull EID pk = getEntityPk(entity); // TODO check in foreign keys for type to be equal
-        Collection<F> fieldValues = getFieldValues(entity);
-        if (fieldValues == null) {
-            fieldValues = Collections.emptySet();
-        }
-        Set<FID> fieldValuePks = getFieldValuesPks(fieldValues);
-        crossTableAccessor.updateByFieldReferences(pk, fieldValuePks);
-        entityRepository.save(entity);
-        fieldRepository.saveAll(fieldValues);
+    @Override
+    protected void doUpdateFieldValuesBySessionState(E entity, Map<Integer, F> sessionFieldValueMap, Map<Integer, F> actualFieldValueMap, EntityCrudHandlerSession crudHandlerSession) {
+        super.doUpdateFieldValuesBySessionState(entity, sessionFieldValueMap, actualFieldValueMap, crudHandlerSession);
+        crossTableAccessor.addReferences(getEntityPk(entity), getNewValues(sessionFieldValueMap, actualFieldValueMap).stream().map(this::getFieldValuePk));
     }
 
-    void onDeleteEntity(E entity) {
-        crossTableAccessor.removeAllReferences(getEntityPk(entity));
+    private Collection<F> getNewValues(Map<Integer, F> sessionFieldValueMap, Map<Integer, F> actualFieldValueMap) {
+        return actualFieldValueMap.keySet().stream()
+                .filter(sessionHashCode -> !sessionFieldValueMap.containsKey(sessionHashCode))
+                .map(sessionFieldValueMap::get).collect(Collectors.toSet());
     }
-
-    protected abstract Collection<F> getFieldValues(E entity);
-
-    private Set<FID> getFieldValuesPks(Collection<F> fieldValues) {
-        return fieldValues.stream().map(this::getFieldValuePk).collect(Collectors.toSet());
-    }
-
-    protected abstract EID getEntityPk(E entity);
 
     protected abstract FID getFieldValuePk(F fieldValue);
+
 }

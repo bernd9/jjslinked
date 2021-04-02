@@ -1,6 +1,5 @@
 package one.xis.sql.processor;
 
-import java.util.List;
 import one.xis.sql.api.EntityProxy;
 
 public class CustomerProxy extends Customer implements EntityProxy<Customer, Long> {

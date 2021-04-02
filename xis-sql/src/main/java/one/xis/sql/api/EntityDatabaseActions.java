@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
+import java.util.stream.Stream;
 
 @Data
 class EntityDatabaseActions {
@@ -91,15 +92,15 @@ class EntityDatabaseActions {
         updateEntities.put(hashCode, o);
     }
 
-    void addBulkUpdateAction(Collection<?> entities) {
+    void addBulkUpdateAction(Stream<?> entities) {
         entities.forEach(e -> updateEntities.put(System.identityHashCode(e), e));
     }
 
-    void addBulkInsertAction(Collection<?> entities) {
+    void addBulkInsertAction(Stream<?> entities) {
         entities.forEach(e -> insertEntities.put(System.identityHashCode(e), e));
     }
 
-    void addBulkDeleteAction(Collection<?> entities) {
+    void addBulkDeleteAction(Stream<?> entities) {
         entities.forEach(e -> deleteEntities.put(System.identityHashCode(e), e));
     }
 

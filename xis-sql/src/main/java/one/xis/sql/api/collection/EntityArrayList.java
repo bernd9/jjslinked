@@ -15,17 +15,22 @@ public class EntityArrayList<E> extends ArrayList<E> implements EntityCollection
     private final List<E> deletedValues = new ArrayList<>();
     private final List<E> newValues = new ArrayList<>();
     private final List<E> updateValues = new ArrayList<>();
+    private final Class<E> elementType;
     private boolean dirty;
 
-    EntityArrayList(int initialCapacity) {
+
+    EntityArrayList(int initialCapacity, Class<E> elementType) {
         super(initialCapacity);
+        this.elementType = elementType;
     }
 
-    public EntityArrayList() {
+    public EntityArrayList(Class<E> elementType) {
+        this.elementType = elementType;
     }
 
-    EntityArrayList(Collection<? extends E> c) {
+    EntityArrayList(Collection<? extends E> c, Class<E> elementType) {
         super(c);
+        this.elementType = elementType;
     }
 
     @Override

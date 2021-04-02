@@ -19,6 +19,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     private final EntityStatements<E, EID> entityStatements;
 
+    private final Class<E> entityType;
     @Getter
     private final Class<EID> pkType;
 
@@ -37,7 +38,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     }
 
     List<E> findAll() {
-        EntityArrayList<E> list = new EntityArrayList<>();
+        EntityArrayList<E> list = new EntityArrayList<>(entityType);
         try (PreparedStatement st = prepare(entityStatements.getSelectAllSql())) {
             try (ResultSet rs = st.executeQuery()) {
                 while (rs.next()) {

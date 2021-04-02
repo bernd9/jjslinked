@@ -120,7 +120,7 @@ public class Session {
         }
     }
 
-    private Connection getConnection() {
+    public Connection getConnection() {
         try {
             return connectionHolder.getConnection();
         } catch (SQLException e) {

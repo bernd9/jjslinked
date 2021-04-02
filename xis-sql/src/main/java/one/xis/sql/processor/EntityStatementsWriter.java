@@ -98,20 +98,7 @@ class EntityStatementsWriter {
                 .addStatement("return String.format(\"$L\", columnName)", statementsModel.getGetPksByColumnValueSqlPattern())
                 .build();
     }
-
-    /*
-       @Override
-    public String getUpdateColumnValuesToNullSql(String columnName) {
-        return String.format("UPDATE `customer` SET `%s`=NULL  WHERE `id`=?", columnName);
-    }
-
-    @Override
-    public String getPksByColumnValueSql(String columnName) {
-        return String.format("SELECT `id` FROM `customer` WHERE `%s`=?", columnName);
-    }
-     */
-
-
+    
     private MethodSpec implementSimpleStringGetter(String methodName, String returnValue) {
         return MethodSpec.methodBuilder(methodName)
                 .addModifiers(Modifier.PUBLIC)

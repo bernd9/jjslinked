@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Getter
 @RequiredArgsConstructor
@@ -49,31 +50,43 @@ abstract class CollectionFieldHandler<E, EID, F, FID> {
 
     private void updateFieldValuesForNewEntity(E actualEntity, EntityCrudHandlerSession crudHandlerSession) {
         getFieldValues(actualEntity).stream()
-                .peek(fieldValue -> updateLinkColumnValue(fieldValue, actualEntity))
-                .forEach(fieldValue -> addSaveAction(fieldValue, crudHandlerSession));
+                .forEach(fieldValue -> addSaveAction(actualEntity, fieldValue, crudHandlerSession));
+    }
+
+    private void updateCollectionProxyFieldValues(E entity, EntityCollection<F> entityCollection, EntityCrudHandlerSession crudHandlerSession) {
+        if (entityCollection.isDirty()) {
+            EID entityId = getEntityPk(entity);
+            handleUnlinkedFieldValues(entityId, entityCollection.getUnlinkedValues(), crudHandlerSession);
+            addBulkUpdateAction(entity, entityCollection.getDirtyValues().stream(), crudHandlerSession, entityCollection.getElementType());
+            addBulkInsertAction(entity, entityCollection.getNewValues().stream(), crudHandlerSession, entityCollection.getElementType());
+        }
     }
 
     private void updateFieldValuesBySessionState(E entity, Collection<F> actualFieldValues, Collection<F> sessionFieldValues, EntityCrudHandlerSession crudHandlerSession) {
         Map<Integer, F> sessionFieldValueMap = sessionFieldValues.stream().collect(Collectors.toMap(System::identityHashCode, Function.identity()));
-        Map<Integer, F> actualFieldValueMap = actualFieldValues.stream().peek(fieldValue -> updateLinkColumnValue(fieldValue, entity)).collect(Collectors.toMap(System::identityHashCode, Function.identity()));
+        Map<Integer, F> actualFieldValueMap = actualFieldValues.stream().collect(Collectors.toMap(System::identityHashCode, Function.identity()));
         handleUnlinkedFieldValues(getEntityPk(entity), getUnlinkedValues(sessionFieldValueMap, actualFieldValueMap), crudHandlerSession);
-        saveFieldEntities(actualFieldValueMap.values(), crudHandlerSession);
+        doUpdateFieldValuesBySessionState(entity, sessionFieldValueMap, actualFieldValueMap, crudHandlerSession);
     }
 
-    private void saveFieldEntities(Collection<F> actualFieldValues, EntityCrudHandlerSession crudHandlerSession) {
-        actualFieldValues.forEach(fieldValue -> addSaveAction(fieldValue, crudHandlerSession));
+    protected void doUpdateFieldValuesBySessionState(E entity, @SuppressWarnings("unused") Map<Integer, F> sessionFieldValueMap,  Map<Integer, F> actualFieldValueMap, EntityCrudHandlerSession crudHandlerSession) {
+        saveFieldEntities(entity, actualFieldValueMap.values().stream(), crudHandlerSession);
     }
 
-    private void addSaveAction(F fieldValue, EntityCrudHandlerSession crudHandlerSession) {
+    private void saveFieldEntities(E entity, Stream<F> actualFieldValues, EntityCrudHandlerSession crudHandlerSession) {
+        actualFieldValues.forEach(fieldValue -> addSaveAction(entity, fieldValue, crudHandlerSession));
+    }
+
+    protected void addSaveAction(E entity, F fieldValue, EntityCrudHandlerSession crudHandlerSession) {
         crudHandlerSession.addSaveAction(fieldValue, fieldEntityTableAccessor, fieldEntityFunctions);
     }
 
-    private void addBulkUpdateAction(Collection<F> fieldValues, EntityCrudHandlerSession crudHandlerSession) {
-        crudHandlerSession.addBulkUpdateAction(fieldValues, fieldEntityTableAccessor, fieldEntityFunctions);
+    protected void addBulkUpdateAction(@SuppressWarnings("unused") E entity, Stream<F> fieldValues, EntityCrudHandlerSession crudHandlerSession, Class<F> fieldType) {
+        crudHandlerSession.addBulkUpdateAction(fieldValues, fieldEntityTableAccessor, fieldEntityFunctions, fieldType);
     }
 
-    private void addBulkInsertAction(Collection<F> fieldValues, EntityCrudHandlerSession crudHandlerSession) {
-        crudHandlerSession.addBulkInsertAction(fieldValues, fieldEntityTableAccessor, fieldEntityFunctions);
+    protected void addBulkInsertAction(@SuppressWarnings("unused") E entity, Stream<F> fieldValues, EntityCrudHandlerSession crudHandlerSession, Class<F> fieldType) {
+        crudHandlerSession.addBulkInsertAction(fieldValues, fieldEntityTableAccessor, fieldEntityFunctions, fieldType);
     }
 
     private Collection<F> getUnlinkedValues(Map<Integer, F> sessionFieldValueMap, Map<Integer, F> actualFieldValueMap) {
@@ -82,21 +95,11 @@ abstract class CollectionFieldHandler<E, EID, F, FID> {
                 .map(sessionFieldValueMap::get).collect(Collectors.toSet());
     }
 
-
-    private void updateCollectionProxyFieldValues(E entity, EntityCollection<F> entityCollection, EntityCrudHandlerSession crudHandlerSession) {
-        if (entityCollection.isDirty()) {
-            EID entityId = getEntityPk(entity);
-            handleUnlinkedFieldValues(entityId, entityCollection.getUnlinkedValues(), crudHandlerSession);
-            addBulkUpdateAction(entityCollection.getDirtyValues(), crudHandlerSession);
-            addBulkInsertAction(entityCollection.getNewValues(), crudHandlerSession);
-        }
-    }
-
     protected abstract Collection<F> getFieldValues(E entity);
 
     protected abstract EID getEntityPk(E entity);
 
     protected abstract void handleUnlinkedFieldValues(EID entityId, Collection<F> unlinkedFieldValues, EntityCrudHandlerSession crudHandlerSession);
 
-    protected abstract void updateLinkColumnValue(F fieldValue, E entity);
+
 }

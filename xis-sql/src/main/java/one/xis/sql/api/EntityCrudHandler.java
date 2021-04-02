@@ -34,7 +34,7 @@ public abstract class EntityCrudHandler<E, EID> {
     public void save(Collection<E> entities, EntityCrudHandlerSession session) {
         if (entities instanceof EntityCollection) {
             EntityCollection<E> entityCollection = (EntityCollection<E>) entities;
-            session.addBulkUpdateAction(entityCollection.getDirtyValues(), entityTableAccessor, entityFunctions);
+            session.addBulkUpdateAction(entityCollection.getDirtyValues().stream(), entityTableAccessor, entityFunctions, entityCollection.getElementType());
         } else {
             entities.forEach(e -> save(e, session));
         }

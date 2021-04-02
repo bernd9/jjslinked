@@ -51,9 +51,7 @@ class EntityStatementsModel implements Comparator<FieldModel> {
         List<FieldModel> fieldModels = getInsertSqlFields();
         return new StringBuilder()
                 .append("INSERT INTO ")
-                .append("`")
                 .append(entityModel.getTableName())
-                .append("`")
                 .append(" (")
                 .append(columnList(fieldModels))
                 .append(") VALUES (")
@@ -122,15 +120,11 @@ class EntityStatementsModel implements Comparator<FieldModel> {
     String getUpdateSql() {
         StringBuilder update = new StringBuilder()
                 .append("UPDATE ")
-                .append("`")
                 .append(entityModel.getTableName())
-                .append("`")
                 .append(" SET ");
         Iterator<FieldModel> fieldModelIterator = nonPkColumnFields.iterator();
         while (fieldModelIterator.hasNext()) {
-            update.append("`")
-                    .append(fieldModelIterator.next().getColumnName())
-                    .append("`")
+            update.append(fieldModelIterator.next().getColumnName())
                     .append("=?");
             if (fieldModelIterator.hasNext()) {
                 update.append(",");
@@ -138,9 +132,7 @@ class EntityStatementsModel implements Comparator<FieldModel> {
         }
         return update
                 .append(" WHERE ")
-                .append("`")
                 .append(getPkColumnName())
-                .append("`")
                 .append("=?")
                 .toString();
 
@@ -156,13 +148,9 @@ class EntityStatementsModel implements Comparator<FieldModel> {
     String getDeleteSql() {
         return new StringBuilder()
                 .append("DELETE FROM ")
-                .append("`")
                 .append(entityModel.getTableName())
-                .append("`")
                 .append(" WHERE ")
-                .append("`")
                 .append(getPkColumnName())
-                .append("`")
                 .append("=?")
                 .toString();
     }
@@ -170,37 +158,27 @@ class EntityStatementsModel implements Comparator<FieldModel> {
     String getDeleteAllSql() {
         return new StringBuilder()
                 .append("DELETE FROM ")
-                .append("`")
                 .append(entityModel.getTableName())
-                .append("`")
                 .toString();
     }
 
     String getGetPksByColumnValueSqlPattern() {
         return new StringBuilder()
                 .append("SELECT ")
-                .append("`")
                 .append(entityModel.getIdField().getColumnName())
-                .append("`")
                 .append(" FROM ")
-                .append("`")
                 .append(entityModel.getTableName())
-                .append("`")
-                .append(" WHERE `%s`=?")
+                .append(" WHERE %s=?")
                 .toString();
     }
 
     String getUpdateColumnValuesToNullByPkSqlPattern() {
         return new StringBuilder()
                 .append("UPDATE ")
-                .append("`")
                 .append(entityModel.getTableName())
-                .append("`")
-                .append(" SET `%s`=NULL")
+                .append(" SET %s=NULL")
                 .append(" WHERE ")
-                .append("`")
                 .append(entityModel.getIdField().getColumnName())
-                .append("`")
                 .append("=?")
                 .toString();
     }
@@ -211,13 +189,9 @@ class EntityStatementsModel implements Comparator<FieldModel> {
                 .append("SELECT ")
                 .append(columnList(fieldModels))
                 .append(" FROM ")
-                .append("`")
                 .append(entityModel.getTableName())
-                .append("`")
                 .append(" WHERE ")
-                .append("`")
                 .append(getPkColumnName())
-                .append("`")
                 .append("=?")
                 .toString();
     }
@@ -235,16 +209,13 @@ class EntityStatementsModel implements Comparator<FieldModel> {
                 .append("SELECT ")
                 .append(columnList(fieldModels))
                 .append(" FROM ")
-                .append("`")
                 .append(entityModel.getTableName())
-                .append("`")
                 .toString();
     }
     
     private String columnList(List<FieldModel> fieldModels) {
         return fieldModels.stream()
                 .map(FieldModel::getColumnName)
-                .map(col -> String.format("`%s`", col))
                 .collect(Collectors.joining(","));
     }
 

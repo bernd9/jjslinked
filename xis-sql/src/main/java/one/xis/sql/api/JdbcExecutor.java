@@ -8,16 +8,6 @@ import java.sql.SQLException;
 
 class JdbcExecutor {
 
-
-    protected String escapedStatementParameter(Object o) {
-        if (o instanceof String) {
-            String s = (String) o;
-            return s.replace("'", "\'").replace("\"", "\\\"");
-        }
-        return o.toString();
-    }
-
-
     protected PreparedEntityStatement prepare(String sql) {
         try {
             return new PreparedEntityStatement(getConnection().prepareStatement(sql));
@@ -34,10 +24,17 @@ class JdbcExecutor {
         }
     }
 
-
-    protected Connection getConnection() {
-        return null;
+    protected void addBatch(PreparedStatement st) {
+        try {
+            st.addBatch();
+        }
+        catch (SQLException e) {
+            throw new JdbcException("add to batch failed", e);
+        }
     }
 
+    protected Connection getConnection() {
+        return Session.getInstance().getConnection();
+    }
 
 }
