@@ -2,6 +2,7 @@ package one.xis.sql.processor;
 
 import com.google.testing.compile.*;
 import com.google.testing.compile.Compiler;
+import com.squareup.javapoet.JavaFile;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,6 +20,7 @@ class EntityAnnotationProcessorTest {
     private JavaFileObject customer;
     private JavaFileObject invoiceAddress;
     private JavaFileObject order;
+    private JavaFileObject agent;
     private Compilation compilation;
 
     @BeforeEach
@@ -27,7 +29,8 @@ class EntityAnnotationProcessorTest {
         customer = JavaFileObjects.forResource("one/xis/sql/processor/Customer.java");
         invoiceAddress = JavaFileObjects.forResource("one/xis/sql/processor/Address.java");
         order = JavaFileObjects.forResource("one/xis/sql/processor/Order.java");
-        compilation = compiler.compile(customer, invoiceAddress, order);
+        agent = JavaFileObjects.forResource("one/xis/sql/processor/Agent.java");
+        compilation = compiler.compile(customer, invoiceAddress, order, agent);
         //assertThat(compilation.status()).isEqualTo(Compilation.Status.SUCCESS);
     }
 

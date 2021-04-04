@@ -3,7 +3,7 @@ package one.xis.sql.api;
 import lombok.Getter;
 
 @Getter
-class CrossTableStatements {
+public class CrossTableStatements {
     private final String deleteReferencesOfEntitySql;
     private final String insertReferencesOfEntitySql;
 

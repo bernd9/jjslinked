@@ -1,9 +1,6 @@
 package one.xis.sql.processor;
 
-import one.xis.sql.Entity;
-import one.xis.sql.ForeignKey;
-import one.xis.sql.Id;
-import one.xis.sql.Referenced;
+import one.xis.sql.*;
 
 import java.util.List;
 
@@ -22,6 +19,9 @@ class Customer {
 
     @Referenced(externalColumnName = "customer_id")
     private List<Order> orders;
+
+    @CrossTable(tableName = "customers_agents")
+    private List<Agent> agents;
 
     public String getFirstName() {
         return firstName;
@@ -61,5 +61,13 @@ class Customer {
 
     public void setOrders(List<Order> orders) {
         this.orders = orders;
+    }
+
+    public List<Agent> getAgents() {
+        return agents;
+    }
+
+    public void setAgents(List<Agent> agents) {
+        this.agents = agents;
     }
 }

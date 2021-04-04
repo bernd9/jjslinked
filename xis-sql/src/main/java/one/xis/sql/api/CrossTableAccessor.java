@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 @SuppressWarnings("unused")
 @RequiredArgsConstructor
-abstract class CrossTableAccessor<EID, FID> extends JdbcExecutor {
+public abstract class CrossTableAccessor<EID, FID> extends JdbcExecutor {
     private final CrossTableStatements crossTableStatements;
 
     void deleteReferences(EID entityId, Stream<FID> fieldIds) {

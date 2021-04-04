@@ -11,10 +11,5 @@ import java.util.stream.Collectors;
 class RepositoryImplModel {
     private final EntityModel entityModel;
 
-    private List<CrossTableFieldHandlerModel> getCrossTableFieldHandlers() {
-        return entityModel.getCrossTableFields().stream()
-                .map(CrossTableFieldHandlerModel::new)
-                .collect(Collectors.toList());
-    }
 
 }

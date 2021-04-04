@@ -91,7 +91,7 @@ public class JavaModelUtils {
             return false; // otherwise NullPointerException
         }
         GenericCollectionTypeVisitor visitor = new GenericCollectionTypeVisitor();
-        TypeMirror typeMirror = variableElement.asType().accept(visitor, null).orElse(null);
+        TypeMirror typeMirror = variableElement.asType().accept(visitor, null);
         return typeMirror != null;
     }
 
@@ -109,9 +109,13 @@ public class JavaModelUtils {
     }
 
     // TODO rename to getGenericCollectionTypeArgument
-    public static TypeMirror getGenericCollectionType(Element collectionVariable) {
+    public static TypeMirror getGenericCollectionType(@NonNull Element collectionVariable) {
         GenericCollectionTypeVisitor visitor = new GenericCollectionTypeVisitor();
-        return collectionVariable.asType().accept(visitor, null).orElseThrow(() -> new IllegalStateException(collectionVariable + " must have generic type"));
+        TypeMirror genericType = collectionVariable.asType().accept(visitor, null);
+        if (genericType == null) {
+            throw new IllegalStateException(collectionVariable + " must have generic type");
+        }
+        return genericType;
     }
 
     public static TypeMirror getGenericType(Element element, int index) {
@@ -128,18 +132,22 @@ public class JavaModelUtils {
 
     public static TypeMirror getIterableType(VariableElement collectionVariable) {
         GenericCollectionTypeVisitor visitor = new GenericCollectionTypeVisitor();
-        return collectionVariable.asType().accept(visitor, null).orElseThrow(() -> new IllegalStateException(collectionVariable + " must have generic type"));
+        TypeMirror genericType = collectionVariable.asType().accept(visitor, null);
+        if (genericType == null) {
+            throw new IllegalStateException(collectionVariable + " must have generic type");
+        }
+        return genericType;
     }
 
 
-    private static class GenericCollectionTypeVisitor extends SimpleTypeVisitor9<Optional<TypeMirror>, Void> {
+    private static class GenericCollectionTypeVisitor extends SimpleTypeVisitor9<TypeMirror, Void> {
 
         @Override
-        public Optional<TypeMirror> visitDeclared(DeclaredType t, Void aVoid) {
+        public TypeMirror visitDeclared(DeclaredType t, Void aVoid) {
             if (t.getTypeArguments() != null) {
-                return (Optional<TypeMirror>) t.getTypeArguments().stream().findFirst();
+                return t.getTypeArguments().get(0);
             }
-            return Optional.empty();
+            return null;
         }
 
     }
@@ -170,6 +178,7 @@ public class JavaModelUtils {
 
     }
 
+    // TODO : fails sometimes. must get fixed/replaced by elementutils.
     public static boolean isCollection(VariableElement var) {
         String name = var.asType().toString().replaceAll("<.*>$", "");
         try {
@@ -259,17 +268,6 @@ public class JavaModelUtils {
                 .map(Map.Entry::getValue)
                 .findFirst().orElse(null);
     }
-
-    private static class ValueVisitor<R> extends SimpleAnnotationValueVisitor9<R, Class<?>> {
-
-        @Override
-        public R visitArray(List<? extends AnnotationValue> vals, Class<?> aClass) {
-
-            return super.visitArray(vals, aClass);
-        }
-
-    }
-
 
     public static String getPackageName(Name qualifiedName) {
         return getPackageName(qualifiedName.toString());

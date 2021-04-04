@@ -12,8 +12,6 @@ import java.io.IOException;
 import java.util.Comparator;
 import java.util.stream.Stream;
 
-;
-
 @RequiredArgsConstructor
 class EntityCrudHandlerWriter {
     private final EntityCrudHandlerModel entityCrudHandlerModel;
@@ -32,7 +30,7 @@ class EntityCrudHandlerWriter {
                 .build();
         StringBuilder s = new StringBuilder();
         javaFile.writeTo(s);
-        //System.out.println(s);
+        System.out.println(s);
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
@@ -49,6 +47,7 @@ class EntityCrudHandlerWriter {
 
     private void addFieldHandlerTypes(TypeSpec.Builder builder) {
         addReferredFieldHandlerTypes(builder);
+        addCrossTableFieldHandlerTypes(builder);
     }
 
     private void addFieldHandlerFields(TypeSpec.Builder builder) {
@@ -56,11 +55,16 @@ class EntityCrudHandlerWriter {
         addReferredFieldHandlerFields(builder);
     }
 
-
     private void addReferredFieldHandlerTypes(TypeSpec.Builder builder) {
         sortedReferencedFieldModels()
                 .map(this::getReferencedFieldHandlerTypeSpec)
                 .forEach(builder::addType);
+    }
+
+    private void addCrossTableFieldHandlerTypes(TypeSpec.Builder builder) {
+        sortedCrossTableFieldModels()
+            .map(this::getCrossTableFieldHandlerTypeSpec)
+            .forEach(builder::addType);
     }
 
     private void addForeignKeyFieldHandlerFields(TypeSpec.Builder builder) {
@@ -68,7 +72,6 @@ class EntityCrudHandlerWriter {
                 .map(this::getForeignKeyCrudHandlerField)
                 .forEach(builder::addField);
     }
-
 
     private void addReferredFieldHandlerFields(TypeSpec.Builder builder) {
         sortedReferencedFieldModels()
@@ -86,9 +89,19 @@ class EntityCrudHandlerWriter {
                 .sorted(Comparator.comparing(FieldModel::getColumnName));
     }
 
+    private Stream<CrossTableFieldModel> sortedCrossTableFieldModels() {
+        return entityCrudHandlerModel.getEntityModel().getCrossTableFields().stream()
+                .sorted(Comparator.comparing(FieldModel::getColumnName));
+    }
+
     private TypeSpec getReferencedFieldHandlerTypeSpec(ReferencedFieldModel fieldModel) {
         return new ReferencedFieldHandlerTypeBuilder(fieldModel).fieldHandlerDeclaration();
     }
+
+    private TypeSpec getCrossTableFieldHandlerTypeSpec(CrossTableFieldModel fieldModel) {
+        return new CrossTableFieldHandlerTypeBuilder(fieldModel).fieldHandlerDeclaration();
+    }
+
 
     private FieldSpec getForeignKeyCrudHandlerField(ForeignKeyFieldModel fieldModel) {
         ClassName crudHandlerType = fieldModel.getCrudHandlerName();
