@@ -111,6 +111,7 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
             writeEntityStatements(entityModel);
             writeEntityResultSet(entityModel);
             writeEntityTableAccessor(entityModel, allModels);
+            writeCrossTableAccessors(entityModel);
             writeRepositoryImpl(entityModel, allModels);
             writeEntityCrudHandler(entityModel, allModels);
         } catch (ModelValidationException | IOException e) {
@@ -154,6 +155,19 @@ public class EntityAnnotationProcessor extends AbstractProcessor {
         new EntityTableAccessorModelValidator(model, allModels).validate();
         new EntityTableAccessorWriter(model, processingEnv).write();
     }
+
+    private void writeCrossTableAccessors(EntityModel entityModel) throws ModelValidationException, IOException{
+        for (CrossTableFieldModel fieldModel : entityModel.getCrossTableFields()) {
+            writeCrossTableAccessor(fieldModel);
+        }
+    }
+
+    private void writeCrossTableAccessor(CrossTableFieldModel crossTableFieldModel) throws ModelValidationException, IOException {
+        CrossTableAccessorModel model = new CrossTableAccessorModel(crossTableFieldModel);
+        new CrossTableAccessorValidator(model).validate();
+        new CrossTableAccessorWriter(model, processingEnv).write();
+    }
+
 
     private void writeEntityCrudHandler(EntityModel entityModel, Set<EntityModel> allModels) throws ModelValidationException, IOException {
         EntityCrudHandlerModel model = new EntityCrudHandlerModel(entityModel);

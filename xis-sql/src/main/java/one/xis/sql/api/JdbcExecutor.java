@@ -8,17 +8,17 @@ import java.sql.SQLException;
 
 class JdbcExecutor {
 
-    protected PreparedEntityStatement prepare(String sql) {
+    protected JdbcStatement prepare(String sql) {
         try {
-            return new PreparedEntityStatement(getConnection().prepareStatement(sql));
+            return new JdbcStatement(getConnection().prepareStatement(sql));
         } catch (SQLException e) {
             throw new JdbcException("preparing statement failed: " + sql, e);
         }
     }
 
-    protected PreparedEntityStatement prepare(String sql, int flags) {
+    protected JdbcStatement prepare(String sql, int flags) {
         try {
-            return new PreparedEntityStatement(getConnection().prepareStatement(sql, flags));
+            return new JdbcStatement(getConnection().prepareStatement(sql, flags));
         } catch (SQLException e) {
             throw new JdbcException("preparing statement failed: " + sql, e);
         }

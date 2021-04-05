@@ -24,7 +24,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     private final Class<EID> pkType;
 
     Optional<E> getById(EID id) {
-        try (PreparedEntityStatement st = prepare(entityStatements.getSelectByIdSql())) {
+        try (JdbcStatement st = prepare(entityStatements.getSelectByIdSql())) {
             setPk(st, 1, id);
             try (ResultSet rs = st.executeQuery()) {
                 if (rs.next()) {
@@ -58,7 +58,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     public void update(Collection<E> updateEntities) {
         Iterator<E> entityIterator = updateEntities.iterator();
-        try (PreparedEntityStatement st = prepare(entityStatements.getUpdateSql())) {
+        try (JdbcStatement st = prepare(entityStatements.getUpdateSql())) {
             while (entityIterator.hasNext()) {
                 E entity = entityIterator.next();
                 st.clearParameters();
@@ -76,7 +76,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     }
 
     public boolean deleteById(EID id) {
-        try (PreparedEntityStatement st = prepare(entityStatements.getDeleteSql())) {
+        try (JdbcStatement st = prepare(entityStatements.getDeleteSql())) {
             setPk(st, 1, id);
             return st.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -86,7 +86,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     public void delete(Collection<E> entities) {
         Iterator<E> entityIterator = entities.iterator();
-        try (PreparedEntityStatement st = prepare(entityStatements.getDeleteSql())) {
+        try (JdbcStatement st = prepare(entityStatements.getDeleteSql())) {
             while (entityIterator.hasNext()) {
                 st.clearParameters();
                 E entity = entityIterator.next();
@@ -107,7 +107,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     public void updateColumnValuesToNull(Collection<EID> pks, String fkColumnName) {
         Iterator<EID> entityIterator = pks.iterator();
-        try (PreparedEntityStatement st = prepare(entityStatements.getUpdateColumnValuesToNullByPkSql(fkColumnName))) {
+        try (JdbcStatement st = prepare(entityStatements.getUpdateColumnValuesToNullByPkSql(fkColumnName))) {
             while (entityIterator.hasNext()) {
                 st.clearParameters();
                 EID pk = entityIterator.next();
@@ -123,7 +123,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     public Collection<EID> getPksByColumnValue(Object columnValue, String columnName) {
         List<EID> list = new ArrayList<>();
-        try (PreparedEntityStatement st = prepare(entityStatements.getPksByColumnValueSql(columnName))) {
+        try (JdbcStatement st = prepare(entityStatements.getPksByColumnValueSql(columnName))) {
             st.set(1, columnValue);
             st.addBatch();
             ExtendedResultSet rs = new ExtendedResultSet(st.executeQuery());
@@ -160,7 +160,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     @SuppressWarnings("unused")
     protected void insertWithDbmsGeneratedKeys(Collection<E> entities) {
         Iterator<E> entityIterator = entities.iterator();
-        try (PreparedEntityStatement st = prepare(entityStatements.getInsertSql())) {
+        try (JdbcStatement st = prepare(entityStatements.getInsertSql())) {
             while (entityIterator.hasNext()) {
                 E entity = entityIterator.next();
                 st.clearParameters();
@@ -191,7 +191,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     @SuppressWarnings("unused")
     protected void insertWithManuallyPlacedKeys(Collection<E> entities) {
         Iterator<E> entityIterator = entities.iterator();
-        try (PreparedEntityStatement st = prepare(entityStatements.getInsertSql())) {
+        try (JdbcStatement st = prepare(entityStatements.getInsertSql())) {
             while (entityIterator.hasNext()) {
                 E entity = entityIterator.next();
                 if (getPk(entity) == null) {
@@ -211,7 +211,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     @SuppressWarnings("unused")
     protected void insertWithApiGeneratedKeys(Collection<E> entities) {
         Iterator<E> entityIterator = entities.iterator();
-        try (PreparedEntityStatement st = prepare(entityStatements.getInsertSql())) {
+        try (JdbcStatement st = prepare(entityStatements.getInsertSql())) {
             while (entityIterator.hasNext()) {
                 E entity = entityIterator.next();
                 setPk(entity, generateKey());
@@ -228,7 +228,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     protected abstract EntityProxy<E, EID> toEntityProxy(ResultSet rs) throws SQLException;
 
-    protected abstract void setPk(PreparedEntityStatement st, int index, EID id);
+    protected abstract void setPk(JdbcStatement st, int index, EID id);
 
     protected abstract void setPk(E entity, EID id);
 

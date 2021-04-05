@@ -51,6 +51,7 @@ public class CustomerUtil {
 
     public static Customer doClone(Customer o) {
         Customer rv = new Customer();
+        rv.setAgents(AgentUtil.doClone(o.getAgents()));
         rv.setFirstName(o.getFirstName());
         rv.setId(o.getId());
         rv.setInvoiceAddress(AddressUtil.doClone(o.getInvoiceAddress()));
@@ -69,6 +70,14 @@ public class CustomerUtil {
         List<Customer> rv = new LinkedList<>();
         coll.stream().map(CustomerUtil::doClone).forEach(rv::add);
         return rv;
+    }
+
+    public static List<Agent> getAgents(Customer entity) {
+        return entity.getAgents();
+    }
+
+    public static void setAgents(Customer entity, List<Agent> value) {
+        entity.setAgents(value);
     }
 
     public static String getFirstName(Customer entity) {

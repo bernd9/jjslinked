@@ -5,7 +5,7 @@ import com.squareup.javapoet.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.api.EntityStatements;
-import one.xis.sql.api.PreparedEntityStatement;
+import one.xis.sql.api.JdbcStatement;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
@@ -112,7 +112,7 @@ class EntityStatementsWriter {
         return MethodSpec.methodBuilder("setInsertSqlParameters")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addParameter(ParameterSpec.builder(TypeName.get(PreparedEntityStatement.class), "st").build())
+                .addParameter(ParameterSpec.builder(TypeName.get(JdbcStatement.class), "st").build())
                 .addParameter(ParameterSpec.builder(TypeName.get(statementsModel.getEntityModel().getType().asType()), "entity").build())
                 .addCode(createParametersCodeBlock(statementsModel.getInsertSqlFields()))
                 .build();
@@ -122,7 +122,7 @@ class EntityStatementsWriter {
         return MethodSpec.methodBuilder("setUpdateSqlParameters")
                 .addModifiers(Modifier.PUBLIC)
                 .addAnnotation(Override.class)
-                .addParameter(ParameterSpec.builder(TypeName.get(PreparedEntityStatement.class), "st").build())
+                .addParameter(ParameterSpec.builder(TypeName.get(JdbcStatement.class), "st").build())
                 .addParameter(ParameterSpec.builder(TypeName.get(statementsModel.getEntityModel().getType().asType()), "entity").build())
                 .addCode(createParametersCodeBlock(statementsModel.getUpdateSqlFields()))
                 .build();

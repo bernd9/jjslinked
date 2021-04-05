@@ -38,10 +38,10 @@ public interface EntityStatements<E, EID> {
 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
-    void setInsertSqlParameters(PreparedEntityStatement st, E entity);
+    void setInsertSqlParameters(JdbcStatement st, E entity);
 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
-    void setUpdateSqlParameters(PreparedEntityStatement st, E entity);
+    void setUpdateSqlParameters(JdbcStatement st, E entity);
 
 }

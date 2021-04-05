@@ -27,7 +27,6 @@ class CrossTableFieldModel extends EntityFieldModel {
          //   throw new IllegalStateException(field + " must be a collection. It is annotated with @CrossTable");
         //}
     }
-
     String getCrossTable() {
         return crossTable.tableName();
     }

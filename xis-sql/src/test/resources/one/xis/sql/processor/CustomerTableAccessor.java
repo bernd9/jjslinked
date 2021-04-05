@@ -4,7 +4,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import one.xis.sql.api.EntityTableAccessor;
-import one.xis.sql.api.PreparedEntityStatement;
+import one.xis.sql.api.JdbcStatement;
 
 public class CustomerTableAccessor extends EntityTableAccessor<Customer, Long> {
 
@@ -43,7 +43,7 @@ public class CustomerTableAccessor extends EntityTableAccessor<Customer, Long> {
     }
 
     @Override
-    protected void setPk(PreparedEntityStatement st, int index, Long pk) {
+    protected void setPk(JdbcStatement st, int index, Long pk) {
         st.set(index, pk);
     }
 

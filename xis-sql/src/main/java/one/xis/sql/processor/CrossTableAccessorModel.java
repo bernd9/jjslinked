@@ -1,35 +1,64 @@
 package one.xis.sql.processor;
 
 import com.ejc.util.StringUtils;
+import com.squareup.javapoet.ClassName;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import javax.lang.model.type.TypeMirror;
 
+@Getter
 @RequiredArgsConstructor
 class CrossTableAccessorModel {
-    private final CrossTableFieldModel entityFieldModel;
+    private final CrossTableFieldModel crossTableFieldModel;
 
-    String getCrossTableAccessorInnerClassName() {
-        return StringUtils.firstToUpperCase(entityFieldModel.getFieldName().toString()) + "CrossTableAccessor";
+    String getCrossTable() {
+        return crossTableFieldModel.getCrossTable();
     }
 
-    String getCrossTableName() {
-        return entityFieldModel.getCrossTable();
+    String getEntityColumnNameInCrossTable() {
+        return crossTableFieldModel.getEntityColumnNameInCrossTable();
     }
 
-    String getCrossTableColumnName() {
-        return entityFieldModel.getEntityColumnNameInCrossTable();
+    String getFieldColumnNameInCrossTable() {
+        return crossTableFieldModel.getCorrespondingCrossTableField().getColumnName();
     }
 
-    TypeMirror getKeyType1() {
-        return entityFieldModel.getEntityModel().getIdField().getFieldType();
+    TypeMirror getEntityKeyType() {
+        return crossTableFieldModel.getEntityModel().getIdField().getFieldType();
     }
 
-    TypeMirror getKeyType2() {
-        return entityFieldModel.getFieldEntityModel().getIdField().getFieldType();
+    TypeMirror getFieldKeyType() {
+        return crossTableFieldModel.getFieldEntityModel().getIdField().getFieldType();
     }
 
-    String getRemoveReferencesSql() {
-        return String.format("DELETE FROM `%s` WHERE `%s` = ?", getCrossTableName(), getCrossTableColumnName());
+    String getCrossTableAccessorPackageName() {
+        return getCrossTableAccessorPackageName(crossTableFieldModel.getEntityModel());
+    }
+
+    String getCrossTableAccessorSimpleName() {
+        return getCrossTableAccessorSimpleName(crossTableFieldModel.getEntityModel(), crossTableFieldModel.getCorrespondingCrossTableField().getEntityModel());
+    }
+
+
+    static String getCrossTableAccessorPackageName(EntityModel entityModel) {
+        return entityModel.getPackageName();
+    }
+
+
+    static String getCrossTableAccessorSimpleName(EntityModel entityModel, EntityModel fieldEntityModel) {
+        return new StringBuilder()
+                .append(StringUtils.firstToUpperCase(entityModel.getSimpleName()))
+                .append(StringUtils.firstToUpperCase(fieldEntityModel.getSimpleName()))
+                .append("CrossTableAccessor")
+                .toString();
+    }
+
+    static ClassName getCrossTableAccessorTypeName(EntityModel entityModel, EntityModel fieldEntityModel) {
+        return ClassName.get(getCrossTableAccessorPackageName(entityModel), getCrossTableAccessorSimpleName(entityModel, fieldEntityModel));
+    }
+
+    static ClassName getCrossTableAccessorTypeName(CrossTableFieldModel crossTableFieldModel) {
+        return getCrossTableAccessorTypeName(crossTableFieldModel.getEntityModel(), crossTableFieldModel.getFieldEntityModel());
     }
 }

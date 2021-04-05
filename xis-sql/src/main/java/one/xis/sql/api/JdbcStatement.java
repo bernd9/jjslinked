@@ -11,9 +11,9 @@ import java.time.*;
 import java.util.Date;
 
 @RequiredArgsConstructor
-public class PreparedEntityStatement implements PreparedStatement {
+public class JdbcStatement implements PreparedStatement {
 
-    // TODO Blobs byte[], tiemstampt, time
+    // TODO Blobs byte[], tiemstamp, time
     @Delegate(types = {PreparedStatement.class, Wrapper.class})
     private final PreparedStatement st;
 

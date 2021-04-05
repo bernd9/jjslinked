@@ -5,7 +5,7 @@ import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.Id;
 import one.xis.sql.api.EntityTableAccessor;
-import one.xis.sql.api.PreparedEntityStatement;
+import one.xis.sql.api.JdbcStatement;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
@@ -127,7 +127,7 @@ public class EntityTableAccessorWriter {
         return MethodSpec.methodBuilder("setPk")
                 .addModifiers(Modifier.PROTECTED)
                 .addAnnotation(Override.class)
-                .addParameter(TypeName.get(PreparedEntityStatement.class), "st")
+                .addParameter(TypeName.get(JdbcStatement.class), "st")
                 .addParameter(TypeName.INT, "index")
                 .addParameter(entityPkTypeName(), "pk")
                 .addStatement("st.set(index, pk)")

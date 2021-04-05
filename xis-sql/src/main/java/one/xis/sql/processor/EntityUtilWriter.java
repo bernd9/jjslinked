@@ -243,6 +243,8 @@ class EntityUtilWriter {
                 copyFieldValueReferredField((ReferencedFieldModel) fieldModel, builder, getFieldValue);
             } else if (fieldModel instanceof ForeignKeyFieldModel) {
                 copyFieldValueForeignKeyField((ForeignKeyFieldModel) fieldModel, builder, getFieldValue);
+            } else if (fieldModel instanceof CrossTableFieldModel) {
+                copyFieldValueCrossTableField((CrossTableFieldModel) fieldModel, builder, getFieldValue);
             } else {
                 copyFieldValueNonComplex(fieldModel, builder, getFieldValue);
             }
@@ -260,6 +262,11 @@ class EntityUtilWriter {
         }
 
         private void copyFieldValueReferredField(ReferencedFieldModel fieldModel, CodeBlock.Builder builder, CodeBlock getFieldValue) {
+            CodeBlock createClone = new CloneEntity(fieldModel).create(getFieldValue);
+            builder.addStatement(setFieldValue(fieldModel, createClone));
+        }
+
+        private void copyFieldValueCrossTableField(CrossTableFieldModel fieldModel, CodeBlock.Builder builder, CodeBlock getFieldValue) {
             CodeBlock createClone = new CloneEntity(fieldModel).create(getFieldValue);
             builder.addStatement(setFieldValue(fieldModel, createClone));
         }

@@ -15,7 +15,7 @@ public abstract class CrossTableAccessor<EID, FID> extends JdbcExecutor {
     private final CrossTableStatements crossTableStatements;
 
     void deleteReferences(EID entityId, Stream<FID> fieldIds) {
-        try (PreparedStatement st = prepare(crossTableStatements.getDeleteReferencesOfEntitySql())) {
+        try (JdbcStatement st = prepare(crossTableStatements.getDeleteReferencesOfEntitySql())) {
            fieldIds.forEach(fieldId -> {
                setEntityKey(st, 1, entityId);
                setFieldKey(st, 2, fieldId);
@@ -23,12 +23,12 @@ public abstract class CrossTableAccessor<EID, FID> extends JdbcExecutor {
             });
             st.executeBatch();
         } catch (SQLException e) {
-            throw new JdbcException("delete references failed ", e);
+            throw new JdbcException("delete references failed", e);
         }
     }
 
     void addReferences(EID entityId, Stream<FID> fieldIds) {
-        try (PreparedStatement st = prepare(crossTableStatements.getInsertReferencesOfEntitySql())) {
+        try (JdbcStatement st = prepare(crossTableStatements.getInsertReferencesOfEntitySql())) {
             fieldIds.forEach(fieldId -> {
                 setEntityKey(st, 1, entityId);
                 setFieldKey(st, 2, fieldId);
@@ -36,12 +36,12 @@ public abstract class CrossTableAccessor<EID, FID> extends JdbcExecutor {
             });
             st.executeBatch();
         } catch (SQLException e) {
-            throw new JdbcException("insert references failed ", e);
+            throw new JdbcException("insert references failed", e);
         }
     }
 
-    protected abstract void setFieldKey(PreparedStatement st, int i, FID fieldId);
+    protected abstract void setFieldKey(JdbcStatement st, int i, FID fieldId);
 
-    protected abstract void setEntityKey(PreparedStatement st, int i, EID entityId);
+    protected abstract void setEntityKey(JdbcStatement st, int i, EID entityId);
 
 }

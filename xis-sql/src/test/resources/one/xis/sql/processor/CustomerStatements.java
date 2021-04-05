@@ -1,7 +1,7 @@
 package one.xis.sql.processor;
 
 import one.xis.sql.api.EntityStatements;
-import one.xis.sql.api.PreparedEntityStatement;
+import one.xis.sql.api.JdbcStatement;
 
 public class CustomerStatements implements EntityStatements<Customer, Long> {
     @Override
@@ -45,7 +45,7 @@ public class CustomerStatements implements EntityStatements<Customer, Long> {
     }
 
     @Override
-    public void setInsertSqlParameters(PreparedEntityStatement st, Customer entity) {
+    public void setInsertSqlParameters(JdbcStatement st, Customer entity) {
         st.set(1, entity.getId());
         st.set(2, entity.getFirstName());
         st.set(3, AddressUtil.getPk(entity.getInvoiceAddress()));
@@ -53,7 +53,7 @@ public class CustomerStatements implements EntityStatements<Customer, Long> {
     }
 
     @Override
-    public void setUpdateSqlParameters(PreparedEntityStatement st, Customer entity) {
+    public void setUpdateSqlParameters(JdbcStatement st, Customer entity) {
         st.set(1, entity.getFirstName());
         st.set(2, AddressUtil.getPk(entity.getInvoiceAddress()));
         st.set(3, entity.getLastName());

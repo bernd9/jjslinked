@@ -34,21 +34,21 @@ class CrossTableFieldHandlerTypeBuilder {
 
     private MethodSpec constructor() {
         return MethodSpec.constructorBuilder()
-                .addStatement("super(new $T(new $T(\"$L\",\"$L\",\"$L\")))",
-                        TypeName.get(CrossTableAccessor.class),
-                        TypeName.get(CrossTableStatements.class),
-                        model.getCrossTable(),
-                        model.getEntityColumnNameInCrossTable(),
-                        model.getFieldColumnNameInCrossTable())
+                .addStatement("super(new $T(), new $T(), new $T(), $T.class, $T.class)",
+                        EntityTableAccessorModel.getEntityTableAccessorTypeName(model.getFieldEntityModel()),
+                        CrossTableAccessorModel.getCrossTableAccessorTypeName(model),
+                        EntityFunctionsModel.getEntityFunctionsTypeName(model.getFieldEntityModel()),
+                        model.getEntityModel().getTypeName(),
+                        model.getFieldEntityModel().getTypeName())
                 .build();
     }
     private MethodSpec implementGetFieldValuePk() {
         return MethodSpec.methodBuilder("getFieldValuePk")
                 .addAnnotation(Override.class)
                 .addModifiers(Modifier.PROTECTED)
-                .addParameter(TypeName.get(model.getEntityModel().getType().asType()), "fieldValue")
+                .addParameter(TypeName.get(model.getFieldEntityModel().getType().asType()), "fieldValue")
                 .returns(TypeName.get(model.getEntityModel().getIdField().getFieldType()))
-                .addStatement("return $T.getPk(entity)", EntityUtilModel.getEntityUtilTypeName(model.getFieldEntityModel()))
+                .addStatement("return $T.getPk(fieldValue)", EntityUtilModel.getEntityUtilTypeName(model.getFieldEntityModel()))
                 .build();
     }
 
