@@ -34,6 +34,7 @@ class EntityAnnotationProcessorTest {
         //assertThat(compilation.status()).isEqualTo(Compilation.Status.SUCCESS);
     }
 
+    // TODO test for CrudHandler and CrossTableAccessor
     @Test
     void customerUtil() {
         CompilationSubject.assertThat(compilation).generatedSourceFile("one.xis.sql.processor.CustomerUtil")

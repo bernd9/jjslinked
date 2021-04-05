@@ -31,8 +31,19 @@ public class CustomerCrudHandler extends EntityCrudHandler<Customer, Long> {
         }
     }
 
+     private static class AgentsFieldHandler extends CrossTableFieldHandler<Customer, Long, Agent, Long> {
+        AgentsFieldHandler() {
+            super(new AgentTableAccessor(), new CustomerAgentCrossTableAccessor(), new AgentFunctions(), Customer.class, Agent.class);
+        }
+
+        protected abstract Long getFieldValuePk(Agent fieldValue) {
+            return AgentUtil.getPk(fieldValue);
+        }
+     }
+
     private static AddressCrudHandler addressCrudHandler = new AddressCrudHandler();
     private static OrdersFieldHandler ordersFieldHandler = new OrdersFieldHandler();
+    private static AgentsFieldHandler agentsFieldHandler = new AgentsFieldHandler();
 
     public CustomerCrudHandler() {
         super(new CustomerTableAccessor());
@@ -43,5 +54,6 @@ public class CustomerCrudHandler extends EntityCrudHandler<Customer, Long> {
         addressCrudHandler.save(CustomerUtil.getInvoiceAddress(entity), session);
         session.addSaveAction(entity, getEntityTableAccessor());
         ordersFieldHandler.updateFieldValues(CustomerUtil.getPk(entity), CustomerUtil.getOrders(entity), session);
+        agentsFieldHandler.updateFieldValues(CustomerUtil.getPk(entity), AgentUtil.getAgents(entity), session);
     }
 }

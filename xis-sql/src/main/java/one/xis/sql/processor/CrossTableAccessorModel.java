@@ -48,8 +48,8 @@ class CrossTableAccessorModel {
 
     static String getCrossTableAccessorSimpleName(EntityModel entityModel, EntityModel fieldEntityModel) {
         return new StringBuilder()
-                .append(StringUtils.firstToUpperCase(entityModel.getSimpleName()))
-                .append(StringUtils.firstToUpperCase(fieldEntityModel.getSimpleName()))
+                .append(entityModel.getSimpleName())
+                .append(fieldEntityModel.getSimpleName())
                 .append("CrossTableAccessor")
                 .toString();
     }

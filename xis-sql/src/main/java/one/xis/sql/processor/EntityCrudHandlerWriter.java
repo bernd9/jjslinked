@@ -53,6 +53,7 @@ class EntityCrudHandlerWriter {
     private void addFieldHandlerFields(TypeSpec.Builder builder) {
         addForeignKeyFieldHandlerFields(builder);
         addReferredFieldHandlerFields(builder);
+        addCrossTableFieldHandlerFields(builder);
     }
 
     private void addReferredFieldHandlerTypes(TypeSpec.Builder builder) {
@@ -76,6 +77,12 @@ class EntityCrudHandlerWriter {
     private void addReferredFieldHandlerFields(TypeSpec.Builder builder) {
         sortedReferencedFieldModels()
                 .map(this::getReferencedFieldHandlerField)
+                .forEach(builder::addField);
+    }
+
+    private void addCrossTableFieldHandlerFields(TypeSpec.Builder builder) {
+        sortedCrossTableFieldModels()
+                .map(this::getCrossTableFieldHandlerField)
                 .forEach(builder::addField);
     }
 
@@ -112,6 +119,12 @@ class EntityCrudHandlerWriter {
     }
 
     private FieldSpec getReferencedFieldHandlerField(ReferencedFieldModel fieldModel) {
+        String fieldHandlerName = fieldModel.getFieldHandlerName();
+        String fieldHandlerFieldName = StringUtils.firstToLowerCase(fieldModel.getFieldHandlerName());
+        return getFieldHandlerField(fieldHandlerFieldName, fieldHandlerName);
+    }
+
+    private FieldSpec getCrossTableFieldHandlerField(CrossTableFieldModel fieldModel) {
         String fieldHandlerName = fieldModel.getFieldHandlerName();
         String fieldHandlerFieldName = StringUtils.firstToLowerCase(fieldModel.getFieldHandlerName());
         return getFieldHandlerField(fieldHandlerFieldName, fieldHandlerName);
