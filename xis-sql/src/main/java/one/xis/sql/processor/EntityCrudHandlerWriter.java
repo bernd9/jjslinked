@@ -19,7 +19,6 @@ class EntityCrudHandlerWriter {
 
     void write() throws IOException {
         TypeSpec.Builder builder = TypeSpec.classBuilder(entityCrudHandlerModel.getCrudHandlerSimpleName())
-                .addModifiers(Modifier.PUBLIC)
                 .superclass(ParameterizedTypeName.get(ClassName.get(EntityCrudHandler.class),
                         entityTypeName(), entityPkTypeName()));
 
@@ -186,6 +185,7 @@ class EntityCrudHandlerWriter {
             addForeignKeyFieldCrudHandlerCalls();
             addSaveEntityStatement();
             addReferencedFieldHandlerCalls();
+            addCrossTableFieldHandlerCalls();
             return builder.build();
         }
 
@@ -208,10 +208,21 @@ class EntityCrudHandlerWriter {
             sortedReferencedFieldModels().forEach(this::addReferencedFieldHandlerCall);
         }
 
+        private void addCrossTableFieldHandlerCalls() {
+            sortedCrossTableFieldModels().forEach(this::addCrossTableFieldHandlerCall);
+        }
+
         private void addReferencedFieldHandlerCall(ReferencedFieldModel referencedFieldModel) {
             String handlerInstanceFieldName = StringUtils.firstToLowerCase(referencedFieldModel.getFieldHandlerName());
             TypeName entityUtilTypeName = EntityUtilModel.getEntityUtilTypeName(entityModel());
             String fieldValueGetterName = EntityUtilModel.getGetterName(referencedFieldModel.getFieldName().toString());
+            builder.addStatement("$L.updateFieldValues(entity, $T.$L(entity), session)", handlerInstanceFieldName, entityUtilTypeName, fieldValueGetterName);
+        }
+
+        private void addCrossTableFieldHandlerCall(CrossTableFieldModel crossTableFieldModel) {
+            String handlerInstanceFieldName = StringUtils.firstToLowerCase(crossTableFieldModel.getFieldHandlerName());
+            TypeName entityUtilTypeName = EntityUtilModel.getEntityUtilTypeName(entityModel());
+            String fieldValueGetterName = EntityUtilModel.getGetterName(crossTableFieldModel.getFieldName().toString());
             builder.addStatement("$L.updateFieldValues(entity, $T.$L(entity), session)", handlerInstanceFieldName, entityUtilTypeName, fieldValueGetterName);
         }
     }
