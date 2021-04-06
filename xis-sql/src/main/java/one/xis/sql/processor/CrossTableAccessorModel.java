@@ -21,7 +21,7 @@ class CrossTableAccessorModel {
     }
 
     String getFieldColumnNameInCrossTable() {
-        return crossTableFieldModel.getCorrespondingCrossTableField().getColumnName();
+        return crossTableFieldModel.getCorrespondingCrossTableField().getEntityColumnNameInCrossTable();
     }
 
     TypeMirror getEntityKeyType() {

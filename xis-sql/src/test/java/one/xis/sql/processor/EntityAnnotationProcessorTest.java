@@ -65,6 +65,12 @@ class EntityAnnotationProcessorTest {
                 .hasSourceEquivalentTo(JavaFileObjects.forResource("one/xis/sql/processor/CustomerTableAccessor.java"));
     }
 
+    @Test
+    void customerAgentTableAccessor() {
+        CompilationSubject.assertThat(compilation).generatedSourceFile("one.xis.sql.processor.CustomerAgentCrossTableAccessor")
+                .hasSourceEquivalentTo(JavaFileObjects.forResource("one/xis/sql/processor/CustomerAgentCrossTableAccessor.java"));
+    }
+
     public String getSource(JavaFileObject fileObject) {
         StringWriter writer = new StringWriter();
         try (BufferedReader in = new BufferedReader(new InputStreamReader(fileObject.openInputStream()))) {

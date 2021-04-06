@@ -35,7 +35,7 @@ class CrossTableFieldModel extends EntityFieldModel {
         if (!crossTable.columnName().isEmpty()) {
             return crossTable.columnName();
         }
-        return NamingRules.toSqlName(getFieldName() + getFieldEntityModel().getIdField().getFieldName().toString());
+        return NamingRules.toSqlName(entityModel.getSimpleName() + "_id");
     }
 
 

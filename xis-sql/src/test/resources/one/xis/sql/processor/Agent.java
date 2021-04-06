@@ -14,7 +14,7 @@ class Agent {
     private Long id;
     private String name;
 
-    @CrossTable(tableName = "customers_agents")
+    @CrossTable(tableName = "customer_agent")
     private List<Customer> customers;
 
     public Long getId() {

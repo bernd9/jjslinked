@@ -20,7 +20,7 @@ class Customer {
     @Referenced(externalColumnName = "customer_id")
     private List<Order> orders;
 
-    @CrossTable(tableName = "customers_agents")
+    @CrossTable(tableName = "customer_agent")
     private List<Agent> agents;
 
     public String getFirstName() {

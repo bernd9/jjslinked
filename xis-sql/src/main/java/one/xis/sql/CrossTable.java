@@ -9,5 +9,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.SOURCE)
 public @interface CrossTable {
     String tableName();
-    String columnName() default "";
+    String columnName() default ""; // TODO better naming like foreignKeyColumnName
 }
