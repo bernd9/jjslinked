@@ -5,6 +5,8 @@ import lombok.RequiredArgsConstructor;
 import one.xis.sql.api.collection.EntityCollection;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 @Getter
 @RequiredArgsConstructor
@@ -40,11 +42,23 @@ public abstract class EntityCrudHandler<E, EID> {
         }
     }
 
-    protected abstract void doSave(E entity, EntityCrudHandlerSession session);
-
-    private void doSave(Collection<E> entities) {
-        entities.forEach(this::save); // TODO this might be slow. Better implement similar logic again
+    public Optional<E> findById(EID id) {
+        return entityTableAccessor.findById(id);
     }
 
+    // TODO : better stream result-set by wrapping it in a stream ?
+    public List<E> findAll() {
+        return entityTableAccessor.findAll();
+    }
+
+    public void delete(E entity) {
+       // TODO
+    }
+
+    public void deleteAll(Collection<E> entities) {
+        // TODO
+    }
+
+    protected abstract void doSave(E entity, EntityCrudHandlerSession session);
 
 }

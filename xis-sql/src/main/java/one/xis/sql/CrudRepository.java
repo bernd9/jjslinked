@@ -2,6 +2,7 @@ package one.xis.sql;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface CrudRepository<E, ID> {
 
@@ -9,11 +10,13 @@ public interface CrudRepository<E, ID> {
 
     void saveAll(Collection<E> entities);
 
-    E findById(ID id);
+    Optional<E> findById(ID id);
 
     List<E> findAll();
 
     void delete(E entity);
+
+    void deleteAll(Collection<E> entities);
 
 
 }

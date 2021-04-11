@@ -150,6 +150,8 @@ class EntityCrudHandlerWriter {
     }
 
     private void addConstructor(TypeSpec.Builder builder) {
+        // TODO avoid all references to other models by a delegating method in current model
+        // TODO example: entityCrudHandlerModel.getEntityTableAccessorTypeName() { return EntityTableAccessorModel.getEntityTableAccessorTypeName}
         TypeName entityTableAccessor = EntityTableAccessorModel.getEntityTableAccessorTypeName(entityModel());
         TypeName entityFunctions = EntityFunctionsModel.getEntityFunctionsTypeName(entityModel());
         builder.addMethod(MethodSpec.constructorBuilder()

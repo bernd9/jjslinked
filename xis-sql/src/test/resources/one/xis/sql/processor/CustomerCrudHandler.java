@@ -20,10 +20,10 @@ class CustomerCrudHandler extends EntityCrudHandler<Customer, Long> {
 
     @Override
     protected void doSave(Customer entity, EntityCrudHandlerSession session) {
-     addressCrudHandler.save(CustomerUtil.getInvoiceAddress(entity), session);
-     session.addSaveAction(entity, getEntityTableAccessor(), getEntityFunctions());
-     ordersFieldHandler.updateFieldValues(entity, CustomerUtil.getOrders(entity), session);
-     agentsFieldHandler.updateFieldValues(entity, CustomerUtil.getAgents(entity), session);
+        addressCrudHandler.save(CustomerUtil.getInvoiceAddress(entity), session);
+        session.addSaveAction(entity, getEntityTableAccessor(), getEntityFunctions());
+        ordersFieldHandler.updateFieldValues(entity, CustomerUtil.getOrders(entity), session);
+        agentsFieldHandler.updateFieldValues(entity, CustomerUtil.getAgents(entity), session);
     }
 
     private static class OrdersFieldHandler extends ReferredFieldHandler<Customer, Long, Order, Long> {
