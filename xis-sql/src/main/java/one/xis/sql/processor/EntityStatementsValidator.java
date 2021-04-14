@@ -7,6 +7,6 @@ class EntityStatementsValidator {
     private final EntityStatementsModel model;
 
     void validate() {
-
+        // TODO
     }
 }

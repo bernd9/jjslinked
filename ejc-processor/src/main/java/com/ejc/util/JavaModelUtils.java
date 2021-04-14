@@ -9,11 +9,9 @@ import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
 import javax.lang.model.type.TypeKind;
 import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.SimpleAnnotationValueVisitor9;
 import javax.lang.model.util.SimpleTypeVisitor9;
 import java.lang.annotation.Annotation;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -120,9 +118,8 @@ public class JavaModelUtils {
 
     public static TypeMirror getGenericType(Element element, int index) {
         GenericTypeVisitor visitor = new GenericTypeVisitor();
-        return element.asType().accept(visitor, index).orElseThrow(() -> new IllegalStateException(String.format("%s must have %d generic types", element, index+1)));
+        return element.asType().accept(visitor, index).orElseThrow(() -> new IllegalStateException(String.format("%s must have %d generic types", element, index + 1)));
     }
-
 
     public static TypeMirror[] getGenericMapTypes(VariableElement mapVariable) {
         GenericMapTypeVisitor visitor = new GenericMapTypeVisitor();
@@ -205,12 +202,16 @@ public class JavaModelUtils {
 
 
     public static TypeMirror getArrayComponentType(TypeMirror arrayType) {
-        if (!isArray(arrayType)) throw new IllegalArgumentException("not an array " +arrayType);
+        if (!isArray(arrayType)) {
+            throw new IllegalArgumentException("not an array " + arrayType);
+        }
         return ((ArrayType) arrayType).getComponentType();
     }
 
     public static boolean isByteArray(TypeMirror typeMirror) {
-        if (!isArray(typeMirror)) return false;
+        if (!isArray(typeMirror)) {
+            return false;
+        }
         TypeMirror componentType = getArrayComponentType(typeMirror);
         return typeMirror.getKind() == TypeKind.BYTE;
     }
@@ -305,5 +306,5 @@ public class JavaModelUtils {
     public static String getPackageName(TypeElement e) {
         return getPackageName(e.getQualifiedName());
     }
-
+    
 }

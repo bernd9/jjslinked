@@ -31,7 +31,7 @@ class ForeignTableUpdateAction<EID, F, FID> {
     }
 
     private void saveFieldValues(Collection<F> retainFieldEntities) {
-        fieldCrudRepository.saveAll(retainFieldEntities);
+        fieldCrudRepository.save(retainFieldEntities);
     }
 
     private void handleObsoleteFieldValues(Collection<F> retainFieldEntities, Function<F, FID> fieldGetPkFunction) {

@@ -20,7 +20,7 @@ class RepositoryImplModel {
     }
 
     String getRepositoryImplSimpleName() {
-        return JavaModelUtils.getSimpleName(repositoryInterface);
+        return JavaModelUtils.getSimpleName(repositoryInterface) + "Impl";
     }
 
     String getRepositoryImplPackageName() {

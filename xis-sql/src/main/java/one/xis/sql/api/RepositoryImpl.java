@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RequiredArgsConstructor
-public class RepositoryBase<E, EID> implements CrudRepository<E, EID> {
+public class RepositoryImpl<E, EID> implements CrudRepository<E, EID> {
 
     private final EntityCrudHandler<E,EID> entityCrudHandler;
 
@@ -18,7 +18,7 @@ public class RepositoryBase<E, EID> implements CrudRepository<E, EID> {
     }
 
     @Override
-    public void saveAll(Collection<E> entities) {
+    public void save(Collection<E> entities) {
         entityCrudHandler.save(entities);
     }
 

@@ -8,7 +8,7 @@ public interface CrudRepository<E, ID> {
 
     void save(E entity);
 
-    void saveAll(Collection<E> entities);
+    void save(Collection<E> entities);
 
     Optional<E> findById(ID id);
 

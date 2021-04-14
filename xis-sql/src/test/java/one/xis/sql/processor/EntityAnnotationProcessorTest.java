@@ -1,8 +1,9 @@
 package one.xis.sql.processor;
 
-import com.google.testing.compile.*;
+import com.google.testing.compile.Compilation;
+import com.google.testing.compile.CompilationSubject;
 import com.google.testing.compile.Compiler;
-import com.squareup.javapoet.JavaFile;
+import com.google.testing.compile.JavaFileObjects;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +22,7 @@ class EntityAnnotationProcessorTest {
     private JavaFileObject invoiceAddress;
     private JavaFileObject order;
     private JavaFileObject agent;
+    private JavaFileObject customerRepository;
     private Compilation compilation;
 
     @BeforeEach
@@ -30,7 +32,8 @@ class EntityAnnotationProcessorTest {
         invoiceAddress = JavaFileObjects.forResource("one/xis/sql/processor/Address.java");
         order = JavaFileObjects.forResource("one/xis/sql/processor/Order.java");
         agent = JavaFileObjects.forResource("one/xis/sql/processor/Agent.java");
-        compilation = compiler.compile(customer, invoiceAddress, order, agent);
+        customerRepository = JavaFileObjects.forResource("one/xis/sql/processor/CustomerRepository.java");
+        compilation = compiler.compile(customer, invoiceAddress, order, agent, customerRepository);
         //assertThat(compilation.status()).isEqualTo(Compilation.Status.SUCCESS);
     }
 
@@ -75,6 +78,13 @@ class EntityAnnotationProcessorTest {
     void customerCrudHandler() {
         CompilationSubject.assertThat(compilation).generatedSourceFile("one.xis.sql.processor.CustomerCrudHandler")
                 .hasSourceEquivalentTo(JavaFileObjects.forResource("one/xis/sql/processor/CustomerCrudHandler.java"));
+    }
+
+
+    @Test
+    void customerRepositoryImpl() {
+        CompilationSubject.assertThat(compilation).generatedSourceFile("one.xis.sql.processor.CustomerRepositoryImpl")
+                .hasSourceEquivalentTo(JavaFileObjects.forResource("one/xis/sql/processor/CustomerRepositoryImpl.java"));
     }
 
     public String getSource(JavaFileObject fileObject) {
