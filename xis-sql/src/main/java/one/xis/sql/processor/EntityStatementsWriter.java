@@ -49,7 +49,7 @@ class EntityStatementsWriter {
         builder.addMethod(implementGetSelectAllSql());
         builder.addMethod(implementGetDeleteAllSql());
         builder.addMethod(implementGetUpdateColumnValuesToNullSql());
-        builder.addMethod(implementGetPksByColumnValueSql());
+        builder.addMethod(implementSelectByColumnValueSql());
         builder.addMethod(implementSetInsertSqlParameters());
         builder.addMethod(implementSetUpdateSqlParameters());
     }
@@ -85,20 +85,20 @@ class EntityStatementsWriter {
                 .addParameter(ClassName.get(String.class), "columnName")
                 .addAnnotation(Override.class)
                 .returns(TypeName.get(String.class))
-                .addStatement("return String.format(\"$L\", columnName)", statementsModel.getUpdateColumnValuesToNullByPkSqlPattern() )
+                .addStatement("return String.format(\"$L\", columnName)", statementsModel.getUpdateColumnValuesToNullByPkSqlPattern())
                 .build();
     }
 
-    private MethodSpec implementGetPksByColumnValueSql() {
-        return MethodSpec.methodBuilder("getPksByColumnValueSql")
+    private MethodSpec implementSelectByColumnValueSql() {
+        return MethodSpec.methodBuilder("getSelectByColumnValueSql")
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ClassName.get(String.class), "columnName")
                 .addAnnotation(Override.class)
                 .returns(TypeName.get(String.class))
-                .addStatement("return String.format(\"$L\", columnName)", statementsModel.getGetPksByColumnValueSqlPattern())
+                .addStatement("return String.format(\"$L\", columnName)", statementsModel.getSelectByColumnValueSqlPattern())
                 .build();
     }
-    
+
     private MethodSpec implementSimpleStringGetter(String methodName, String returnValue) {
         return MethodSpec.methodBuilder(methodName)
                 .addModifiers(Modifier.PUBLIC)
@@ -136,7 +136,7 @@ class EntityStatementsWriter {
             if (fieldModel instanceof ForeignKeyFieldModel) {
                 ForeignKeyFieldModel foreignKeyFieldModel = (ForeignKeyFieldModel) fieldModel;
                 extractorCodeFactory = new ForeignKeyColumnValueExtractorCodeFactory(foreignKeyFieldModel, "entity");
-            } else  if (fieldModel instanceof SimpleEntityFieldModel) {
+            } else if (fieldModel instanceof SimpleEntityFieldModel) {
                 // TODO more field types
                 SimpleEntityFieldModel simpleEntityFieldModel = (SimpleEntityFieldModel) fieldModel;
                 extractorCodeFactory = new SimpleColumnValueExtractorCodeFactory(simpleEntityFieldModel, "entity");
@@ -177,7 +177,7 @@ class EntityStatementsWriter {
 
     /**
      * Reads simple field-value (not another  entity) from entity.
-     *
+     * <p>
      * a.) by calling a getter
      * b.) by accessing the field
      */

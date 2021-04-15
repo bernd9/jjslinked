@@ -2,7 +2,6 @@ package one.xis.sql.api.collection;
 
 
 import java.util.Collection;
-import java.util.List;
 
 public interface EntityCollection<E> extends Collection<E> {
     boolean isDirty();
@@ -14,4 +13,5 @@ public interface EntityCollection<E> extends Collection<E> {
     Collection<E> getNewValues();
 
     Class<E> getElementType();
+    
 }

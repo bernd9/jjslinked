@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.JdbcException;
 import one.xis.sql.api.collection.EntityArrayList;
+import one.xis.sql.api.collection.EntityCollections;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -100,41 +101,18 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     }
 
 
-    public void deleteAllById(Collection<EID> ids) {
-        // TODO
-        throw new AbstractMethodError();
-    }
-
-    public void updateColumnValuesToNull(Collection<EID> pks, String fkColumnName) {
-        Iterator<EID> entityIterator = pks.iterator();
-        try (JdbcStatement st = prepare(entityStatements.getUpdateColumnValuesToNullByPkSql(fkColumnName))) {
-            while (entityIterator.hasNext()) {
-                st.clearParameters();
-                EID pk = entityIterator.next();
-                setPk(st, 1, pk);
-                st.addBatch();
+    public <C extends Collection<E>> C getByColumnValue(Object columnValue, String columnName, Class<C> collectionType) {
+        C collection = EntityCollections.getCollection(collectionType);
+        try (PreparedStatement st = prepare(entityStatements.getSelectByColumnValueSql(columnName))) {
+            try (ResultSet rs = st.executeQuery()) {
+                while (rs.next()) {
+                    collection.add((E) toEntityProxy(rs));
+                }
             }
-            st.executeBatch();
         } catch (SQLException e) {
-            throw new JdbcException("failed to execute delete", e);
+            throw new JdbcException("failed to execute select all", e);
         }
-    }
-
-
-    public Collection<EID> getPksByColumnValue(Object columnValue, String columnName) {
-        List<EID> list = new ArrayList<>();
-        try (JdbcStatement st = prepare(entityStatements.getPksByColumnValueSql(columnName))) {
-            st.set(1, columnValue);
-            st.addBatch();
-            ExtendedResultSet rs = new ExtendedResultSet(st.executeQuery());
-            while (rs.next()) {
-                list.add(rs.get(1, pkType));
-            }
-            return list;
-
-        } catch (SQLException e) {
-            throw new JdbcException("failed to execute delete", e);
-        }
+        return collection;
     }
 
 

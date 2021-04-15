@@ -40,8 +40,8 @@ public class AddressStatements implements EntityStatements<Address, Long> {
     }
 
     @Override
-    public String getPksByColumnValueSql(String columnName) {
-        return String.format("SELECT `id` FROM `address` WHERE `%s`=?", columnName);
+    public String getSelectByColumnValueSql(String columnName) {
+        return String.format("SELECT `id`,`country`,`postal`,`street` FROM `address` WHERE `%s`=?", columnName);
     }
 
     @Override

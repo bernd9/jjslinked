@@ -34,7 +34,7 @@ public interface EntityStatements<E, EID> {
 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
-    String getPksByColumnValueSql(String columnName);
+    String getSelectByColumnValueSql(String columnName);
 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")

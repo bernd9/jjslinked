@@ -14,12 +14,10 @@ import java.util.*;
 class EntityProxyWriter {
     private final EntityProxyModel entityProxyModel;
     private final ProcessingEnvironment processingEnvironment;
-    private final EntityCollections entityCollections;
 
     EntityProxyWriter(EntityProxyModel entityProxyModel, ProcessingEnvironment processingEnvironment) {
         this.entityProxyModel = entityProxyModel;
         this.processingEnvironment = processingEnvironment;
-        this.entityCollections = new EntityCollections(processingEnvironment);
     }
 
     void write() throws IOException {
@@ -106,7 +104,6 @@ class EntityProxyWriter {
     private void overrideForeignKeyFieldGettersAndSetters(TypeSpec.Builder builder) {
         ForeignKeyFieldAccessorOverrider foreignKeyFieldAccessorOverrider = new ForeignKeyFieldAccessorOverrider("entity", entityModel().getForeignKeyFields());
         foreignKeyFieldAccessorOverrider.overrideGetters(builder);
-        foreignKeyFieldAccessorOverrider.overrideSetters(builder);
     }
 
     private void implementProxyInterfaceMethods(TypeSpec.Builder builder) {
@@ -189,26 +186,13 @@ class EntityProxyWriter {
 }
 
 @RequiredArgsConstructor
-abstract class FieldAccessorOverrider {
-    protected final String entityFieldName;
+class ForeignKeyFieldAccessorOverrider {
 
-    protected MethodSpec overrideGetter(ExecutableElement getter) {
-        return MethodSpec.overriding(getter)
-                .addModifiers(Modifier.PUBLIC)
-                .addStatement("return $L.$L()", entityFieldName, getter.getSimpleName())
-                .build();
-    }
-
-}
-
-
-class ForeignKeyFieldAccessorOverrider extends FieldAccessorOverrider {
-
+    private final String entityFieldName;
     private final Collection<ForeignKeyFieldModel> fields;
 
-    ForeignKeyFieldAccessorOverrider(String entityFieldName, Collection<ForeignKeyFieldModel> fields) {
-        super(entityFieldName);
-        this.fields = fields;
+    void writeFieldHandlerFields() {
+
     }
 
     void overrideGetters(TypeSpec.Builder builder) {
@@ -220,30 +204,12 @@ class ForeignKeyFieldAccessorOverrider extends FieldAccessorOverrider {
                 .forEach(builder::addMethod);
     }
 
-    void overrideSetters(TypeSpec.Builder builder) {
-        fields.stream()
-                .filter(field -> field.getSetter().isPresent())
-                .map(this::overrideSetter)
-                .forEach(builder::addMethod);
-    }
-
-
-    private MethodSpec overrideSetter(ForeignKeyFieldModel field) {
-        ExecutableElement setter = field.getSetter().orElseThrow();
-        String entityProxySimpleName = EntityProxyModel.getEntityProxySimpleName(field.getFieldEntityModel());
-        return MethodSpec.methodBuilder(setter.getSimpleName().toString())
-                .addAnnotation(Override.class)
+    protected MethodSpec overrideGetter(ExecutableElement getter) {
+        return MethodSpec.overriding(getter)
                 .addModifiers(Modifier.PUBLIC)
-                .addParameter(ParameterSpec.builder(TypeName.get(setter.getParameters().get(0).asType()), "value").build())
-                .addCode(CodeBlock.builder()
-                        .addStatement("dirty = true")
-                        .beginControlFlow("if (value == null || value instanceof $T)", EntityProxy.class)
-                        .addStatement("$L(value)", setter.getSimpleName())
-                        .nextControlFlow("else")
-                        .addStatement("$L(new $L())", setter.getSimpleName(), entityProxySimpleName)
-                        .endControlFlow()
-                        .build())
+                .addStatement("return $L.$L()", entityFieldName, getter.getSimpleName())
                 .build();
     }
+    
 
 }

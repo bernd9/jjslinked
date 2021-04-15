@@ -40,8 +40,8 @@ public class CustomerStatements implements EntityStatements<Customer, Long> {
     }
 
     @Override
-    public String getPksByColumnValueSql(String columnName) {
-        return String.format("SELECT id FROM customer WHERE %s=?", columnName);
+    public String getSelectByColumnValueSql(String columnName) {
+        return String.format("SELECT id,first_name,invoice_address_id,last_name FROM customer WHERE %s=?", columnName);
     }
 
     @Override

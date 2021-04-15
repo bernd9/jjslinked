@@ -6,7 +6,6 @@ import com.squareup.javapoet.TypeName;
 import lombok.Getter;
 
 import javax.annotation.processing.ProcessingEnvironment;
-import javax.lang.model.type.TypeMirror;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -68,55 +67,6 @@ class EntityStatementsModel implements Comparator<FieldModel> {
         return fieldModels;
     }
 
-    /*
-    String getInsertSqlSetParameterMethod(int index) {
-        FieldModel fieldModel = getInsertSqlFields().get(index - 1);
-        if (isString(fieldModel.getFieldType())) {
-            return "setString";
-        }
-
-        switch (fieldModel.getFieldType().getKind()) {
-
-            case BOOLEAN:
-                return "setBoolean";
-            case BYTE:
-                return "setByte";
-            case SHORT:
-                return "setShort";
-            case INT:
-                return "setInt";
-            case LONG:
-                return "setLong";
-            case CHAR:
-                return "setChar";
-            case FLOAT:
-                return "setFloat";
-            case DOUBLE:
-                return "setDouble";
-
-        }
-        if (isPrimitve(fieldModel.getFieldType())) {
-            fieldModel.getFieldType().getKind() == TypeKind.ERROR
-        }
-
-    }
-    */
-
-
-    private boolean isString(TypeMirror typeMirror) {
-        // TODO make "string" static ?
-        TypeMirror string = processingEnvironment.getElementUtils().getTypeElement(String.class.getName()).asType();
-        return processingEnvironment.getTypeUtils().isSameType(string, typeMirror);
-    }
-
-    private boolean isPrimitve(TypeMirror typeMirror) {
-        return typeMirror.getKind().isPrimitive();
-    }
-
-    String getInsertSqlFieldGetter(int index) {
-        return null;
-    }
-
     String getUpdateSql() {
         StringBuilder update = new StringBuilder()
                 .append("UPDATE ")
@@ -162,10 +112,11 @@ class EntityStatementsModel implements Comparator<FieldModel> {
                 .toString();
     }
 
-    String getGetPksByColumnValueSqlPattern() {
+    String getSelectByColumnValueSqlPattern() {
+        List<FieldModel> fieldModels = getSelectSqlFields();
         return new StringBuilder()
                 .append("SELECT ")
-                .append(entityModel.getIdField().getColumnName())
+                .append(columnList(fieldModels))
                 .append(" FROM ")
                 .append(entityModel.getTableName())
                 .append(" WHERE %s=?")
@@ -184,7 +135,7 @@ class EntityStatementsModel implements Comparator<FieldModel> {
     }
 
     String getSelectByIdSql() {
-        List<FieldModel> fieldModels = getSelectByIdSqlFields();
+        List<FieldModel> fieldModels = getSelectSqlFields();
         return new StringBuilder()
                 .append("SELECT ")
                 .append(columnList(fieldModels))
@@ -196,7 +147,7 @@ class EntityStatementsModel implements Comparator<FieldModel> {
                 .toString();
     }
 
-    List<FieldModel> getSelectByIdSqlFields() {
+    List<FieldModel> getSelectSqlFields() {
         List<FieldModel> fieldModels = new ArrayList<>();
         fieldModels.add(entityModel.getIdField());
         fieldModels.addAll(nonPkColumnFields);
@@ -204,7 +155,7 @@ class EntityStatementsModel implements Comparator<FieldModel> {
     }
 
     String getSelectAllSql() {
-        List<FieldModel> fieldModels = getSelectByIdSqlFields();
+        List<FieldModel> fieldModels = getSelectSqlFields();
         return new StringBuilder()
                 .append("SELECT ")
                 .append(columnList(fieldModels))
@@ -212,7 +163,7 @@ class EntityStatementsModel implements Comparator<FieldModel> {
                 .append(entityModel.getTableName())
                 .toString();
     }
-    
+
     private String columnList(List<FieldModel> fieldModels) {
         return fieldModels.stream()
                 .map(FieldModel::getColumnName)
