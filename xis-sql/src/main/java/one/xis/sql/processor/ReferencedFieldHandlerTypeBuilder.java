@@ -4,7 +4,7 @@ import com.ejc.util.JavaModelUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.api.EntityCrudHandlerSession;
-import one.xis.sql.api.ReferredFieldHandler;
+import one.xis.sql.api.ReferredCrudHandlerFieldHandler;
 
 import javax.lang.model.element.Modifier;
 import java.util.Collection;
@@ -27,7 +27,7 @@ class ReferencedFieldHandlerTypeBuilder {
     }
 
     private TypeName fieldHandlerSuperClass() {
-        return ParameterizedTypeName.get(ClassName.get(ReferredFieldHandler.class),
+        return ParameterizedTypeName.get(ClassName.get(ReferredCrudHandlerFieldHandler.class),
                 TypeName.get(model.getEntityModel().getType().asType()),
                 TypeName.get(model.getEntityModel().getIdField().getFieldType()),
                 TypeName.get(model.getFieldEntityModel().getType().asType()),

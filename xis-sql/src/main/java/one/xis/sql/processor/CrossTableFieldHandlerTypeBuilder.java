@@ -1,13 +1,11 @@
 package one.xis.sql.processor;
 
-import com.ejc.util.JavaModelUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
-import one.xis.sql.api.*;
+import one.xis.sql.api.CrossTableCrudHandlerFieldHandler;
 
 import javax.lang.model.element.Modifier;
 import java.util.Collection;
-import java.util.Collections;
 
 @RequiredArgsConstructor
 class CrossTableFieldHandlerTypeBuilder {
@@ -25,7 +23,7 @@ class CrossTableFieldHandlerTypeBuilder {
     }
 
     private TypeName fieldHandlerSuperClass() {
-        return ParameterizedTypeName.get(ClassName.get(CrossTableFieldHandler.class),
+        return ParameterizedTypeName.get(ClassName.get(CrossTableCrudHandlerFieldHandler.class),
                 TypeName.get(model.getEntityModel().getType().asType()),
                 TypeName.get(model.getEntityModel().getIdField().getFieldType()),
                 TypeName.get(model.getFieldEntityModel().getType().asType()),
@@ -42,6 +40,7 @@ class CrossTableFieldHandlerTypeBuilder {
                         model.getFieldEntityModel().getTypeName())
                 .build();
     }
+
     private MethodSpec implementGetFieldValuePk() {
         return MethodSpec.methodBuilder("getFieldValuePk")
                 .addAnnotation(Override.class)

@@ -1,10 +1,10 @@
 package one.xis.sql.processor;
 
 import java.util.Collection;
-import one.xis.sql.api.CrossTableFieldHandler;
+import one.xis.sql.api.CrossTableCrudHandlerFieldHandler;
 import one.xis.sql.api.EntityCrudHandler;
 import one.xis.sql.api.EntityCrudHandlerSession;
-import one.xis.sql.api.ReferredFieldHandler;
+import one.xis.sql.api.ReferredCrudHandlerFieldHandler;
 
 class CustomerCrudHandler extends EntityCrudHandler<Customer, Long> {
 
@@ -26,7 +26,7 @@ class CustomerCrudHandler extends EntityCrudHandler<Customer, Long> {
         agentsFieldHandler.updateFieldValues(entity, CustomerUtil.getAgents(entity), session);
     }
 
-    private static class OrdersFieldHandler extends ReferredFieldHandler<Customer, Long, Order, Long> {
+    private static class OrdersFieldHandler extends ReferredCrudHandlerFieldHandler<Customer, Long, Order, Long> {
 
         OrdersFieldHandler() {
             super(new OrderTableAccessor(), new OrderFunctions(), Customer.class, Order.class);
@@ -54,7 +54,7 @@ class CustomerCrudHandler extends EntityCrudHandler<Customer, Long> {
         }
     }
 
-    private static class AgentsFieldHandler extends CrossTableFieldHandler<Customer, Long, Agent, Long> {
+    private static class AgentsFieldHandler extends CrossTableCrudHandlerFieldHandler<Customer, Long, Agent, Long> {
 
         AgentsFieldHandler() {
             super(new AgentTableAccessor(), new CustomerAgentCrossTableAccessor(), new AgentFunctions(), Customer.class, Agent.class);

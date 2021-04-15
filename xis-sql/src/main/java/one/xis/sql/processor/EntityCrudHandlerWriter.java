@@ -29,7 +29,7 @@ class EntityCrudHandlerWriter {
                 .build();
         StringBuilder s = new StringBuilder();
         javaFile.writeTo(s);
-        System.out.println(s);
+        //System.out.println(s);
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
@@ -63,8 +63,8 @@ class EntityCrudHandlerWriter {
 
     private void addCrossTableFieldHandlerTypes(TypeSpec.Builder builder) {
         sortedCrossTableFieldModels()
-            .map(this::getCrossTableFieldHandlerTypeSpec)
-            .forEach(builder::addType);
+                .map(this::getCrossTableFieldHandlerTypeSpec)
+                .forEach(builder::addType);
     }
 
     private void addForeignKeyFieldHandlerFields(TypeSpec.Builder builder) {

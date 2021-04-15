@@ -1,17 +1,15 @@
 package one.xis.sql.api;
 
-import lombok.RequiredArgsConstructor;
-
 import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public abstract class CrossTableFieldHandler<E,EID,F,FID> extends CollectionFieldHandler<E, EID, F, FID> {
+public abstract class CrossTableCrudHandlerFieldHandler<E, EID, F, FID> extends CollectionFieldHandler<E, EID, F, FID> {
     // TODO validate crosstable field must be a collection
 
-    private final CrossTableAccessor<EID,FID> crossTableAccessor;
+    private final CrossTableAccessor<EID, FID> crossTableAccessor;
 
-    public CrossTableFieldHandler(EntityTableAccessor<F, FID> fieldEntityTableAccessor, CrossTableAccessor<EID,FID> crossTableAccessor, EntityFunctions<F, FID> fieldEntityFunctions, Class<E> entityType, Class<F> fieldType) {
+    public CrossTableCrudHandlerFieldHandler(EntityTableAccessor<F, FID> fieldEntityTableAccessor, CrossTableAccessor<EID, FID> crossTableAccessor, EntityFunctions<F, FID> fieldEntityFunctions, Class<E> entityType, Class<F> fieldType) {
         super(fieldEntityTableAccessor, fieldEntityFunctions, entityType, fieldType);
         this.crossTableAccessor = crossTableAccessor;
     }

@@ -4,9 +4,9 @@ import java.util.Collection;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-public abstract class ReferredFieldHandler<E, EID, F, FID> extends CollectionFieldHandler<E, EID, F, FID> {
+public abstract class ReferredCrudHandlerFieldHandler<E, EID, F, FID> extends CollectionFieldHandler<E, EID, F, FID> {
 
-    public ReferredFieldHandler(EntityTableAccessor<F, FID> fieldEntityTableAccessor, EntityFunctions<F, FID> fieldEntityFunctions, Class<E> entityType, Class<F> fieldType) {
+    public ReferredCrudHandlerFieldHandler(EntityTableAccessor<F, FID> fieldEntityTableAccessor, EntityFunctions<F, FID> fieldEntityFunctions, Class<E> entityType, Class<F> fieldType) {
         super(fieldEntityTableAccessor, fieldEntityFunctions, entityType, fieldType);
     }
 
@@ -42,12 +42,12 @@ public abstract class ReferredFieldHandler<E, EID, F, FID> extends CollectionFie
 
     @Override
     protected void addBulkInsertAction(E entity, Stream<F> fieldValues, EntityCrudHandlerSession crudHandlerSession, Class<F> fieldType) {
-        super.addBulkInsertAction(entity, fieldValues.peek(value -> updateForeignKeyColumnValue(value,  entity)), crudHandlerSession, fieldType);
+        super.addBulkInsertAction(entity, fieldValues.peek(value -> updateForeignKeyColumnValue(value, entity)), crudHandlerSession, fieldType);
     }
 
     @Override
     protected void addBulkUpdateAction(E entity, Stream<F> fieldValues, EntityCrudHandlerSession crudHandlerSession, Class<F> fieldType) {
-        super.addBulkUpdateAction(entity, fieldValues.peek(value -> updateForeignKeyColumnValue(value,  entity)), crudHandlerSession, fieldType);
+        super.addBulkUpdateAction(entity, fieldValues.peek(value -> updateForeignKeyColumnValue(value, entity)), crudHandlerSession, fieldType);
     }
 
     protected abstract void setFieldValueFk(F fieldValue, E foreignKey);
