@@ -3,12 +3,14 @@ package one.xis.sql.processor;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.api.EntityProxy;
+import one.xis.sql.api.FieldValueLoader;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Stream;
 
 
 class EntityProxyWriter {
@@ -101,10 +103,6 @@ class EntityProxyWriter {
                 .build();
     }
 
-    private void overrideForeignKeyFieldGettersAndSetters(TypeSpec.Builder builder) {
-        ForeignKeyFieldAccessorOverrider foreignKeyFieldAccessorOverrider = new ForeignKeyFieldAccessorOverrider("entity", entityModel().getForeignKeyFields());
-        foreignKeyFieldAccessorOverrider.overrideGetters(builder);
-    }
 
     private void implementProxyInterfaceMethods(TypeSpec.Builder builder) {
         builder.addMethod(implementGetReadOnlyMethod());
@@ -123,7 +121,6 @@ class EntityProxyWriter {
                 .build();
     }
 
-
     private MethodSpec implementGetPkMethod() {
         return MethodSpec.methodBuilder("pk")
                 .addAnnotation(Override.class)
@@ -132,7 +129,6 @@ class EntityProxyWriter {
                 .addStatement("return $T.getPk(this)", EntityUtilModel.getEntityUtilTypeName(entityModel()))
                 .build();
     }
-
 
     private MethodSpec implementIsDirtyMethod() {
         return MethodSpec.methodBuilder("dirty")
@@ -186,30 +182,46 @@ class EntityProxyWriter {
 }
 
 @RequiredArgsConstructor
-class ForeignKeyFieldAccessorOverrider {
+class LazyLoadingFields {
 
-    private final String entityFieldName;
-    private final Collection<ForeignKeyFieldModel> fields;
+    private final EntityProxyModel model;
 
-    void writeFieldHandlerFields() {
-
+    void addLoaderFields(TypeSpec.Builder typeSpec) {
+        getReferredFieldLoaderFields().forEach(typeSpec::addField);
+        getForeignKeyLoaderFields().forEach(typeSpec::addField);
+        getCrossTableLoaderFields().forEach(typeSpec::addField);
     }
 
-    void overrideGetters(TypeSpec.Builder builder) {
-        fields.stream()
-                .map(ForeignKeyFieldModel::getGetter)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .map(this::overrideGetter)
-                .forEach(builder::addMethod);
+    private Stream<FieldSpec> getReferredFieldLoaderFields() {
+        return model.getReferredFields().stream().map(this::getReferredFieldLoaderField);
     }
 
-    protected MethodSpec overrideGetter(ExecutableElement getter) {
-        return MethodSpec.overriding(getter)
-                .addModifiers(Modifier.PUBLIC)
-                .addStatement("return $L.$L()", entityFieldName, getter.getSimpleName())
+    private FieldSpec getReferredFieldLoaderField(ReferencedFieldModel model) {
+        return null;
+    }
+
+    private FieldSpec getReferredFieldLoaderFieldSingleValue(ReferencedFieldModel model) {
+        TypeName fieldEntityTypeName = TypeName.get(model.getFieldType());
+        TypeName fieldPkTypeName = TypeName.get(model.getFieldEntityModel().getIdField().getFieldType());
+        TypeName fieldLoaderType = ParameterizedTypeName.get(ClassName.get(FieldValueLoader.class), fieldEntityTypeName, fieldPkTypeName);
+        TypeName tableAccessor = EntityTableAccessorModel.getEntityTableAccessorTypeName(model.getFieldEntityModel()); // TODO create a field instead of always instantiation
+        String getByColumnNameMethod = String.format("getBy%s", NamingRules.toJavaClassName(model.getColumnName()));
+        CodeBlock loaderLambda = CodeBlock.builder().add("key -> new $T().$L(key)", fieldLoaderType, getByColumnNameMethod).build();
+        String fieldLoaderFieldName = model.getFieldName() + "Loader";
+        return FieldSpec.builder(fieldLoaderType, fieldLoaderFieldName)
+                .initializer("new $T($L)", fieldLoaderType, loaderLambda)
                 .build();
     }
-    
+
+    private Stream<FieldSpec> getForeignKeyLoaderFields() {
+
+        return null;
+    }
+
+    private Stream<FieldSpec> getCrossTableLoaderFields() {
+
+        return null;
+    }
+
 
 }

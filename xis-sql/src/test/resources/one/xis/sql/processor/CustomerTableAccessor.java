@@ -3,6 +3,7 @@ package one.xis.sql.processor;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.Optional;
 import one.xis.sql.api.EntityTableAccessor;
 import one.xis.sql.api.JdbcStatement;
 
@@ -52,4 +53,11 @@ public class CustomerTableAccessor extends EntityTableAccessor<Customer, Long> {
         throw new AbstractMethodError();
     }
 
+    Optional<Address> getByAddressId(Long key) {
+        return this.getByColumnValue(key, "invoice_address_id", Long.class);
+    }
+
+    <C extends Collection> C getAllByAddressId(Long key, Class<C> collectionType) {
+        return (C) getAllByColumnValue(key, "invoice_address_id", Long.class, collectionType);
+    }
 }

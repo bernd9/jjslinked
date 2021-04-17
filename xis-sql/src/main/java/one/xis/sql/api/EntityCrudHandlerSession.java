@@ -67,7 +67,7 @@ public class EntityCrudHandlerSession {
     }
 
     EntityDatabaseActions createNewEntityActions(Class<?> entityType, EntityTableAccessor<?, ?> tableAccessor, EntityFunctions<?, ?> functions) {
-        EntityDatabaseActions entityDatabaseActions = new EntityDatabaseActions(entityType, (EntityTableAccessor<Object, Object>) tableAccessor, functions);
+        EntityDatabaseActions entityDatabaseActions = new EntityDatabaseActions(entityType, (EntityTableAccessor<Object, Object>) tableAccessor, (EntityFunctions<Object, ?>) functions);
         actionsForEntityTypes.add(entityDatabaseActions);
         return entityDatabaseActions;
     }

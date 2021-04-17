@@ -93,6 +93,7 @@ public class JavaModelUtils {
         return typeMirror != null;
     }
 
+    // TODO rename
     public static boolean hasGenericMapTypes(VariableElement variableElement) {
         if (variableElement.asType().getKind().isPrimitive()) {
             return false; // otherwise NullPointerException
@@ -116,11 +117,18 @@ public class JavaModelUtils {
         return genericType;
     }
 
+    public static TypeMirror getRawType(TypeMirror typeMirror) {
+        RawTypeVisitor rawTypeVisitor = new RawTypeVisitor();
+        return typeMirror.accept(rawTypeVisitor, null);
+    }
+
+    // TODO rename
     public static TypeMirror getGenericType(Element element, int index) {
         GenericTypeVisitor visitor = new GenericTypeVisitor();
         return element.asType().accept(visitor, index).orElseThrow(() -> new IllegalStateException(String.format("%s must have %d generic types", element, index + 1)));
     }
 
+    // TODO rename
     public static TypeMirror[] getGenericMapTypes(VariableElement mapVariable) {
         GenericMapTypeVisitor visitor = new GenericMapTypeVisitor();
         return mapVariable.asType().accept(visitor, null).orElseThrow(() -> new IllegalStateException(mapVariable + " must have generic types"));
@@ -158,6 +166,15 @@ public class JavaModelUtils {
                 return Optional.of(t.getTypeArguments().get(index));
             }
             return Optional.empty();
+        }
+
+    }
+
+    private static class RawTypeVisitor extends SimpleTypeVisitor9<TypeMirror, Void> {
+
+        @Override
+        public TypeMirror visitDeclared(DeclaredType t, Void nothing) {
+            return t.asElement().asType();
         }
 
     }
@@ -306,5 +323,5 @@ public class JavaModelUtils {
     public static String getPackageName(TypeElement e) {
         return getPackageName(e.getQualifiedName());
     }
-    
+
 }

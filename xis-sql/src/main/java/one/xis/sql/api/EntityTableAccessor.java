@@ -101,9 +101,30 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     }
 
 
-    public <C extends Collection<E>> C getByColumnValue(Object columnValue, String columnName, Class<C> collectionType) {
+    @UsedInGeneratedCode
+    @SuppressWarnings("unused")
+    public <E, K> Optional<E> getByColumnValue(K columnValue, String columnName, Class<K> keyType) {
+        List<E> list = getListByColumnValue(columnValue, columnName, keyType);
+        switch (list.size()) {
+            case 0:
+                return Optional.empty();
+            case 1:
+                return Optional.of(list.get(0));
+            default:
+                throw new IllegalStateException("too many results");
+        }
+    }
+
+    @UsedInGeneratedCode
+    public <E, K> List<E> getListByColumnValue(K columnValue, String columnName, Class<K> keyType) {
+        return getAllByColumnValue(columnValue, columnName, keyType, List.class);
+    }
+
+
+    public <C extends Collection<E>, K> C getAllByColumnValue(K columnValue, String columnName, Class<K> keyType, Class<C> collectionType) {
         C collection = EntityCollections.getCollection(collectionType);
-        try (PreparedStatement st = prepare(entityStatements.getSelectByColumnValueSql(columnName))) {
+        try (JdbcStatement st = prepare(entityStatements.getSelectByColumnValueSql(columnName))) {
+            st.set(1, keyType.cast(columnValue));
             try (ResultSet rs = st.executeQuery()) {
                 while (rs.next()) {
                     collection.add((E) toEntityProxy(rs));

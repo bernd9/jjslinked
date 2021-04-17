@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.stream.Stream;
 
 
 @RequiredArgsConstructor
@@ -36,7 +37,7 @@ public class EntityTableAccessorWriter {
                 .build();
         StringBuilder s = new StringBuilder();
         javaFile.writeTo(s);
-        //System.out.println(s);
+        System.out.println(s);
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
@@ -61,6 +62,7 @@ public class EntityTableAccessorWriter {
         builder.addMethod(implementSetPkEntity());
         builder.addMethod(implementSetPkStatement());
         builder.addMethod(implementGenerateKey());
+        createGetByColumnForeignKeyMethods().forEach(builder::addMethod);
     }
 
 
@@ -164,6 +166,22 @@ public class EntityTableAccessorWriter {
                 .returns(entityPkTypeName())
                 .addStatement("throw new $T()", TypeName.get(AbstractMethodError.class))
                 .build();
+    }
+
+
+    private Stream<MethodSpec> createGetByColumnForeignKeyMethods() {
+        return Stream.concat(accessorModel.getEntityModel().getForeignKeyFields().stream().map(this::createGetSingleValueByForeignKey),
+                accessorModel.getEntityModel().getForeignKeyFields().stream().map(this::createGetCollectionValueByForeignKey));
+    }
+
+
+    private MethodSpec createGetSingleValueByForeignKey(ForeignKeyFieldModel model) {
+        return EntityTableAccessorModel.getGetSingleValueByFieldValueMethod(model);
+    }
+
+
+    private MethodSpec createGetCollectionValueByForeignKey(ForeignKeyFieldModel model) {
+        return EntityTableAccessorModel.getGetCollectionByFieldValueMethod(model);
     }
 
 

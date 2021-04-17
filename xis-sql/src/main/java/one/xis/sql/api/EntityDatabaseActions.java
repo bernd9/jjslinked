@@ -2,7 +2,6 @@ package one.xis.sql.api;
 
 import lombok.Data;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -14,7 +13,7 @@ class EntityDatabaseActions {
 
     private final Class<?> entityType;
     private final EntityTableAccessor<Object, Object> entityTableAccessor;
-    private final EntityFunctions<?, ?> functions;
+    private final EntityFunctions<Object, ?> functions;
 
     private final Map<Integer, Object> insertEntities = new HashMap<>();
     private final Map<Integer, Object> updateEntities = new HashMap<>();
@@ -43,8 +42,8 @@ class EntityDatabaseActions {
                     throw new IllegalStateException();
                 }
                 if (entityProxy.readOnly()) {
-                    throw new IllegalStateException("you are trying to update a read only-object: " +o
-                            +". @Service or @Transactional-Annotation will fix this issue.");
+                    throw new IllegalStateException("you are trying to update a read only-object: " + o
+                            + ". @Service or @Transactional-Annotation will fix this issue.");
                 }
                 updateEntities.put(hashCode, entityProxy);
                 entityProxy.doSetClean();
@@ -113,7 +112,7 @@ class EntityDatabaseActions {
         deleteEntities.values().forEach(session::unregister);
 
         entityTableAccessor.insert(insertEntities.values());
-        UnaryOperator<Object> cloneFunction = o -> (UnaryOperator<Object>) functions;
+        UnaryOperator<Object> cloneFunction = o -> (UnaryOperator<Object>) functions::doClone;
         insertEntities.values().forEach(entity -> session.register(entity, cloneFunction));
 
         entityTableAccessor.update(updateEntities.values());
