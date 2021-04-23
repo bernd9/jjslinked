@@ -8,9 +8,14 @@ import one.xis.sql.api.EntityTableAccessor;
 import one.xis.sql.api.JdbcStatement;
 
 public class CustomerTableAccessor extends EntityTableAccessor<Customer, Long> {
+    private static CustomerTableAccessor instance = new CustomerTableAccessor();
 
     public CustomerTableAccessor() {
         super(new CustomerStatements(), Customer.class, Long.class);
+    }
+
+    public static CustomerTableAccessor getInstance() {
+        return instance;
     }
 
     @Override

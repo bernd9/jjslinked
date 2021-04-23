@@ -37,13 +37,30 @@ public class EntityTableAccessorWriter {
                 .build();
         StringBuilder s = new StringBuilder();
         javaFile.writeTo(s);
-        System.out.println(s);
+        //System.out.println(s);
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
     private void writeTypeBody(TypeSpec.Builder builder) {
+        createInstanceField(builder);
         createConstructor(builder);
+        createGetInstanceMethod(builder);
         implementAbstractMethods(builder);
+    }
+
+    private void createGetInstanceMethod(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.methodBuilder("getInstance")
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .addStatement("return instance")
+                .returns(accessorModel.getEntityTableAccessorClassName())
+                .build());
+    }
+
+    private void createInstanceField(TypeSpec.Builder builder) {
+        builder.addField(FieldSpec.builder(accessorModel.getEntityTableAccessorClassName(), "instance")
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                .initializer("new $T()", accessorModel.getEntityTableAccessorClassName())
+                .build());
     }
 
     private void createConstructor(TypeSpec.Builder builder) {
@@ -176,12 +193,12 @@ public class EntityTableAccessorWriter {
 
 
     private MethodSpec createGetSingleValueByForeignKey(ForeignKeyFieldModel model) {
-        return EntityTableAccessorModel.getGetSingleValueByFieldValueMethod(model);
+        return EntityTableAccessorModel.getGetSingleValueByFieldValueMethod(model).javaBuilder().build();
     }
 
 
     private MethodSpec createGetCollectionValueByForeignKey(ForeignKeyFieldModel model) {
-        return EntityTableAccessorModel.getGetCollectionByFieldValueMethod(model);
+        return EntityTableAccessorModel.getGetCollectionByFieldValueMethod(model).javaBuilder().build();
     }
 
 

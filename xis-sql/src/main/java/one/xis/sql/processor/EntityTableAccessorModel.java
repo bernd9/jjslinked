@@ -2,7 +2,6 @@ package one.xis.sql.processor;
 
 import com.ejc.util.StringUtils;
 import com.squareup.javapoet.ClassName;
-import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import lombok.Getter;
@@ -29,11 +28,15 @@ class EntityTableAccessorModel {
         return entityModel.getPackageName();
     }
 
+    ClassName getEntityTableAccessorClassName() {
+        return ClassName.get(getEntityTableAccessorPackageName(), getEntityTableAccessorSimpleName());
+    }
+
     static String getEntityTableAccessorSimpleName(EntityModel entityModel) {
         return entityModel.getSimpleName() + "TableAccessor";
     }
 
-    static MethodSpec getGetSingleValueByFieldValueMethod(ForeignKeyFieldModel fieldModel) {
+    static MethodModel getGetSingleValueByFieldValueMethod(ForeignKeyFieldModel fieldModel) {
         EntityModel fieldEntityModel = fieldModel.getFieldEntityModel();
         String entityPart = StringUtils.firstToUpperCase(fieldEntityModel.getSimpleName());
         String idPart = StringUtils.firstToUpperCase(fieldEntityModel.getIdField().getFieldName().toString());
@@ -42,10 +45,10 @@ class EntityTableAccessorModel {
         methodModel.setReturnType(ParameterizedTypeName.get(ClassName.get(Optional.class), fieldEntityModel.getTypeName()));
         ParameterModel keyParam = methodModel.addParameter(keyType, "key");
         methodModel.addStatement("return this.getByColumnValue($L, \"$L\", $T.class)", keyParam.getName(), fieldModel.getColumnName(), keyParam.getTypeName());
-        return methodModel.javaBuilder().build();
+        return methodModel;
     }
 
-    static MethodSpec getGetCollectionByFieldValueMethod(ForeignKeyFieldModel fieldModel) {
+    static MethodModel getGetCollectionByFieldValueMethod(ForeignKeyFieldModel fieldModel) {
         EntityModel fieldEntityModel = fieldModel.getFieldEntityModel();
         String entityPart = StringUtils.firstToUpperCase(fieldEntityModel.getSimpleName());
         String idPart = StringUtils.firstToUpperCase(fieldEntityModel.getIdField().getFieldName().toString());
@@ -56,7 +59,7 @@ class EntityTableAccessorModel {
         ParameterModel keyParam = methodModel.addParameter(keyType, "key");
         ParameterModel collectionTypeParam = methodModel.addParameter(ParameterizedTypeName.get(ClassName.get(Class.class), collectionTypeVariable.toTypeVariableName()), "collectionType");
         methodModel.addStatement("return ($L) getAllByColumnValue($L, \"$L\", $T.class, $L)", collectionTypeVariable.getName(), keyParam.getName(), fieldModel.getColumnName(), keyType, collectionTypeParam.getName());
-        return methodModel.javaBuilder().build();
+        return methodModel;
     }
 
 
