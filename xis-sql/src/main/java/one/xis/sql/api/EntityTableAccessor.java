@@ -24,7 +24,7 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     @Getter
     private final Class<EID> pkType;
 
-    Optional<E> findById(EID id) {
+    public Optional<E> findById(EID id) {
         try (JdbcStatement st = prepare(entityStatements.getSelectByIdSql())) {
             setPk(st, 1, id);
             try (ResultSet rs = st.executeQuery()) {

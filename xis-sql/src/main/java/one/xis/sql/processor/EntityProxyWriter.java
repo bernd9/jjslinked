@@ -196,7 +196,7 @@ class LazyLoadingFields {
 
     void addLoaderFields(TypeSpec.Builder typeSpec) {
         getReferredFieldLoaderFields().forEach(typeSpec::addField);
-        //getForeignKeyLoaderFields().forEach(typeSpec::addField);
+        getForeignKeyLoaderFields().forEach(typeSpec::addField);
         //getCrossTableLoaderFields().forEach(typeSpec::addField);
     }
 
@@ -218,10 +218,10 @@ class LazyLoadingFields {
         TypeName fieldLoaderType = ParameterizedTypeName.get(ClassName.get(FieldValueLoader.class), fieldPkTypeName, fieldEntityTypeName);
         TypeName tableAccessor = EntityTableAccessorModel.getEntityTableAccessorTypeName(model.getFieldEntityModel()); // TODO create a field instead of always instantiation
         MethodModel accessorGetter = EntityTableAccessorModel.getGetCollectionByFieldValueMethod(model.getReferringField());
-        String getByColumnNameMethod = String.format("getBy%s", NamingRules.toJavaClassName(model.getColumnName()));
         CodeBlock loaderLambda = CodeBlock.builder().add("key -> new $T().$L(key. $T.class)", tableAccessor, accessorGetter.getName(), entityPkTypeName).build();
         String fieldLoaderFieldName = model.getFieldName() + "Loader";
         return FieldSpec.builder(fieldLoaderType, fieldLoaderFieldName)
+                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                 .initializer("new $T($L)", fieldLoaderType, loaderLambda)
                 .build();
     }
@@ -229,14 +229,14 @@ class LazyLoadingFields {
     private FieldSpec getReferredFieldLoaderFieldCollection(ReferencedFieldModel model) {
         TypeName fieldEntityTypeName = TypeName.get(model.getFieldType());
         TypeName fieldPkTypeName = TypeName.get(model.getFieldEntityModel().getIdField().getFieldType());
-        TypeName entityPkTypeName = TypeName.get(model.getEntityModel().getIdField().getFieldType());
         String rawCollectionType = processingEnvironment.getTypeUtils().asElement(model.getFieldType()).toString();
         TypeName fieldLoaderType = ParameterizedTypeName.get(ClassName.get(FieldValueLoader.class), fieldPkTypeName, fieldEntityTypeName);
-        TypeName tableAccessor = EntityTableAccessorModel.getEntityTableAccessorTypeName(model.getFieldEntityModel()); // TODO create a field instead of always instantiation
+        TypeName tableAccessor = EntityTableAccessorModel.getEntityTableAccessorTypeName(model.getFieldEntityModel());
         MethodModel accessorGetter = EntityTableAccessorModel.getGetCollectionByFieldValueMethod(model.getReferringField());
         CodeBlock loaderLambda = CodeBlock.builder().add("key -> $T.getInstance().$L(key, $L.class)", tableAccessor, accessorGetter.getName(), rawCollectionType).build();
         String fieldLoaderFieldName = model.getFieldName() + "Loader";
         return FieldSpec.builder(fieldLoaderType, fieldLoaderFieldName)
+                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
                 .initializer("new $T($L)", fieldLoaderType, loaderLambda)
                 .build();
     }
@@ -245,8 +245,18 @@ class LazyLoadingFields {
         return entityProxyModel.getForeignKeyFields().stream().map(this::getForeignKeyFieldLoaderField);
     }
 
-    private FieldSpec getForeignKeyFieldLoaderField(ForeignKeyFieldModel fieldModel) {
-        return null;
+    // TODO generic loader field
+    private FieldSpec getForeignKeyFieldLoaderField(ForeignKeyFieldModel model) {
+        TypeName fieldEntityTypeName = TypeName.get(model.getFieldType());
+        TypeName fieldPkTypeName = TypeName.get(model.getFieldEntityModel().getIdField().getFieldType());
+        TypeName fieldLoaderType = ParameterizedTypeName.get(ClassName.get(FieldValueLoader.class), fieldPkTypeName, fieldEntityTypeName);
+        TypeName tableAccessor = EntityTableAccessorModel.getEntityTableAccessorTypeName(model.getFieldEntityModel());
+        CodeBlock loaderLambda = CodeBlock.builder().add("key -> $T.getInstance().findById(key).orElse(null)", tableAccessor).build();
+        String fieldLoaderFieldName = model.getFieldName() + "Loader";
+        return FieldSpec.builder(fieldLoaderType, fieldLoaderFieldName)
+                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                .initializer("new $T($L)", fieldLoaderType, loaderLambda)
+                .build();
     }
 
     private Stream<FieldSpec> getCrossTableLoaderFields() {

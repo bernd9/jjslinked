@@ -1,11 +1,16 @@
 package one.xis.sql.processor;
 
+import java.util.List;
 import one.xis.sql.api.EntityProxy;
+import one.xis.sql.api.FieldValueLoader;
 
 public class CustomerProxy extends Customer implements EntityProxy<Customer, Long> {
 
     private boolean dirty;
     private final boolean readOnly;
+
+    private final FieldValueLoader<Long, List<Order>> ordersLoader = new FieldValueLoader<Long, List<Order>>(key -> OrderTableAccessor.getInstance().getAllByCustomerId(key, java.util.List.class));
+    private final FieldValueLoader<Long, Address> invoiceAddressLoader = new FieldValueLoader<Long, Address>(key -> AddressTableAccessor.getInstance().findById(key).orElse(null));
 
     CustomerProxy(boolean readOnly) {
         this.readOnly = readOnly;
