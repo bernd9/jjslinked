@@ -45,6 +45,28 @@ public class CustomerStatements implements EntityStatements<Customer, Long> {
     }
 
     @Override
+    public String getCrossTableSelectSql(String crossTableName, String entityTableRef, String foreignTableRef) {
+        return new StringBuilder()
+                .append("SELECT ")
+                .append("id,first_name,invoice_address_id,last_name")
+                .append(" FROM ")
+                .append("customer")
+                .append(" JOIN ")
+                .append(crossTableName)
+                .append(" ON (")
+                .append(crossTableName)
+                .append(".")
+                .append(entityTableRef)
+                .append("=customer.id")
+                .append(") WHERE ")
+                .append(crossTableName)
+                .append(".")
+                .append(foreignTableRef)
+                .append("=?")
+                .toString();
+    }
+
+    @Override
     public void setInsertSqlParameters(JdbcStatement st, Customer entity) {
         st.set(1, entity.getId());
         st.set(2, entity.getFirstName());

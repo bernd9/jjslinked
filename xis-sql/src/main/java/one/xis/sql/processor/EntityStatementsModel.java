@@ -154,6 +154,10 @@ class EntityStatementsModel implements Comparator<FieldModel> {
         return fieldModels;
     }
 
+    String getSelectSqlFieldList() {
+        return columnList(getSelectSqlFields());
+    }
+
     String getSelectAllSql() {
         List<FieldModel> fieldModels = getSelectSqlFields();
         return new StringBuilder()

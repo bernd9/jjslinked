@@ -49,7 +49,8 @@ class EntityStatementsWriter {
         builder.addMethod(implementGetSelectAllSql());
         builder.addMethod(implementGetDeleteAllSql());
         builder.addMethod(implementGetUpdateColumnValuesToNullSql());
-        builder.addMethod(implementSelectByColumnValueSql());
+        builder.addMethod(implementGetSelectByColumnValueSql());
+        builder.addMethod(implementGetCrossTableSelectSql());
         builder.addMethod(implementSetInsertSqlParameters());
         builder.addMethod(implementSetUpdateSqlParameters());
     }
@@ -89,13 +90,43 @@ class EntityStatementsWriter {
                 .build();
     }
 
-    private MethodSpec implementSelectByColumnValueSql() {
+    private MethodSpec implementGetSelectByColumnValueSql() {
         return MethodSpec.methodBuilder("getSelectByColumnValueSql")
                 .addModifiers(Modifier.PUBLIC)
                 .addParameter(ClassName.get(String.class), "columnName")
                 .addAnnotation(Override.class)
                 .returns(TypeName.get(String.class))
                 .addStatement("return String.format(\"$L\", columnName)", statementsModel.getSelectByColumnValueSqlPattern())
+                .build();
+    }
+
+
+    private MethodSpec implementGetCrossTableSelectSql() {
+        return MethodSpec.methodBuilder("getCrossTableSelectSql")
+                .addModifiers(Modifier.PUBLIC)
+                .addParameter(ClassName.get(String.class), "crossTableName")
+                .addParameter(ClassName.get(String.class), "entityTableRef")
+                .addParameter(ClassName.get(String.class), "foreignTableRef")
+                .addAnnotation(Override.class)
+                .returns(TypeName.get(String.class))
+                .addCode("return new $T()\n", StringBuilder.class)
+                .addCode(".append(\"SELECT \")\n")
+                .addCode(".append(\"$L\")\n", statementsModel.getSelectSqlFieldList())
+                .addCode(".append(\" FROM \")\n")
+                .addCode(".append(\"$L\")\n", statementsModel.getEntityModel().getTableName())
+                .addCode(".append(\" JOIN \")\n")
+                .addCode(".append(crossTableName)\n")
+                .addCode(".append(\" ON (\")\n")
+                .addCode(".append(crossTableName)\n")
+                .addCode(".append(\".\")\n")
+                .addCode(".append(entityTableRef)\n")
+                .addCode(".append(\"=$L\")\n", String.format("%s.%s", statementsModel.getEntityModel().getTableName(), statementsModel.getEntityModel().getIdField().getColumnName()))
+                .addCode(".append(\") WHERE \")\n")
+                .addCode(".append(crossTableName)\n")
+                .addCode(".append(\".\")\n")
+                .addCode(".append(foreignTableRef)\n")
+                .addCode(".append(\"=?\")\n")
+                .addCode(".toString();\n")
                 .build();
     }
 

@@ -38,6 +38,10 @@ public interface EntityStatements<E, EID> {
 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
+    String getCrossTableSelectSql(String crossTableName, String entityTableRef, String foreignTableRef);
+
+    @UsedInGeneratedCode
+    @SuppressWarnings("unused")
     void setInsertSqlParameters(JdbcStatement st, E entity);
 
     @UsedInGeneratedCode
