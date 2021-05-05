@@ -87,6 +87,8 @@ class EntityAnnotationProcessorTest {
                 .hasSourceEquivalentTo(JavaFileObjects.forResource("one/xis/sql/processor/CustomerRepositoryImpl.java"));
     }
 
+    // TODO Test for EntityFunctions
+
     public String getSource(JavaFileObject fileObject) {
         StringWriter writer = new StringWriter();
         try (BufferedReader in = new BufferedReader(new InputStreamReader(fileObject.openInputStream()))) {

@@ -4,10 +4,15 @@ import one.xis.sql.api.CrossTableAccessor;
 import one.xis.sql.api.CrossTableStatements;
 import one.xis.sql.api.JdbcStatement;
 
-class CustomerAgentCrossTableAccessor extends CrossTableAccessor<Long, Long> {
+class CustomerAgentCrossTableAccessor extends CrossTableAccessor<Long, Agent, Long> {
+    private static CustomerAgentCrossTableAccessor instance = new CustomerAgentCrossTableAccessor();
 
     CustomerAgentCrossTableAccessor() {
-        super(new CrossTableStatements("customer_agent", "customer_id", "agent_id"));
+        super(new CrossTableStatements("customer_agent", "customer_id", "agent_id", new AgentStatements()), new AgentFunctions());
+    }
+
+    public static CustomerAgentCrossTableAccessor getInstance() {
+        return instance;
     }
 
     protected void setFieldKey(JdbcStatement st, int index, Long fieldPk) {

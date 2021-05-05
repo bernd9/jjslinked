@@ -11,6 +11,7 @@ public class CustomerProxy extends Customer implements EntityProxy<Customer, Lon
 
     private final FieldValueLoader<Long, List<Order>> ordersLoader = new FieldValueLoader<Long, List<Order>>(key -> OrderTableAccessor.getInstance().getAllByCustomerId(key, java.util.List.class));
     private final FieldValueLoader<Long, Address> invoiceAddressLoader = new FieldValueLoader<Long, Address>(key -> AddressTableAccessor.getInstance().findById(key).orElse(null));
+    private final FieldValueLoader<Long, List<Agent>> agentsLoader = new FieldValueLoader<Long, List<Agent>>(key ->  CustomerAgentCrossTableAccessor.getInstance().getJoinedFieldValues("customer", key, List.class));
 
     CustomerProxy(boolean readOnly) {
         this.readOnly = readOnly;

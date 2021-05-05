@@ -19,6 +19,7 @@ class CrossTableAccessorWriter {
         TypeSpec.Builder builder = TypeSpec.classBuilder(model.getCrossTableAccessorSimpleName())
                 .superclass(ParameterizedTypeName.get(ClassName.get(CrossTableAccessor.class),
                         entityPkTypeName(),
+                        fieldEntityTypeName(),
                         fieldPkTypeName()));
         writeTypeBody(builder);
         TypeSpec typeSpec = builder.build();
@@ -27,23 +28,45 @@ class CrossTableAccessorWriter {
                 .build();
         StringBuilder s = new StringBuilder();
         javaFile.writeTo(s);
-        //System.out.println(s);
+        System.out.println(s);
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
     private void writeTypeBody(TypeSpec.Builder builder) {
+        createInstanceField(builder);
         addConstructor(builder);
+        createGetInstanceMethod(builder);
         builder.addMethod(implementSetFieldKey());
         builder.addMethod(implementSetEntityKey());
     }
 
+    private void createInstanceField(TypeSpec.Builder builder) {
+        builder.addField(FieldSpec.builder(model.getCrossTableAccessorClassName(), "instance")
+                .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                .initializer("new $T()", model.getCrossTableAccessorClassName())
+                .build());
+    }
+
+    private void createGetInstanceMethod(TypeSpec.Builder builder) {
+        builder.addMethod(MethodSpec.methodBuilder("getInstance")
+                .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                .addStatement("return instance")
+                .returns(model.getCrossTableAccessorClassName())
+                .build());
+    }
+
+
     private void addConstructor(TypeSpec.Builder builder) {
+        EntityModel fieldEntityModel = model.getCrossTableFieldModel().getFieldEntityModel();
         builder.addMethod(MethodSpec.constructorBuilder()
-                .addStatement("super(new $T(\"$L\",\"$L\",\"$L\"))",
+                .addStatement("super(new $T(\"$L\",\"$L\",\"$L\", new $T()), new $T())",
                         TypeName.get(CrossTableStatements.class),
                         model.getCrossTable(),
                         model.getEntityColumnNameInCrossTable(),
-                        model.getFieldColumnNameInCrossTable())
+                        model.getFieldColumnNameInCrossTable(),
+                        EntityStatementsModel.getEntityStatementsTypeName(fieldEntityModel),
+                        EntityFunctionsModel.getEntityFunctionsTypeName(fieldEntityModel)
+                )
                 .build());
     }
 
@@ -69,6 +92,10 @@ class CrossTableAccessorWriter {
 
     private TypeName entityPkTypeName() {
         return TypeName.get(model.getEntityKeyType());
+    }
+
+    private TypeName fieldEntityTypeName() {
+        return model.getCrossTableFieldModel().getFieldEntityModel().getTypeName();
     }
 
     private TypeName fieldPkTypeName() {

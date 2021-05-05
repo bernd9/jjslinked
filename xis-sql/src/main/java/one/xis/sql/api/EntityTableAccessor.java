@@ -19,10 +19,12 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     private static final String TEXT_NO_PK = "Entity has no primary key. Consider to set ";// TODO
 
     private final EntityStatements<E, EID> entityStatements;
-
+    private final EntityFunctions<E, EID> entityFunctions;
+    
     private final Class<E> entityType;
     @Getter
     private final Class<EID> pkType;
+
 
     public Optional<E> findById(EID id) {
         try (JdbcStatement st = prepare(entityStatements.getSelectByIdSql())) {
@@ -103,8 +105,8 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
-    public <E, K> Optional<E> getByColumnValue(K columnValue, String columnName, Class<K> keyType) {
-        List<E> list = getListByColumnValue(columnValue, columnName, keyType);
+    public <E> Optional<E> getByColumnValue(Object columnValue, String columnName) {
+        List<E> list = getListByColumnValue(columnValue, columnName);
         switch (list.size()) {
             case 0:
                 return Optional.empty();
@@ -116,26 +118,25 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     }
 
     @UsedInGeneratedCode
-    public <E, K> List<E> getListByColumnValue(K columnValue, String columnName, Class<K> keyType) {
-        return getAllByColumnValue(columnValue, columnName, keyType, List.class);
+    public <E> List<E> getListByColumnValue(Object columnValue, String columnName) {
+        return getAllByColumnValue(columnValue, columnName, List.class);
     }
 
 
-    public <C extends Collection<E>, K> C getAllByColumnValue(K columnValue, String columnName, Class<K> keyType, Class<C> collectionType) {
+    public <C extends Collection<E>> C getAllByColumnValue(Object columnValue, String columnName, Class<C> collectionType) {
         C collection = EntityCollections.getCollection(collectionType);
         try (JdbcStatement st = prepare(entityStatements.getSelectByColumnValueSql(columnName))) {
-            st.set(1, keyType.cast(columnValue));
+            st.set(1, columnValue);
             try (ResultSet rs = st.executeQuery()) {
                 while (rs.next()) {
                     collection.add((E) toEntityProxy(rs));
                 }
             }
         } catch (SQLException e) {
-            throw new JdbcException("failed to execute select all", e);
+            throw new JdbcException("failed to execute select by column value", e);
         }
         return collection;
     }
-
 
     @UsedInGeneratedCode
     @SuppressWarnings("unused")
@@ -225,7 +226,9 @@ public abstract class EntityTableAccessor<E, EID> extends JdbcExecutor {
     }
 
 
-    protected abstract EntityProxy<E, EID> toEntityProxy(ResultSet rs) throws SQLException;
+    protected E toEntityProxy(ResultSet rs) throws SQLException {
+        return entityFunctions.toEntityProxy(rs);
+    }
 
     protected abstract void setPk(JdbcStatement st, int index, EID id);
 

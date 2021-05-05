@@ -11,7 +11,7 @@ public class CustomerTableAccessor extends EntityTableAccessor<Customer, Long> {
     private static CustomerTableAccessor instance = new CustomerTableAccessor();
 
     public CustomerTableAccessor() {
-        super(new CustomerStatements(), Customer.class, Long.class);
+        super(new CustomerStatements(), new one.xis.sql.processor.CustomerFunctions(), Customer.class, Long.class);
     }
 
     public static CustomerTableAccessor getInstance() {
@@ -26,11 +26,6 @@ public class CustomerTableAccessor extends EntityTableAccessor<Customer, Long> {
     @Override
     public void insert(Collection<Customer> entities) {
         insertWithDbmsGeneratedKeys(entities);
-    }
-
-    @Override
-    protected CustomerProxy toEntityProxy(ResultSet rs) throws SQLException {
-        return new CustomerResultSet(rs).getEntityProxy();
     }
 
     @Override
@@ -58,11 +53,11 @@ public class CustomerTableAccessor extends EntityTableAccessor<Customer, Long> {
         throw new AbstractMethodError();
     }
 
-    Optional<Address> getByAddressId(Long key) {
-        return this.getByColumnValue(key, "invoice_address_id", Long.class);
+    Optional<Customer> getByAddressId(Long key) {
+        return this.getByColumnValue(key, "invoice_address_id");
     }
 
     <C extends Collection> C getAllByAddressId(Long key, Class<C> collectionType) {
-        return (C) getAllByColumnValue(key, "invoice_address_id", Long.class, collectionType);
+        return (C) getAllByColumnValue(key, "invoice_address_id", collectionType);
     }
 }

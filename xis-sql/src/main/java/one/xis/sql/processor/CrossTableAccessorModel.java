@@ -1,7 +1,7 @@
 package one.xis.sql.processor;
 
-import com.ejc.util.StringUtils;
 import com.squareup.javapoet.ClassName;
+import com.squareup.javapoet.TypeName;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -40,6 +40,9 @@ class CrossTableAccessorModel {
         return getCrossTableAccessorSimpleName(crossTableFieldModel.getEntityModel(), crossTableFieldModel.getCorrespondingCrossTableField().getEntityModel());
     }
 
+    ClassName getCrossTableAccessorClassName() {
+        return getCrossTableAccessorTypeName(crossTableFieldModel);
+    }
 
     static String getCrossTableAccessorPackageName(EntityModel entityModel) {
         return entityModel.getPackageName();
@@ -60,5 +63,9 @@ class CrossTableAccessorModel {
 
     static ClassName getCrossTableAccessorTypeName(CrossTableFieldModel crossTableFieldModel) {
         return getCrossTableAccessorTypeName(crossTableFieldModel.getEntityModel(), crossTableFieldModel.getFieldEntityModel());
+    }
+
+    public TypeName getEntityType() {
+        return crossTableFieldModel.getEntityModel().getTypeName();
     }
 }

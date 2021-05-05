@@ -66,14 +66,15 @@ public class EntityTableAccessorWriter {
     private void createConstructor(TypeSpec.Builder builder) {
         builder.addMethod(MethodSpec.constructorBuilder()
                 .addModifiers(Modifier.PUBLIC)
-                .addStatement("super(new $L(), $T.class, $T.class)", EntityStatementsModel.getEntityStatementsSimpleName(entityModel()), entityType(), entityPkType())
+                .addStatement("super(new $L(), new $L(), $T.class, $T.class)", EntityStatementsModel.getEntityStatementsSimpleName(entityModel()),
+                        EntityFunctionsModel.getEntityFunctionsTypeName(entityModel()),
+                        entityType(), entityPkType())
                 .build());
     }
 
     private void implementAbstractMethods(TypeSpec.Builder builder) {
         builder.addMethod(implementInsertSingleEntityProxy());
         builder.addMethod(implementInsertEntityCollection());
-        builder.addMethod(implementToEntityProxy());
         builder.addMethod(implementGetPkEntity());
         builder.addMethod(implementGetPkResultSet());
         builder.addMethod(implementSetPkEntity());
@@ -119,17 +120,6 @@ public class EntityTableAccessorWriter {
                 break;
         }
         return builder.build();
-    }
-
-    private MethodSpec implementToEntityProxy() {
-        return MethodSpec.methodBuilder("toEntityProxy")
-                .addModifiers(Modifier.PROTECTED)
-                .addAnnotation(Override.class)
-                .returns(entityProxyTypeName())
-                .addException(SQLException.class)
-                .addParameter(TypeName.get(ResultSet.class), "rs")
-                .addStatement("return new $L(rs).getEntityProxy()", EntityResultSetModel.getSimpleName(entityModel()))
-                .build();
     }
 
     private MethodSpec implementSetPkEntity() {

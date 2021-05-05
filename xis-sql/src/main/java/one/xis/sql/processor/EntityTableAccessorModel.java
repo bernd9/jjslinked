@@ -37,18 +37,20 @@ class EntityTableAccessorModel {
     }
 
     static MethodModel getGetSingleValueByFieldValueMethod(ForeignKeyFieldModel fieldModel) {
+        EntityModel entityModel = fieldModel.getEntityModel();
         EntityModel fieldEntityModel = fieldModel.getFieldEntityModel();
         String entityPart = StringUtils.firstToUpperCase(fieldEntityModel.getSimpleName());
         String idPart = StringUtils.firstToUpperCase(fieldEntityModel.getIdField().getFieldName().toString());
         TypeName keyType = TypeName.get(fieldModel.getEntityModel().getIdField().getFieldType());
         MethodModel methodModel = new MethodModel(String.format("getBy%s%s", entityPart, idPart));
-        methodModel.setReturnType(ParameterizedTypeName.get(ClassName.get(Optional.class), fieldEntityModel.getTypeName()));
+        methodModel.setReturnType(ParameterizedTypeName.get(ClassName.get(Optional.class), entityModel.getTypeName()));
         ParameterModel keyParam = methodModel.addParameter(keyType, "key");
-        methodModel.addStatement("return this.getByColumnValue($L, \"$L\", $T.class)", keyParam.getName(), fieldModel.getColumnName(), keyParam.getTypeName());
+        methodModel.addStatement("return this.getByColumnValue($L, \"$L\")", keyParam.getName(), fieldModel.getColumnName());
         return methodModel;
     }
 
     static MethodModel getGetCollectionByFieldValueMethod(ForeignKeyFieldModel fieldModel) {
+        EntityModel entityModel = fieldModel.getEntityModel();
         EntityModel fieldEntityModel = fieldModel.getFieldEntityModel();
         String entityPart = StringUtils.firstToUpperCase(fieldEntityModel.getSimpleName());
         String idPart = StringUtils.firstToUpperCase(fieldEntityModel.getIdField().getFieldName().toString());
@@ -58,7 +60,7 @@ class EntityTableAccessorModel {
         methodModel.setReturnType(collectionTypeVariable.toTypeVariableName());
         ParameterModel keyParam = methodModel.addParameter(keyType, "key");
         ParameterModel collectionTypeParam = methodModel.addParameter(ParameterizedTypeName.get(ClassName.get(Class.class), collectionTypeVariable.toTypeVariableName()), "collectionType");
-        methodModel.addStatement("return ($L) getAllByColumnValue($L, \"$L\", $T.class, $L)", collectionTypeVariable.getName(), keyParam.getName(), fieldModel.getColumnName(), keyType, collectionTypeParam.getName());
+        methodModel.addStatement("return ($L) getAllByColumnValue($L, \"$L\", $L)", collectionTypeVariable.getName(), keyParam.getName(), fieldModel.getColumnName(), collectionTypeParam.getName());
         return methodModel;
     }
 

@@ -7,6 +7,8 @@ import one.xis.sql.api.EntityFunctions;
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 @RequiredArgsConstructor
 public class EntityFunctionsWriter {
@@ -35,6 +37,7 @@ public class EntityFunctionsWriter {
         builder.addMethod(implementGetPkMethod());
         builder.addMethod(implementSetPkMethod());
         builder.addMethod(implementDoClone());
+        builder.addMethod(implementToEntityProxy());
     }
 
     private MethodSpec implementCompareColumnValuesMethod() {
@@ -71,6 +74,17 @@ public class EntityFunctionsWriter {
                 .addParameter(model.getTypeName(), "entity")
                 .addStatement("return $T.doClone(entity)", model.getEntityUtilTypeName())
                 .returns(model.getTypeName())
+                .build();
+    }
+
+    private MethodSpec implementToEntityProxy() {
+        return MethodSpec.methodBuilder("toEntityProxy")
+                .addModifiers(Modifier.PUBLIC)
+                .addAnnotation(Override.class)
+                .returns(model.getEntityModel().getTypeName())
+                .addException(SQLException.class)
+                .addParameter(TypeName.get(ResultSet.class), "rs")
+                .addStatement("return new $L(rs).getEntityProxy()", EntityResultSetModel.getSimpleName(model.getEntityModel()))
                 .build();
     }
 }
