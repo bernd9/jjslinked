@@ -28,7 +28,7 @@ class CrossTableAccessorWriter {
                 .build();
         StringBuilder s = new StringBuilder();
         javaFile.writeTo(s);
-        System.out.println(s);
+        //System.out.println(s);
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 

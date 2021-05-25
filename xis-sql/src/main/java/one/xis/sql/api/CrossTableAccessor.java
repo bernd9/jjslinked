@@ -42,7 +42,7 @@ public abstract class CrossTableAccessor<EID, F, FID> extends JdbcExecutor {
     }
 
 
-    public <C extends Collection<F>> C getJoinedFieldValues(String entityTable, EID key, Class<C> collectionType) {
+    public <C extends Collection<F>> C getJoinedFieldValues(EID key, Class<C> collectionType) {
         C collection = EntityCollections.getCollection(collectionType);
         try (JdbcStatement st = prepare(crossTableStatements.getJoinSql())) {
             st.set(1, key);

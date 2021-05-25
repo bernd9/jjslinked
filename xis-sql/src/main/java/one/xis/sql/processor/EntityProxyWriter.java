@@ -36,7 +36,7 @@ class EntityProxyWriter {
                 .build();
         StringBuilder s = new StringBuilder();
         javaFile.writeTo(s);
-        //System.out.println(s);
+        System.out.println(s);
         javaFile.writeTo(processingEnvironment.getFiler());
     }
 
@@ -71,6 +71,7 @@ class EntityProxyWriter {
                 .build());
     }
 
+    // TODO remove. we are already checking for it
     private void overrideIdSetter(TypeSpec.Builder builder) {
         entityModel().getIdField().getSetter()
                 .map(this::overrideIdSetter)
@@ -197,7 +198,7 @@ class LazyLoadingFields {
     void addLoaderFields(TypeSpec.Builder typeSpec) {
         getReferredFieldLoaderFields().forEach(typeSpec::addField);
         getForeignKeyLoaderFields().forEach(typeSpec::addField);
-        //getCrossTableLoaderFields().forEach(typeSpec::addField);
+        getCrossTableLoaderFields().forEach(typeSpec::addField);
     }
 
     private Stream<FieldSpec> getReferredFieldLoaderFields() {
@@ -260,8 +261,24 @@ class LazyLoadingFields {
     }
 
     private Stream<FieldSpec> getCrossTableLoaderFields() {
+        return entityProxyModel.getCrossTableFields().stream().map(this::getCrossTableLoaderField);
+    }
 
-        return null;
+    private FieldSpec getCrossTableLoaderField(CrossTableFieldModel model) {
+        TypeName fieldEntityTypeName = TypeName.get(model.getFieldType());
+        TypeName fieldPkTypeName = TypeName.get(model.getFieldEntityModel().getIdField().getFieldType());
+        TypeName fieldLoaderType = ParameterizedTypeName.get(ClassName.get(FieldValueLoader.class), fieldPkTypeName, fieldEntityTypeName);
+        TypeName tableAccessor = CrossTableAccessorModel.getCrossTableAccessorTypeName(model);
+        //TODO create util with processingEnv
+        String collectionType = processingEnvironment.getTypeUtils().asElement(model.getFieldType()).toString(); // Hack : Without toString type-variable is included z.B.: java.util.List<E>
+        // TODO validate this field is a collection, or allow single value ?
+        CodeBlock
+                loaderLambda = CodeBlock.builder().add("key -> $T.getInstance().getJoinedFieldValues(key, $L.class)", tableAccessor, collectionType).build();
+        String fieldLoaderFieldName = model.getFieldName() + "Loader";
+        return FieldSpec.builder(fieldLoaderType, fieldLoaderFieldName)
+                .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
+                .initializer("new $T($L)", fieldLoaderType, loaderLambda)
+                .build();
     }
 
 

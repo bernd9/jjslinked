@@ -10,6 +10,7 @@ import java.util.Optional;
 
 @UtilityClass
 public class ParameterUtils {
+    // TODO this is a type parameter of a collection, rename method
     public static Optional<Class<?>> getGenericCollectionType(Parameter parameter) {
         if (!Collection.class.isAssignableFrom(parameter.getType())) {
             throw new IllegalArgumentException("not a collection parameter: " + parameter);
