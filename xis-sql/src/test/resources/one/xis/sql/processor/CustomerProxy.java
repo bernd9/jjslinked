@@ -70,4 +70,19 @@ public class CustomerProxy extends Customer implements EntityProxy<Customer, Lon
         super.setLastName(value);
     }
 
+    @Override
+    public List<Order> getOrders() {
+        return ordersLoader.getValue();
+    }
+
+    @Override
+    public Address getInvoiceAddress() {
+        return invoiceAddressLoader.getValue();
+    }
+
+    @Override
+    public List<Agent> getAgents() {
+        return agentsLoader.getValue();
+    }
+
 }
