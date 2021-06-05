@@ -12,9 +12,7 @@ repositories {
 dependencies {
     implementation project(':xis-core-processor')
     implementation project(':xis-http-processor')
-
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+    implementation project(':xis-sql-processor')
 }
 
 test {

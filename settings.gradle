@@ -8,4 +8,5 @@ include 'xis-http'
 include 'xis-http-processor'
 include 'xis-http-test'
 include 'xis-processor'
+include 'xis-sql-processor'
 
