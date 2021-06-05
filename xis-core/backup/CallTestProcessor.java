@@ -1,4 +1,4 @@
-package com.ejc.processor;
+package one.xis.processor;
 
 import com.google.auto.service.AutoService;
 
@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @AutoService(Processor.class)
-@SupportedAnnotationTypes({"com.ejc.processor.CallTest"})
+@SupportedAnnotationTypes({"one.xis.processor.CallTest"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class CallTestProcessor extends AbstractProcessor {
 

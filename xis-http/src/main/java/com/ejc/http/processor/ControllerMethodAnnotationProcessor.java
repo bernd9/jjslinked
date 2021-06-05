@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 
 import static com.ejc.util.JavaModelUtils.getAnnotationMirror;
 import static com.ejc.util.JavaModelUtils.getAnnotationValue;
-import static com.ejc.processor.ProcessorLogger.reportError;
+import static one.xis.processor.ProcessorLogger.reportError;
 
 @AutoService(Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_11)

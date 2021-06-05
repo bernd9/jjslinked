@@ -1,7 +1,7 @@
 package one.xis.sql.processor;
 
 import com.ejc.util.CollectorUtils;
-import com.ejc.processor.ProcessorLogger;
+import one.xis.processor.ProcessorLogger;
 import com.google.auto.service.AutoService;
 import one.xis.sql.Entity;
 import one.xis.sql.Repository;

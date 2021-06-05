@@ -1,4 +1,4 @@
-package com.ejc.processor;
+package one.xis.processor;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

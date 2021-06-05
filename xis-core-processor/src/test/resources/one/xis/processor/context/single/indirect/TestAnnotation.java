@@ -1,4 +1,6 @@
-package one.xis.processor;
+package one.xis.processor.context.single.indirect;
+
+import com.ejc.Singleton;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,6 +9,6 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.SOURCE)
-public @interface CallTest2 {
-
+@Singleton
+public @interface TestAnnotation {
 }

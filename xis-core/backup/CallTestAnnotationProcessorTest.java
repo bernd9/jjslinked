@@ -1,4 +1,4 @@
-package com.ejc.processor;
+package one.xis.processor;
 
 import com.google.testing.compile.Compilation;
 import com.google.testing.compile.Compiler;
@@ -22,10 +22,10 @@ class CallTestAnnotationProcessorTest {
     @BeforeEach
     void init() {
         compiler = javac().withProcessors(new SingletonAnnotationProcessor());
-        bean1 = JavaFileObjects.forResource("com/ejc/processor/Test1.java");
-        bean2 = JavaFileObjects.forResource("com/ejc/processor/Test2.java");
-        bean3 = JavaFileObjects.forResource("com/ejc/processor/Test3.java");
-        bean1Impl = JavaFileObjects.forResource("com/ejc/processor/Test1Impl.java");
+        bean1 = JavaFileObjects.forResource("one/xis/processor/Test1.java");
+        bean2 = JavaFileObjects.forResource("one/xis/processor/Test2.java");
+        bean3 = JavaFileObjects.forResource("one/xis/processor/Test3.java");
+        bean1Impl = JavaFileObjects.forResource("one/xis/processor/Test1Impl.java");
     }
 
     @Test

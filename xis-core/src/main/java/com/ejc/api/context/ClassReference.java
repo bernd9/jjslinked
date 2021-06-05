@@ -19,38 +19,38 @@ public class ClassReference {
     @Getter
     private final String className;
 
-    @Getter
-    private final Optional<ClassReference> genericType;
+    private ClassReference genericType;
 
-    @Getter
-    private final Optional<ClassReference> genericType2;
+    private ClassReference genericType2;
 
     ClassReference(Class<?> c) {
         this.clazz = c;
         this.className = c.getName();
-        this.genericType = Optional.empty();
-        this.genericType2 = Optional.empty();
     }
 
     ClassReference(String className) {
         this.className = className;
-        this.genericType = Optional.empty();
-        this.genericType2 = Optional.empty();
     }
 
 
-    ClassReference(String className, String genericType) {
+    ClassReference(String className, ClassReference genericType) {
         this.className = className;
-        this.genericType = Optional.of(getRef(genericType));
-        this.genericType2 = Optional.empty();
+        this.genericType = genericType;
     }
 
-    ClassReference(String className, String genericKeyType, String genericValueType) {
+    ClassReference(String className, ClassReference genericKeyType, ClassReference genericValueType) {
         this.className = className;
-        this.genericType = Optional.of(getRef(genericKeyType));
-        this.genericType2 = Optional.of(getRef(genericValueType));
+        this.genericType = genericKeyType;
+        this.genericType2 = genericValueType;
     }
 
+    public Optional<ClassReference> getGenericType() {
+        return Optional.ofNullable(genericType);
+    }
+
+    public Optional<ClassReference> getGenericType2() {
+        return Optional.ofNullable(genericType2);
+    }
 
     public static void flush() {
         references.clear();
@@ -78,7 +78,8 @@ public class ClassReference {
         name.append("<");
         name.append(className);
         name.append(">");
-        return references.computeIfAbsent(name.toString(), n -> new ClassReference(collectionClass.getName(), className));
+        ClassReference typeParameter = references.computeIfAbsent(className, ClassReference::new);
+        return references.computeIfAbsent(name.toString(), n -> new ClassReference(collectionClass.getName(), typeParameter));
     }
 
     @UsedInGeneratedCode
@@ -89,7 +90,9 @@ public class ClassReference {
         name.append(",");
         name.append(valueClassName);
         name.append(">");
-        return references.computeIfAbsent(name.toString(), n -> new ClassReference(mapClass.getName(), keyClassName, valueClassName));
+        ClassReference keyTypeParameter = references.computeIfAbsent(keyClassName, ClassReference::new);
+        ClassReference valueTypeParameter = references.computeIfAbsent(valueClassName, ClassReference::new);
+        return references.computeIfAbsent(name.toString(), n -> new ClassReference(mapClass.getName(), keyTypeParameter, valueTypeParameter));
     }
 
     @UsedInGeneratedCode
