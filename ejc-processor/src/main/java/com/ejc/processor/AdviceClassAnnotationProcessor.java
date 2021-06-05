@@ -2,7 +2,6 @@ package com.ejc.processor;
 
 import com.ejc.AdviceClass;
 import com.ejc.util.JavaModelUtils;
-import com.ejc.util.ProcessorLogger;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.*;

@@ -1,8 +1,5 @@
 package com.ejc.processor;
 
-import com.ejc.util.ProcessorLogger;
-import lombok.NonNull;
-
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
 import javax.lang.model.element.TypeElement;

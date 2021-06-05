@@ -4,7 +4,7 @@ plugins {
 
 }
 
-group 'com.ejc'
+group 'one.xis'
 version '1.0-SNAPSHOT'
 
 sourceCompatibility = 11
@@ -15,15 +15,14 @@ repositories {
 }
 
 dependencies {
-    implementation files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
-    //annotationProcessor files('../jjslinked-api/build/libs/jjslinked-api-1.0-SNAPSHOT.jar')
+    implementation project(':xis-core')
+    annotationProcessor project(':xis-core')
 
     testAnnotationProcessor(group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7')
     compile 'org.projectlombok:lombok:1.18.12'
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
-    testAnnotationProcessor files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
-    testAnnotationProcessor files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
+    testAnnotationProcessor project(':xis-core')
     compile(group: 'org.mockito', name: 'mockito-core', version: '2.1.0')
     compile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.6.2'
 

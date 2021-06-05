@@ -3,7 +3,7 @@ plugins {
     id 'groovy'
 }
 
-group 'org.example'
+group 'one.xis'
 version '1.0-SNAPSHOT'
 
 repositories {
@@ -12,22 +12,23 @@ repositories {
 
 dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
-    annotationProcessor files('../ejc-http/build/libs/ejc-http-1.0-SNAPSHOT.jar')
-    annotationProcessor files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
+    annotationProcessor project(':ejc-http')
+    annotationProcessor project(':xis-core')
 
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
-    testAnnotationProcessor files('../ejc-http/build/libs/ejc-http-1.0-SNAPSHOT.jar')
-    testAnnotationProcessor files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
+    testAnnotationProcessor project(':ejc-http')
+    testAnnotationProcessor project(':xis-core')
 
     implementation 'org.projectlombok:lombok:1.18.12'
-    implementation files('../ejc-http/build/libs/ejc-http-1.0-SNAPSHOT.jar')
-    implementation files('../ejc-test/build/libs/ejc-test-1.0-SNAPSHOT.jar')
-    implementation files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
+    implementation project(':ejc-http')
+    implementation project(':ejc-test')
+    implementation project(':xis-core')
 
+    // TODO : not necessary. Inherited from above
     testImplementation 'org.projectlombok:lombok:1.18.12'
-    testImplementation files('../ejc-http-test/build/libs/ejc-http-test-1.0-SNAPSHOT.jar')
-    testImplementation files('../ejc-test/build/libs/ejc-test-1.0-SNAPSHOT.jar')
-    testImplementation files('../ejc/build/libs/ejc-framework-1.0-SNAPSHOT.jar')
+    testImplementation project(':ejc-http-test')
+    testImplementation project(':ejc-test')
+    testImplementation project(':xis-core')
 
 
     compile group: 'org.mockito', name: 'mockito-core', version: '2.1.0'

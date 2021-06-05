@@ -1,7 +1,6 @@
 package com.ejc.processor;
 
 import com.ejc.Advice;
-import com.ejc.util.ProcessorLogger;
 import com.google.auto.service.AutoService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

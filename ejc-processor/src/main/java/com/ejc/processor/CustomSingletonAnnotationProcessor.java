@@ -2,7 +2,6 @@ package com.ejc.processor;
 
 import com.ejc.Singleton;
 import com.ejc.util.ProcessorIOUtils;
-import com.ejc.util.ProcessorLogger;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.*;
