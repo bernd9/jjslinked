@@ -5,6 +5,7 @@ include 'xis-core-processor'
 include 'xis-sql'
 include 'xis-test'
 include 'xis-http'
+include 'xis-http-processor'
 include 'ejc-http-test'
 
 

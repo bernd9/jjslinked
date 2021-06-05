@@ -1,0 +1,56 @@
+plugins {
+    id 'java'
+    id 'groovy'
+}
+
+group 'one.xis'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 11
+targetCompatibility = 11
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor(group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7')
+
+
+    annotationProcessor project(':xis-core-processor')
+
+    implementation project(':xis-core-processor')
+    implementation project(':xis-test')
+    implementation(group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7')
+
+    implementation 'org.projectlombok:lombok:1.18.12'
+    compile group: 'org.eclipse.jetty', name: 'jetty-server', version: '9.4.31.v20200723'
+    compile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: '9.4.31.v20200723'
+    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.11.0'
+    compile group: 'com.squareup', name: 'javapoet', version: '1.12.1'
+
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+
+}
+
+jar {
+
+    from {
+        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+
+}
+
+sourceSets {
+    main {
+        resources {
+            srcDirs "src/main/resources"
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
