@@ -21,13 +21,13 @@ dependencies {
 
     implementation 'org.projectlombok:lombok:1.18.12'
     implementation project(':ejc-http')
-    implementation project(':ejc-test')
+    implementation project(':xis-test')
     implementation project(':xis-core')
 
     // TODO : not necessary. Inherited from above
     testImplementation 'org.projectlombok:lombok:1.18.12'
     testImplementation project(':ejc-http-test')
-    testImplementation project(':ejc-test')
+    testImplementation project(':xis-test')
     testImplementation project(':xis-core')
 
 
