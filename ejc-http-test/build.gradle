@@ -12,21 +12,21 @@ repositories {
 
 dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
-    annotationProcessor project(':ejc-http')
+    annotationProcessor project(':xis-http')
     annotationProcessor project(':xis-core')
 
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
-    testAnnotationProcessor project(':ejc-http')
+    testAnnotationProcessor project(':xis-http')
     testAnnotationProcessor project(':xis-core')
 
     implementation 'org.projectlombok:lombok:1.18.12'
-    implementation project(':ejc-http')
+    implementation project(':xis-http')
     implementation project(':xis-test')
     implementation project(':xis-core')
 
     // TODO : not necessary. Inherited from above
     testImplementation 'org.projectlombok:lombok:1.18.12'
-    testImplementation project(':ejc-http-test')
+    testImplementation project(':xis-http')
     testImplementation project(':xis-test')
     testImplementation project(':xis-core')
 
