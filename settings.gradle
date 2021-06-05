@@ -1,7 +1,7 @@
 rootProject.name = 'xis'
 
 include 'xis-core'
-include 'ejc-processor'
+include 'xis-core-processor'
 include 'xis-sql'
 include 'ejc-test'
 include 'xis-http'

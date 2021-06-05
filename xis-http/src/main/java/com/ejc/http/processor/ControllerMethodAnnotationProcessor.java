@@ -1,6 +1,8 @@
 package com.ejc.http.processor;
 
 import com.ejc.api.context.ClassReference;
+import com.ejc.http.*;
+import com.ejc.http.api.controller.*;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.AbstractProcessor;

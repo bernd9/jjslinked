@@ -15,10 +15,10 @@ dependencies {
     /*
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
     annotationProcessor group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7'
-    annotationProcessor project(':ejc-processor')
+    annotationProcessor project(':xis-core-processor')
 
     implementation project(':xis-core')
-    implementation project(':ejc-processor')
+    implementation project(':xis-core-processor')
     implementation 'org.projectlombok:lombok:1.18.12'
     implementation group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7'
 

@@ -14,7 +14,7 @@ repositories {
 
 dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.12'
-    annotationProcessor project(':ejc-processor')
+    annotationProcessor project(':xis-core-processor')
 
     compile project(':xis-core')
     implementation 'org.projectlombok:lombok:1.18.12'

@@ -19,9 +19,9 @@ dependencies {
     annotationProcessor(group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7')
 
 
-    annotationProcessor project(':ejc-processor')
+    annotationProcessor project(':xis-core-processor')
 
-    implementation project(':ejc-processor')
+    implementation project(':xis-core-processor')
     implementation project(':ejc-test')
     implementation(group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7')
 
