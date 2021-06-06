@@ -1,4 +1,4 @@
-package com.ejc.api.config;
+package one.xis.config;
 
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

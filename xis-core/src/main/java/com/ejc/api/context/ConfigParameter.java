@@ -1,6 +1,6 @@
 package com.ejc.api.context;
 
-import com.ejc.api.config.Config;
+import one.xis.config.Config;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

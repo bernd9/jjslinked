@@ -1,4 +1,4 @@
-package com.ejc.api.config;
+package one.xis.config;
 
 public class PropertyNotFoundException extends RuntimeException {
     PropertyNotFoundException(String propertyName) {

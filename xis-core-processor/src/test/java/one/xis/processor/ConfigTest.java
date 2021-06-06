@@ -1,6 +1,6 @@
 package one.xis.processor;
 
-import com.ejc.api.config.Config;
+import one.xis.config.Config;
 import com.ejc.api.context.ApplicationContext;
 import com.ejc.util.FieldUtils;
 import org.junit.jupiter.api.BeforeAll;

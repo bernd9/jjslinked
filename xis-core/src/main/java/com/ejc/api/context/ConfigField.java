@@ -1,6 +1,6 @@
 package com.ejc.api.context;
 
-import com.ejc.api.config.Config;
+import one.xis.config.Config;
 import com.ejc.util.FieldUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;

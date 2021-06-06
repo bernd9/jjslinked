@@ -1,4 +1,4 @@
-package com.ejc.api.config;
+package one.xis.config;
 
 import com.ejc.api.profile.ActiveProfile;
 import com.ejc.util.TypeUtils;

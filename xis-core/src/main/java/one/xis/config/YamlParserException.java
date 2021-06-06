@@ -1,4 +1,4 @@
-package com.ejc.api.config;
+package one.xis.config;
 
 public class YamlParserException extends RuntimeException {
     public YamlParserException(String line, String message) {

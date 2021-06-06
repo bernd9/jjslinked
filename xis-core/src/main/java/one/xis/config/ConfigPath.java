@@ -1,4 +1,4 @@
-package com.ejc.api.config;
+package one.xis.config;
 
 import java.util.Arrays;
 import java.util.LinkedList;

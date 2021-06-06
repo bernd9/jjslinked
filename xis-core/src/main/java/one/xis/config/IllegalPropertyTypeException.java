@@ -1,4 +1,4 @@
-package com.ejc.api.config;
+package one.xis.config;
 
 public class IllegalPropertyTypeException extends RuntimeException {
     IllegalPropertyTypeException(String name, String property, Class<?> type) {
