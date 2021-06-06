@@ -21,7 +21,8 @@ dependencies {
 
     annotationProcessor project(':xis-core-processor')
 
-    implementation project(':xis-core-processor')
+    implementation project(':xis-core-processor') // TODO remove it, after shared code is in processor-api
+    implementation project(':xis-processor-api')
     implementation project(':xis-test')
     implementation project(':xis-http')
     implementation(group: 'com.google.auto.service', name: 'auto-service', version: '1.0-rc7')
