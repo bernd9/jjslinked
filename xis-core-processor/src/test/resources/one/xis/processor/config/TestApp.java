@@ -1,8 +1,8 @@
 package one.xis.processor.config;
 
-import com.ejc.Application;
-import com.ejc.Singleton;
-import com.ejc.Value;
+import one.xis.Application;
+import one.xis.Singleton;
+import one.xis.Value;
 
 import java.util.Map;
 import java.util.Set;

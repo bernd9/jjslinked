@@ -1,6 +1,6 @@
 package one.xis.processor;
 
-import com.ejc.util.StringUtils;
+import one.xis.util.StringUtils;
 import lombok.Getter;
 import one.xis.sql.Referenced;
 

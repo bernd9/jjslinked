@@ -1,7 +1,7 @@
 package one.xis.sql.api;
 
 
-import com.ejc.util.ObjectUtils;
+import one.xis.util.ObjectUtils;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;

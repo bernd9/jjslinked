@@ -1,7 +1,6 @@
 package one.xis.processor;
 
-import com.ejc.util.JavaModelUtils;
-import com.ejc.util.StringUtils;
+import one.xis.util.StringUtils;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

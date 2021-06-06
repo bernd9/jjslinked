@@ -1,7 +1,5 @@
 package one.xis.sql.processor;
 
-import com.ejc.util.ObjectUtils;
-
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -11,6 +9,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import one.xis.util.ObjectUtils;
 
 public class CustomerUtil {
 

@@ -1,6 +1,6 @@
 package one.xis.profile;
 
-import com.ejc.test.ActivateProfile;
+import one.xis.test.ActivateProfile;
 import lombok.experimental.UtilityClass;
 
 @UtilityClass

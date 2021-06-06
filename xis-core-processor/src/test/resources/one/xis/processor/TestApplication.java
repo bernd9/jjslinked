@@ -1,7 +1,7 @@
 package one.xis.processor;
 
-import com.ejc.*;
 import lombok.Getter;
+import one.xis.*;
 
 import java.util.Set;
 

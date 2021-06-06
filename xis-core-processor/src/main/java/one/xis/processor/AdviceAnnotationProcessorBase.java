@@ -2,6 +2,7 @@ package one.xis.processor;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import one.xis.Advice;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.RoundEnvironment;
@@ -23,7 +24,7 @@ import java.util.stream.Stream;
 
 /**
  * Baseclass for generated annotation-processors, that will write subclasses of a handler
- * without any extension, but annotated with @{@link com.ejc.Advice}.
+ * without any extension, but annotated with @{@link Advice}.
  * This processing is checking for annotated target-methods and also includes methods of
  * of annotated types.
  *

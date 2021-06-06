@@ -1,7 +1,7 @@
 package one.xis.processor;
 
-import com.ejc.Advice;
-import com.ejc.AdviceTarget;
+import one.xis.Advice;
+import one.xis.AdviceTarget;
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.JavaFile;
@@ -18,7 +18,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.UUID;
 
-import static com.ejc.util.JavaModelUtils.signature;
+import static one.xis.util.JavaModelUtils.signature;
 
 @RequiredArgsConstructor
 class AdviceWriter {

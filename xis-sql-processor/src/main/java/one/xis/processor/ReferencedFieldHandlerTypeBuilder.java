@@ -1,6 +1,6 @@
 package one.xis.processor;
 
-import com.ejc.util.JavaModelUtils;
+import one.xis.util.JavaModelUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.api.EntityCrudHandlerSession;

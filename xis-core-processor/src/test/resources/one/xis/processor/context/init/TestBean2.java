@@ -1,6 +1,6 @@
 package one.xis.processor.context.init;
 
-import com.ejc.Singleton;
+import one.xis.Singleton;
 
 @Singleton
 class TestBean2 {

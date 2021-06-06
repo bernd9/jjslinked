@@ -1,7 +1,7 @@
 package one.xis.processor;
 
-import com.ejc.Init;
-import com.ejc.Singleton;
+import one.xis.Init;
+import one.xis.Singleton;
 
 @Singleton
 class Test3 extends Test2 {

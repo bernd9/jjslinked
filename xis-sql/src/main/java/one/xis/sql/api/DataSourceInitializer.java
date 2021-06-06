@@ -1,8 +1,8 @@
 package one.xis.sql.api;
 
-import com.ejc.Bean;
-import com.ejc.Configuration;
-import com.ejc.Value;
+import one.xis.Bean;
+import one.xis.Configuration;
+import one.xis.Value;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 

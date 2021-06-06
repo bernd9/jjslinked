@@ -1,9 +1,10 @@
 package one.xis.processor;
 
-import com.ejc.Advice;
+import one.xis.Advice;
 import com.google.auto.service.AutoService;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import one.xis.AdviceClass;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -15,16 +16,16 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.ejc.util.JavaModelUtils.*;
+import static one.xis.util.JavaModelUtils.*;
 
 /**
  * Creates an implementation as a subclass or implementation of classes annotated by an annotation
- * demanding an advice (annotated with @{@link com.ejc.AdviceClass}). The result is a singleton,
+ * demanding an advice (annotated with @{@link AdviceClass}). The result is a singleton,
  * annotated with @{@link Implementation}.This marks this class to have to replace an
  * singleton (if exists) an will get a singleton itself.
  */
 @AutoService(Processor.class)
-@SupportedAnnotationTypes({"com.ejc.Advice"})
+@SupportedAnnotationTypes({"one.xis.Advice"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class AdviceAnnotationProcessor extends AbstractProcessor {
 

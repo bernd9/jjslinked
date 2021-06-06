@@ -1,6 +1,6 @@
 package one.xis.processor;
 
-import com.ejc.Singleton;
+import one.xis.Singleton;
 
 import java.util.Set;
 

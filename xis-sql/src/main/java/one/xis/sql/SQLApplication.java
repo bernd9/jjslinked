@@ -1,6 +1,6 @@
 package one.xis.sql;
 
-import com.ejc.Application;
+import one.xis.Application;
 
 @Application
 public class SQLApplication {

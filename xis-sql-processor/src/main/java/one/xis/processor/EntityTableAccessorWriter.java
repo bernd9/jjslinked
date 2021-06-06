@@ -1,9 +1,8 @@
 package one.xis.processor;
 
-import com.ejc.util.JavaModelUtils;
+import one.xis.util.JavaModelUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
-import one.xis.sql.GenerationStrategy;
 import one.xis.sql.Id;
 import one.xis.sql.api.EntityTableAccessor;
 import one.xis.sql.api.JdbcStatement;
@@ -16,8 +15,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.stream.Stream;
-
-import static one.xis.sql.GenerationStrategy.*;
 
 
 @RequiredArgsConstructor

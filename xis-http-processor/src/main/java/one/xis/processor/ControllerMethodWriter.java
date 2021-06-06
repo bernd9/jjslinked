@@ -1,13 +1,13 @@
 package one.xis.processor;
 
-import com.ejc.Singleton;
+import one.xis.Singleton;
 import one.xis.context.ClassReference;
-import com.ejc.http.HttpMethod;
-import com.ejc.http.api.controller.*;
+import one.xis.http.HttpMethod;
 import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeSpec;
 import lombok.Builder;
+import one.xis.http.api.controller.*;
 
 import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.ExecutableElement;

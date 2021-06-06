@@ -1,9 +1,9 @@
 package one.xis.processor.fieldconstructor;
 
-import com.ejc.Application;
-import com.ejc.ApplicationRunner;
-import com.ejc.Inject;
-import com.ejc.Singleton;
+import one.xis.Application;
+import one.xis.ApplicationRunner;
+import one.xis.Inject;
+import one.xis.Singleton;
 
 @Application
 class SingletonFieldAndConstructorTestApp {

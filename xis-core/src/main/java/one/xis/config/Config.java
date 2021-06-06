@@ -1,7 +1,7 @@
 package one.xis.config;
 
 import one.xis.profile.ActiveProfile;
-import com.ejc.util.TypeUtils;
+import one.xis.util.TypeUtils;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

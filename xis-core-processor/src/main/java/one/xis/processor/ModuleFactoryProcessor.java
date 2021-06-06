@@ -1,13 +1,13 @@
 package one.xis.processor;
 
-import com.ejc.*;
+import one.xis.*;
 import one.xis.context.ApplicationContext;
 import one.xis.context.ModuleFactory;
 import one.xis.context.UndefinedClass;
-import com.ejc.util.CollectionUtils;
-import com.ejc.util.CollectorUtils;
-import com.ejc.util.JavaModelUtils;
-import com.ejc.util.ProcessorIOUtils;
+import one.xis.util.CollectionUtils;
+import one.xis.util.CollectorUtils;
+import one.xis.util.JavaModelUtils;
+import one.xis.util.ProcessorIOUtils;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.Processor;
@@ -22,8 +22,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.ejc.util.JavaModelUtils.getAnnotationMirrorOptional;
-import static com.ejc.util.JavaModelUtils.getAnnotationValue;
+import static one.xis.util.JavaModelUtils.getAnnotationMirrorOptional;
+import static one.xis.util.JavaModelUtils.getAnnotationValue;
 
 @AutoService(Processor.class)
 @SupportedSourceVersion(SourceVersion.RELEASE_11)

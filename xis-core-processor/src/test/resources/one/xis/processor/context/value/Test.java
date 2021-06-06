@@ -1,7 +1,7 @@
 package one.xis.processor.context.value;
 
-import com.ejc.Singleton;
-import com.ejc.Value;
+import one.xis.Singleton;
+import one.xis.Value;
 import lombok.Getter;
 
 @Singleton

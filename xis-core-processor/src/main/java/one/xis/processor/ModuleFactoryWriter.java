@@ -1,12 +1,12 @@
 package one.xis.processor;
 
-import com.ejc.Value;
+import one.xis.Value;
 import one.xis.context.ClassReference;
 import one.xis.context.ModuleFactory;
 import one.xis.context.ParameterReference;
 import one.xis.context.ValueAnnotationReference;
 import one.xis.javapoet.JavaWriter;
-import com.ejc.util.JavaModelUtils;
+import one.xis.util.JavaModelUtils;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
@@ -24,7 +24,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.ejc.util.JavaModelUtils.stripGenerics;
+import static one.xis.util.JavaModelUtils.stripGenerics;
 
 
 public class ModuleFactoryWriter extends JavaWriter {

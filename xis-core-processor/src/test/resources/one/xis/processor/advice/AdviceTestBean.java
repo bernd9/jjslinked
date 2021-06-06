@@ -1,6 +1,6 @@
 package one.xis.processor.advice;
 
-import com.ejc.Singleton;
+import one.xis.Singleton;
 
 @Singleton
 class AdviceTestBean {

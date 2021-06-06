@@ -1,7 +1,7 @@
 package one.xis.sql;
 
-import com.ejc.AdviceClass;
-import com.ejc.Singleton;
+import one.xis.AdviceClass;
+import one.xis.Singleton;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

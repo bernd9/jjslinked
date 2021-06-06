@@ -1,8 +1,8 @@
 
 package one.xis.processor;
 
-import com.ejc.util.CollectorUtils;
-import com.ejc.util.JavaModelUtils;
+import one.xis.util.CollectorUtils;
+import one.xis.util.JavaModelUtils;
 import com.squareup.javapoet.TypeName;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

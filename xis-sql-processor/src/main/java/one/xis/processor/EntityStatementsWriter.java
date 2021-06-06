@@ -1,6 +1,6 @@
 package one.xis.processor;
 
-import com.ejc.util.FieldUtils;
+import one.xis.util.FieldUtils;
 import com.squareup.javapoet.*;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

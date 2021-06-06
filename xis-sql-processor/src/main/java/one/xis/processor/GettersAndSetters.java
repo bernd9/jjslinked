@@ -1,7 +1,7 @@
 package one.xis.processor;
 
-import com.ejc.util.CollectorUtils;
-import com.ejc.util.StringUtils;
+import one.xis.util.CollectorUtils;
+import one.xis.util.StringUtils;
 import lombok.Getter;
 
 import javax.lang.model.element.*;
@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 class GettersAndSetters {

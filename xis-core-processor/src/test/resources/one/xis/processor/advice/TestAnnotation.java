@@ -1,6 +1,6 @@
 package one.xis.processor.advice;
 
-import com.ejc.AdviceClass;
+import one.xis.AdviceClass;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

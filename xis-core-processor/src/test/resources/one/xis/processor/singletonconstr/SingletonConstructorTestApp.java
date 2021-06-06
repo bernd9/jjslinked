@@ -1,7 +1,7 @@
 package one.xis.processor.singletonconstr;
 
-import com.ejc.Application;
-import com.ejc.Singleton;
+import one.xis.Application;
+import one.xis.Singleton;
 
 @Application
 class SingletonConstructorTestApp {

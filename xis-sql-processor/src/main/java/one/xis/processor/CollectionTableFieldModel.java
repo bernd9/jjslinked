@@ -1,6 +1,6 @@
 package one.xis.processor;
 
-import com.ejc.util.JavaModelUtils;
+import one.xis.util.JavaModelUtils;
 import one.xis.sql.CollectionTable;
 
 import javax.lang.model.element.VariableElement;

@@ -1,6 +1,6 @@
 package one.xis.processor.context.single.indirect;
 
-import com.ejc.Singleton;
+import one.xis.Singleton;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

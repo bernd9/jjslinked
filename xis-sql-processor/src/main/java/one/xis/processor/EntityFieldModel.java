@@ -1,10 +1,8 @@
 package one.xis.processor;
 
-import com.ejc.util.JavaModelUtils;
-import com.ejc.util.StringUtils;
+import one.xis.util.JavaModelUtils;
 import com.squareup.javapoet.ClassName;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 import javax.lang.model.element.VariableElement;
 import javax.lang.model.type.TypeMirror;

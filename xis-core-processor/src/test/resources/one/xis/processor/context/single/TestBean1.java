@@ -1,7 +1,7 @@
 package one.xis.processor.context.single;
 
-import com.ejc.Inject;
-import com.ejc.Singleton;
+import one.xis.Inject;
+import one.xis.Singleton;
 
 @Singleton
 public class TestBean1 {

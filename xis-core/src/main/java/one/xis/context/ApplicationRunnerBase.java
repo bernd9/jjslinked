@@ -1,6 +1,6 @@
 package one.xis.context;
 
-import com.ejc.ApplicationRunner;
+import one.xis.ApplicationRunner;
 import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;

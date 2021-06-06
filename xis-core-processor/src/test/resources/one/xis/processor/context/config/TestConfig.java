@@ -1,8 +1,8 @@
 package one.xis.processor.context.config;
 
-import com.ejc.Bean;
-import com.ejc.Configuration;
-import com.ejc.Init;
+import one.xis.Bean;
+import one.xis.Configuration;
+import one.xis.Init;
 
 @Configuration
 public class TestConfig {

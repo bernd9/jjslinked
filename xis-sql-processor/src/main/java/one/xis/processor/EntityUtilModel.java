@@ -1,7 +1,6 @@
 package one.xis.processor;
 
-import com.ejc.util.CollectorUtils;
-import com.ejc.util.StringUtils;
+import one.xis.util.StringUtils;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.TypeName;
 import lombok.Getter;

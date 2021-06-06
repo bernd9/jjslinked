@@ -1,9 +1,9 @@
 package one.xis.processor.collectionDependency;
 
-import com.ejc.Application;
-import com.ejc.Configuration;
-import com.ejc.Inject;
-import com.ejc.Singleton;
+import one.xis.Application;
+import one.xis.Configuration;
+import one.xis.Inject;
+import one.xis.Singleton;
 
 import java.util.Set;
 

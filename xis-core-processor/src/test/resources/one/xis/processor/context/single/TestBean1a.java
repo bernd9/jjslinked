@@ -1,6 +1,6 @@
 package one.xis.processor.context.single;
 
-import com.ejc.Singleton;
+import one.xis.Singleton;
 
 @Singleton
 public class TestBean1a extends TestBean1 {

@@ -1,8 +1,8 @@
 package one.xis.processor;
 
-import com.ejc.Inject;
-import com.ejc.Singleton;
-import com.ejc.SystemProperty;
+import one.xis.Inject;
+import one.xis.Singleton;
+import one.xis.SystemProperty;
 
 @Singleton
 class Test2 {

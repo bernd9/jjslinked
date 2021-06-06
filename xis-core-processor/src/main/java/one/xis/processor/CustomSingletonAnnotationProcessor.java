@@ -1,7 +1,7 @@
 package one.xis.processor;
 
-import com.ejc.Singleton;
-import com.ejc.util.ProcessorIOUtils;
+import one.xis.Singleton;
+import one.xis.util.ProcessorIOUtils;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.*;
@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.UUID;
 
 @AutoService(Processor.class)
-@SupportedAnnotationTypes({"com.ejc.Singleton"})
+@SupportedAnnotationTypes({"one.xis.Singleton"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 public class CustomSingletonAnnotationProcessor extends AbstractProcessor {
 

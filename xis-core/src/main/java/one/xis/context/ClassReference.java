@@ -1,7 +1,7 @@
 package one.xis.context;
 
-import com.ejc.util.ClassUtils;
-import com.ejc.util.TypeUtils;
+import one.xis.util.ClassUtils;
+import one.xis.util.TypeUtils;
 import lombok.Getter;
 
 import java.util.Collection;

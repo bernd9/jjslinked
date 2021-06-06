@@ -1,7 +1,7 @@
 package one.xis.context;
 
 import one.xis.config.Config;
-import com.ejc.util.FieldUtils;
+import one.xis.util.FieldUtils;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

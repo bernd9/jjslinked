@@ -1,7 +1,7 @@
 package one.xis.processor;
 
-import com.ejc.Application;
-import com.ejc.ApplicationRunner;
+import one.xis.Application;
+import one.xis.ApplicationRunner;
 
 @Application
 public class TestApp {

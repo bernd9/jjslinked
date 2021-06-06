@@ -1,8 +1,8 @@
 package one.xis.processor;
 
-import com.ejc.util.FieldUtils;
-import com.ejc.util.JavaModelUtils;
-import com.ejc.util.StringUtils;
+import one.xis.util.FieldUtils;
+import one.xis.util.JavaModelUtils;
+import one.xis.util.StringUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.api.EntityResultSet;

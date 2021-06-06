@@ -1,6 +1,6 @@
 package one.xis.context;
 
-import com.ejc.util.FieldUtils;
+import one.xis.util.FieldUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

@@ -1,6 +1,6 @@
 package one.xis.processor.dependencyAll;
 
-import com.ejc.*;
+import one.xis.*;
 
 @Application
 class TestApp {

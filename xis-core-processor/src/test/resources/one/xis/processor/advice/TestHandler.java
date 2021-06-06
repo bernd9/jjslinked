@@ -1,8 +1,8 @@
 package one.xis.processor.advice;
 
 
-import com.ejc.JoinPoint;
-import com.ejc.MethodAdvice;
+import one.xis.JoinPoint;
+import one.xis.MethodAdvice;
 
 class TestHandler implements MethodAdvice {
 

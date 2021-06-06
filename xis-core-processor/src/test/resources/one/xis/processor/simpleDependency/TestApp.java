@@ -1,8 +1,8 @@
 package one.xis.processor.simpleDependency;
 
-import com.ejc.Application;
-import com.ejc.Inject;
-import com.ejc.Singleton;
+import one.xis.Application;
+import one.xis.Inject;
+import one.xis.Singleton;
 
 @Application
 class TestApp {

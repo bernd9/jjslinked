@@ -1,7 +1,7 @@
 package one.xis.sql;
 
-import com.ejc.JoinPoint;
-import com.ejc.MethodAdvice;
+import one.xis.JoinPoint;
+import one.xis.MethodAdvice;
 import one.xis.sql.api.Session;
 
 import java.lang.reflect.Method;

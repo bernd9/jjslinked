@@ -1,7 +1,7 @@
 package one.xis.processor.context.multi;
 
 import com.ejc.InjectAll;
-import com.ejc.Singleton;
+import one.xis.Singleton;
 
 import java.util.Collection;
 import java.util.LinkedList;

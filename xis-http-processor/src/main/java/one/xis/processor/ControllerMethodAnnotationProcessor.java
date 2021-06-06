@@ -1,9 +1,9 @@
 package one.xis.processor;
 
 import one.xis.context.ClassReference;
-import com.ejc.http.*;
-import com.ejc.http.api.controller.*;
 import com.google.auto.service.AutoService;
+import one.xis.http.*;
+import one.xis.http.api.controller.*;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Processor;
@@ -26,8 +26,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.ejc.util.JavaModelUtils.getAnnotationMirror;
-import static com.ejc.util.JavaModelUtils.getAnnotationValue;
+import static one.xis.util.JavaModelUtils.getAnnotationMirror;
+import static one.xis.util.JavaModelUtils.getAnnotationValue;
 import static one.xis.processor.ProcessorLogger.reportError;
 
 @AutoService(Processor.class)

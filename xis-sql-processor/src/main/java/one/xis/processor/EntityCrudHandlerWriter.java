@@ -1,6 +1,6 @@
 package one.xis.processor;
 
-import com.ejc.util.StringUtils;
+import one.xis.util.StringUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 import one.xis.sql.api.EntityCrudHandler;

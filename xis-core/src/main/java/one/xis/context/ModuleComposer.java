@@ -1,7 +1,7 @@
 package one.xis.context;
 
-import com.ejc.util.CollectionUtils;
-import com.ejc.util.CollectorUtils;
+import one.xis.util.CollectionUtils;
+import one.xis.util.CollectorUtils;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

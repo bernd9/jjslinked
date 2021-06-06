@@ -1,6 +1,6 @@
 package one.xis.processor.context.multi;
 
-import com.ejc.Singleton;
+import one.xis.Singleton;
 
 @Singleton
 public class TestBean3Impl implements TestBean3 {

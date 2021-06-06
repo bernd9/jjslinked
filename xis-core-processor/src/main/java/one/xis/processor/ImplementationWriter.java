@@ -1,9 +1,9 @@
 package one.xis.processor;
 
-import com.ejc.JoinPoint;
-import com.ejc.MethodAdvice;
+import one.xis.JoinPoint;
+import one.xis.MethodAdvice;
 import one.xis.context.ApplicationContext;
-import com.ejc.util.JavaModelUtils;
+import one.xis.util.JavaModelUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;
 
@@ -19,8 +19,8 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.stream.Stream;
 
-import static com.ejc.util.JavaModelUtils.*;
-import static com.ejc.util.JavaPoetUtils.parameterTypeListBlock;
+import static one.xis.util.JavaModelUtils.*;
+import static one.xis.util.JavaPoetUtils.parameterTypeListBlock;
 
 @RequiredArgsConstructor
 class ImplementationWriter {

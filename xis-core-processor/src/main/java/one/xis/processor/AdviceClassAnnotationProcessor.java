@@ -1,7 +1,8 @@
 package one.xis.processor;
 
-import com.ejc.AdviceClass;
-import com.ejc.util.JavaModelUtils;
+import one.xis.Advice;
+import one.xis.AdviceClass;
+import one.xis.util.JavaModelUtils;
 import com.google.auto.service.AutoService;
 
 import javax.annotation.processing.*;
@@ -19,9 +20,9 @@ import java.util.Set;
  * the associated {@link java.lang.reflect.InvocationHandler} is given.
  * The new processor extends {@link AdviceAnnotationProcessorBase} and is
  * writing classes based on the handler without any extensions, but annotated
- * with @{@link com.ejc.Advice}
+ * with @{@link Advice}
  */
-@SupportedAnnotationTypes({"com.ejc.AdviceClass"})
+@SupportedAnnotationTypes({"one.xis.AdviceClass"})
 @SupportedSourceVersion(SourceVersion.RELEASE_11)
 @AutoService(Processor.class)
 public class AdviceClassAnnotationProcessor extends AbstractProcessor {

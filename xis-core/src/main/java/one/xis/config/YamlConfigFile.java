@@ -1,6 +1,6 @@
 package one.xis.config;
 
-import com.ejc.util.TypeUtils;
+import one.xis.util.TypeUtils;
 import lombok.Getter;
 
 import java.io.BufferedReader;
