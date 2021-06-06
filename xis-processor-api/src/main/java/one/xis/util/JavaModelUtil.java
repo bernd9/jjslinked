@@ -1,9 +1,9 @@
 package one.xis.util;
 
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.lang.model.element.*;
 import javax.lang.model.type.ArrayType;
 import javax.lang.model.type.DeclaredType;
@@ -14,13 +14,9 @@ import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * Use {@link JavaModelUtil} instead.
- */
-@Deprecated
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class JavaModelUtils {
-
+@RequiredArgsConstructor
+public class JavaModelUtil {
+    private final ProcessingEnvironment processingEnvironment;
 
     public static boolean isNonComplex(TypeMirror typeMirror) {
         if (typeMirror.getKind().isPrimitive()) {
@@ -327,5 +323,7 @@ public class JavaModelUtils {
     public static String getPackageName(TypeElement e) {
         return getPackageName(e.getQualifiedName());
     }
+
+
 
 }
