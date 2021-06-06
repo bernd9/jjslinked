@@ -1,6 +1,6 @@
 package com.ejc.http.api.controller;
 
-import com.ejc.api.context.ApplicationContext;
+import one.xis.context.ApplicationContext;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

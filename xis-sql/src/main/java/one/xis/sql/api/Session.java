@@ -1,6 +1,6 @@
 package one.xis.sql.api;
 
-import com.ejc.api.context.ApplicationContext;
+import one.xis.context.ApplicationContext;
 import com.ejc.util.ObjectUtils;
 import lombok.NonNull;
 import one.xis.sql.JdbcException;

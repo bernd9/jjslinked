@@ -2,7 +2,7 @@ package one.xis.processor;
 
 import com.ejc.JoinPoint;
 import com.ejc.MethodAdvice;
-import com.ejc.api.context.ApplicationContext;
+import one.xis.context.ApplicationContext;
 import com.ejc.util.JavaModelUtils;
 import com.squareup.javapoet.*;
 import lombok.RequiredArgsConstructor;

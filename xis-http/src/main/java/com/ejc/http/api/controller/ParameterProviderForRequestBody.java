@@ -1,6 +1,6 @@
 package com.ejc.http.api.controller;
 
-import com.ejc.api.context.ClassReference;
+import one.xis.context.ClassReference;
 import com.ejc.http.ContentType;
 import com.ejc.http.exception.HttpStatusException;
 import com.fasterxml.jackson.databind.ObjectMapper;

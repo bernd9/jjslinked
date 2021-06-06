@@ -1,6 +1,6 @@
 package com.ejc.http.api;
 
-import com.ejc.api.context.ApplicationContext;
+import one.xis.context.ApplicationContext;
 import com.ejc.http.api.controller.ControllerMethodInvoker;
 
 import javax.servlet.ServletException;

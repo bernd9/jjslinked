@@ -2,7 +2,7 @@ package com.ejc.http.api.controller;
 
 import com.ejc.Inject;
 import com.ejc.Singleton;
-import com.ejc.api.context.ApplicationContext;
+import one.xis.context.ApplicationContext;
 import com.ejc.http.api.HttpResponder;
 import com.ejc.http.exception.ExceptionController;
 

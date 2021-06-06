@@ -1,7 +1,7 @@
 package com.ejc.test;
 
 import com.ejc.Inject;
-import com.ejc.api.context.SingletonPreProcessor;
+import one.xis.context.SingletonPreProcessor;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.FieldUtils;
 import com.ejc.util.TypeUtils;

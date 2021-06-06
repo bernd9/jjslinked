@@ -1,6 +1,6 @@
 package one.xis.processor;
 
-import com.ejc.api.context.ApplicationContext;
+import one.xis.context.ApplicationContext;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;

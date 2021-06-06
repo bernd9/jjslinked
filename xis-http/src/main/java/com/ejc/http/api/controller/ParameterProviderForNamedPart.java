@@ -1,6 +1,6 @@
 package com.ejc.http.api.controller;
 
-import com.ejc.api.context.ClassReference;
+import one.xis.context.ClassReference;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

@@ -1,6 +1,6 @@
 package com.ejc.http.test;
 
-import com.ejc.api.context.ApplicationContext;
+import one.xis.context.ApplicationContext;
 import com.ejc.http.api.controller.ControllerMethodInvoker;
 import org.mockito.Mockito;
 

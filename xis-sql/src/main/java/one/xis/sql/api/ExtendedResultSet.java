@@ -1,6 +1,6 @@
 package one.xis.sql.api;
 
-import com.ejc.api.context.UsedInGeneratedCode;
+import one.xis.context.UsedInGeneratedCode;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
 

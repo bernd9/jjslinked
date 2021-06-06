@@ -1,7 +1,7 @@
 package one.xis.processor;
 
 import com.ejc.Singleton;
-import com.ejc.api.context.ClassReference;
+import one.xis.context.ClassReference;
 import com.ejc.http.HttpMethod;
 import com.ejc.http.api.controller.*;
 import com.squareup.javapoet.JavaFile;

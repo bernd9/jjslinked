@@ -1,9 +1,9 @@
 package one.xis.processor;
 
 import com.ejc.*;
-import com.ejc.api.context.ApplicationContext;
-import com.ejc.api.context.ModuleFactory;
-import com.ejc.api.context.UndefinedClass;
+import one.xis.context.ApplicationContext;
+import one.xis.context.ModuleFactory;
+import one.xis.context.UndefinedClass;
 import com.ejc.util.CollectionUtils;
 import com.ejc.util.CollectorUtils;
 import com.ejc.util.JavaModelUtils;

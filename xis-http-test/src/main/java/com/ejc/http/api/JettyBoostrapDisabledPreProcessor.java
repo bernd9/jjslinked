@@ -1,6 +1,6 @@
 package com.ejc.http.api;
 
-import com.ejc.api.context.SingletonPreProcessor;
+import one.xis.context.SingletonPreProcessor;
 
 import java.util.Optional;
 

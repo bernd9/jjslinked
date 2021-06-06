@@ -1,8 +1,8 @@
 package one.xis.processor;
 
-import com.ejc.api.context.ApplicationContext;
-import com.ejc.api.context.ApplicationContextFactory;
-import com.ejc.api.context.ModuleFactory;
+import one.xis.context.ApplicationContext;
+import one.xis.context.ApplicationContextFactory;
+import one.xis.context.ModuleFactory;
 import com.ejc.util.ClassUtils;
 import com.ejc.util.CollectorUtils;
 import com.google.testing.compile.Compilation;

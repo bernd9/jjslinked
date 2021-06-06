@@ -1,6 +1,6 @@
 package one.xis.processor;
 
-import com.ejc.api.context.ClassReference;
+import one.xis.context.ClassReference;
 import com.ejc.http.*;
 import com.ejc.http.api.controller.*;
 import com.google.auto.service.AutoService;

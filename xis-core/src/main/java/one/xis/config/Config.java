@@ -1,6 +1,6 @@
 package one.xis.config;
 
-import com.ejc.api.profile.ActiveProfile;
+import one.xis.profile.ActiveProfile;
 import com.ejc.util.TypeUtils;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

@@ -1,6 +1,6 @@
 package one.xis.sql.api;
 
-import com.ejc.api.context.UsedInGeneratedCode;
+import one.xis.context.UsedInGeneratedCode;
 
 import java.util.ArrayList;
 import java.util.List;

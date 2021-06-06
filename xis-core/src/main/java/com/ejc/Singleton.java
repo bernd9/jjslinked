@@ -1,6 +1,6 @@
 package com.ejc;
 
-import com.ejc.api.context.UndefinedClass;
+import one.xis.context.UndefinedClass;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

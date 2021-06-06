@@ -1,6 +1,6 @@
 package com.ejc;
 
-import com.ejc.api.context.SingletonPreProcessor;
+import one.xis.context.SingletonPreProcessor;
 import com.ejc.util.ClassUtils;
 
 import java.util.Collection;

@@ -1,7 +1,7 @@
 package one.xis.processor;
 
-import com.ejc.api.context.ApplicationRunnerBase;
-import com.ejc.api.context.ClassReference;
+import one.xis.context.ApplicationRunnerBase;
+import one.xis.context.ClassReference;
 import one.xis.javapoet.JavaWriter;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.MethodSpec;

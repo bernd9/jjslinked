@@ -1,10 +1,10 @@
 package one.xis.processor;
 
 import com.ejc.Value;
-import com.ejc.api.context.ClassReference;
-import com.ejc.api.context.ModuleFactory;
-import com.ejc.api.context.ParameterReference;
-import com.ejc.api.context.ValueAnnotationReference;
+import one.xis.context.ClassReference;
+import one.xis.context.ModuleFactory;
+import one.xis.context.ParameterReference;
+import one.xis.context.ValueAnnotationReference;
 import one.xis.javapoet.JavaWriter;
 import com.ejc.util.JavaModelUtils;
 import com.squareup.javapoet.ClassName;
