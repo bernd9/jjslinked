@@ -10,5 +10,7 @@ include 'xis-http-processor'
 include 'xis-http-test'
 include 'xis-processor'
 include 'xis-sql-processor'
-
+include 'xis-code'
+include 'xpa'
+include 'xis-linked'
 
